@@ -14,10 +14,18 @@ function GoalTodayCard({ today, selected }) {
     >
       <div className="metric">
         <span className="metric__value">{formatMinutes(minutes)}</span>
-        <span className="metric__unit">
-          {met ? '✅ meta cumplida' : `de ${formatMinutes(goalMinutes)}`}
-        </span>
+        {!met && <span className="metric__unit">de {formatMinutes(goalMinutes)}</span>}
       </div>
+
+      {met && (
+        <p className="goal-status">
+          <span className="check-round" aria-hidden="true">
+            ✓
+          </span>
+          ¡Meta cumplida!
+        </p>
+      )}
+
       <div
         className="progress"
         role="progressbar"
@@ -30,7 +38,8 @@ function GoalTodayCard({ today, selected }) {
           style={{ width: `${progress}%` }}
         />
       </div>
-      <p className="metric__hint">{met ? '¡Buen trabajo!' : `${progress}% de la meta`}</p>
+
+      <p className="metric__hint">{progress}% de la meta</p>
     </Card>
   );
 }

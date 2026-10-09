@@ -6,7 +6,7 @@ function StreakCard({ streak }) {
   const best = streak?.best ?? 0;
 
   return (
-    <Card title="Racha" description="Días seguidos con la meta cumplida">
+    <Card className="card--center" title="Racha" description="Días seguidos con la meta cumplida">
       <div className="metric">
         <span className="metric__value">{current}</span>
         <span className="metric__unit">{current === 1 ? 'día' : 'días'}</span>

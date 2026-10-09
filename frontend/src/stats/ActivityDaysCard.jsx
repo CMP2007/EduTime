@@ -12,19 +12,6 @@ function ActivityDaysCard({ activeDays = 0, goalDays = 0 }) {
         <span className="metric__unit">{activeDays === 1 ? 'día con clases' : 'días con clases'}</span>
       </div>
 
-      <div
-        className="progress"
-        role="progressbar"
-        aria-valuenow={percent}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        <div
-          className={`progress__bar ${percent === 100 ? 'progress__bar--done' : ''}`}
-          style={{ width: `${percent}%` }}
-        />
-      </div>
-
       <ul className="goal-breakdown">
         <li>
           <span className="goal-breakdown__label">Meta cumplida</span>
