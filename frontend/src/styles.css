@@ -220,6 +220,30 @@ body {
   background: var(--success);
 }
 
+.goal-breakdown {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  gap: 20px;
+}
+
+.goal-breakdown li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.goal-breakdown__label {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.goal-breakdown__value {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
 /* ---------- Historial ---------- */
 .filters {
   display: flex;
@@ -429,8 +453,16 @@ textarea {
 }
 
 /* ---------- Heatmap ---------- */
+.heatmap-layout {
+  display: flex;
+  flex-direction: row-reverse;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px 24px;
+}
+
 .heatmap__toolbar {
-  margin-bottom: 12px;
   max-width: 220px;
 }
 
@@ -446,6 +478,7 @@ textarea {
 }
 
 .heatmap {
+  flex: 0 0 auto;
   max-width: 100%;
 }
 

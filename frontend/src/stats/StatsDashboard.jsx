@@ -43,33 +43,35 @@ function StatsDashboard({ version }) {
         <StreakCard streak={stats.global.streak} selected={Boolean(selectedDate)} />
         <WeeklyHoursCard minutes={stats.summary.totalMinutes} selected={Boolean(selectedDate)} />
         <ActivityDaysCard
-          weekDays={stats.summary.activeDays}
-          global={stats.global}
+          activeDays={stats.summary.activeDays}
+          goalDays={stats.summary.goalDays}
           selected={Boolean(selectedDate)}
         />
       </div>
 
       <Card title="Calendario de actividad" description="Pulsa un día para enfocar las tarjetas en esa fecha">
-        <div className="heatmap__toolbar">
-          <label className="field">
-            <span className="field__label">Rango</span>
-            <select value={heatmapRange} onChange={(event) => setHeatmapRange(event.target.value)}>
-              {HEATMAP_OPTIONS.map((option) => (
-                <option key={option.key} value={option.key}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className="heatmap-layout">
+          <div className="heatmap__toolbar">
+            <label className="field">
+              <span className="field__label">Rango</span>
+              <select value={heatmapRange} onChange={(event) => setHeatmapRange(event.target.value)}>
+                {HEATMAP_OPTIONS.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <ActivityHeatmap
+            days={stats.heatmap.days}
+            rangeKey={stats.heatmap.range}
+            from={stats.heatmap.from}
+            to={stats.heatmap.to}
+            selectedDate={selectedDate}
+            onSelectDate={(date) => setSelectedDate((current) => (current === date ? null : date))}
+          />
         </div>
-        <ActivityHeatmap
-          days={stats.heatmap.days}
-          rangeKey={stats.heatmap.range}
-          from={stats.heatmap.from}
-          to={stats.heatmap.to}
-          selectedDate={selectedDate}
-          onSelectDate={(date) => setSelectedDate((current) => (current === date ? null : date))}
-        />
       </Card>
     </div>
   );

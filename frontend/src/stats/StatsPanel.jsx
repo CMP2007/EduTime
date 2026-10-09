@@ -43,7 +43,7 @@ function StatsPanel({ version, onEdit, onDelete }) {
 
             <Card title="Días meta del periodo" description="Días con 3h o más">
               <div className="metric">
-                <span className="metric__value">{stats.summary.activeDays}</span>
+                <span className="metric__value">{stats.summary.goalDays}</span>
                 <span className="metric__unit">días</span>
               </div>
             </Card>

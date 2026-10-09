@@ -33,10 +33,10 @@ function findLongest(sessions) {
   );
 }
 
-/** Racha = días consecutivos con al menos una clase, hasta la fecha de referencia. */
-function computeStreaks(activityDates, reference) {
+/** Racha = días consecutivos en los que se cumplió la meta, hasta la fecha de referencia. */
+function computeStreaks(goalDates, reference) {
   const today = reference || todayString();
-  const sorted = [...activityDates].filter((date) => date <= today).sort();
+  const sorted = [...goalDates].filter((date) => date <= today).sort();
   if (sorted.length === 0) return { current: 0, best: 0 };
 
   let best = 1;
@@ -80,7 +80,13 @@ export const statsService = {
 
     const totalsByDate = sumByDate(sessions);
     const goalDays = [...totalsByDate.values()].filter((minutes) => minutes >= GOAL_MINUTES).length;
-    const activeDaysInPeriod = [...sumByDate(periodSessions).values()].filter(
+    const goalDates = [...totalsByDate.entries()]
+      .filter(([, minutes]) => minutes >= GOAL_MINUTES)
+      .map(([dateKey]) => dateKey);
+
+    const periodTotals = sumByDate(periodSessions);
+    const activeDaysInPeriod = periodTotals.size;
+    const goalDaysInPeriod = [...periodTotals.values()].filter(
       (minutes) => minutes >= GOAL_MINUTES,
     ).length;
 
@@ -98,6 +104,7 @@ export const statsService = {
         totalMinutes: totalMinutes(periodSessions),
         totalSessions: periodSessions.length,
         activeDays: activeDaysInPeriod,
+        goalDays: goalDaysInPeriod,
         longestClass: longest
           ? {
               id: longest.id,
@@ -112,7 +119,7 @@ export const statsService = {
         totalMinutes: totalMinutes(sessions),
         totalSessions: sessions.length,
         goalDays,
-        streak: computeStreaks(totalsByDate.keys(), reference),
+        streak: computeStreaks(goalDates, reference),
       },
       today: {
         date: reference,

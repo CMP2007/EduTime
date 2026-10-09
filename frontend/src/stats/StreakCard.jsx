@@ -7,7 +7,7 @@ function StreakCard({ streak, selected }) {
   return (
     <Card
       title="Racha"
-      description={selected ? 'Días seguidos hasta la fecha seleccionada' : 'Días seguidos con al menos una clase'}
+      description={selected ? 'Días seguidos con la meta cumplida hasta esa fecha' : 'Días seguidos con la meta cumplida'}
     >
       <div className="metric">
         <span className="metric__value">{current}</span>

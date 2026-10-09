@@ -9,9 +9,11 @@ aporte.
   (Node + Express 4).
 - Registrar clases (temática, fecha, duración y observaciones) desde un formulario
   emergente.
-- Pestañas: Inicio (meta de hoy, racha, horas de la semana, días con meta y heatmap),
+- Pestañas: Inicio (meta del día, racha, horas de la semana, días con actividad y heatmap),
   Historial (listado con filtros, editar y eliminar) y Estadísticas (métricas por
   periodo y horas por temática).
+- En Inicio, pulsar un día del heatmap enfoca las cuatro tarjetas en esa fecha; un botón
+  "Deshacer" vuelve a los valores actuales (hoy/semana en curso).
 - Persistencia en `backend/data/sessions.json` (ignorado por git).
 
 #### ##Decisiones (y por qué)
@@ -20,8 +22,9 @@ aporte.
 - Un archivo por funcionalidad: cada componente, hook, ruta, servicio y repositorio en
   su propio archivo, para que el código sea fácil de leer y mantener.
 - El backend calcula las métricas (`/api/stats`): racha, periodos, temáticas y heatmap.
-- Meta diaria = 180 min (≥ 3h) para contar como "día con meta cumplida"; la racha, en
-  cambio, cuenta cualquier día con al menos una clase.
+- Meta diaria = 180 min (≥ 3h). La racha cuenta días consecutivos con la meta cumplida
+  y se calcula hasta la fecha de referencia. La tarjeta "Días con actividad" muestra el
+  conteo de días con clases, cuántos cumplieron la meta y el porcentaje de cumplimiento.
 - Duración en dos campos (horas + minutos) con mínimo de 15 min por clase.
 
 #### ##Aprendizajes y errores a evitar
