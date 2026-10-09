@@ -76,7 +76,7 @@ frontend/src/
 - **Racha**: días consecutivos en los que se **cumplió la meta** (≥ 180 min). Si el día de referencia aún no llega a la meta, la racha sigue viva hasta fin del día. Se guarda la **racha más extensa** (récord). Se calcula "hasta" la fecha de referencia.
 - **Semana**: lunes a domingo. **Mes**: calendario. **Año**: natural.
 - **Periodos** de estadísticas: `day`, `week`, `month`, `3m`, `6m`, `12m`, `year`.
-- **Heatmap**: días coloreados según horas; los días con meta cumplida se marcan con un borde. En Inicio, pulsar un día enfoca las tarjetas en esa fecha (con botón para deshacer).
+- **Heatmap**: días coloreados según horas; los días con meta cumplida se marcan con un borde. En Inicio, pulsar un día enfoca las tarjetas en esa fecha (con botón para deshacer); el calendario se ancla a hoy (`heatmapDate`) para no moverse al seleccionar.
 
 ## API
 
@@ -87,7 +87,7 @@ frontend/src/
 | POST   | `/api/sessions`          | Crea una clase (valida).                      |
 | PUT    | `/api/sessions/:id`      | Edita una clase.                              |
 | DELETE | `/api/sessions/:id`      | Elimina una clase (204).                      |
-| GET    | `/api/stats`             | Métricas. Params: `period`, `date`, `heatmap`.|
+| GET    | `/api/stats`             | Métricas. Params: `period`, `date`, `heatmap`, `heatmapDate`.|
 
 Los errores de validación responden `400`; los recursos inexistentes, `404`.
 

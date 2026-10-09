@@ -9,6 +9,7 @@ router.get('/', async (request, response, next) => {
       period: request.query.period,
       date: request.query.date,
       heatmap: request.query.heatmap,
+      heatmapDate: request.query.heatmapDate,
     });
     response.json(stats);
   } catch (error) {

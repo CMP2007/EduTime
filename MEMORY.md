@@ -13,7 +13,8 @@ aporte.
   Historial (listado con filtros, editar y eliminar) y Estadísticas (métricas por
   periodo y horas por temática).
 - En Inicio, pulsar un día del heatmap enfoca las cuatro tarjetas en esa fecha; un botón
-  "Deshacer" vuelve a los valores actuales (hoy/semana en curso).
+  "Deshacer" vuelve a los valores actuales (hoy/semana en curso). El calendario se ancla a
+  hoy (no se mueve al seleccionar) y se muestra junto al selector, cada uno en un panel sutil.
 - Persistencia en `backend/data/sessions.json` (ignorado por git).
 
 #### ##Decisiones (y por qué)

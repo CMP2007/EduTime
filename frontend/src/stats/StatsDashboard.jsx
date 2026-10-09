@@ -18,7 +18,12 @@ function StatsDashboard({ version }) {
 
   const referenceDate = selectedDate || todayString();
   const { stats, loading, error } = useStats(
-    { period: 'week', date: referenceDate, heatmap: heatmapRange },
+    {
+      period: 'week',
+      date: referenceDate,
+      heatmap: heatmapRange,
+      heatmapDate: todayString(),
+    },
     version,
   );
 
@@ -49,9 +54,13 @@ function StatsDashboard({ version }) {
         />
       </div>
 
-      <Card title="Calendario de actividad" description="Pulsa un día para enfocar las tarjetas en esa fecha">
+      <Card>
         <div className="heatmap-layout">
-          <div className="heatmap__toolbar">
+          <div className="heatmap-panel heatmap-panel--controls">
+            <header className="card__header">
+              <h3 className="card__title">Calendario de actividad</h3>
+              <p className="card__description">Pulsa un día para enfocar las tarjetas en esa fecha</p>
+            </header>
             <label className="field">
               <span className="field__label">Rango</span>
               <select value={heatmapRange} onChange={(event) => setHeatmapRange(event.target.value)}>
@@ -63,14 +72,16 @@ function StatsDashboard({ version }) {
               </select>
             </label>
           </div>
-          <ActivityHeatmap
-            days={stats.heatmap.days}
-            rangeKey={stats.heatmap.range}
-            from={stats.heatmap.from}
-            to={stats.heatmap.to}
-            selectedDate={selectedDate}
-            onSelectDate={(date) => setSelectedDate((current) => (current === date ? null : date))}
-          />
+          <div className="heatmap-panel heatmap-panel--grid">
+            <ActivityHeatmap
+              days={stats.heatmap.days}
+              rangeKey={stats.heatmap.range}
+              from={stats.heatmap.from}
+              to={stats.heatmap.to}
+              selectedDate={selectedDate}
+              onSelectDate={(date) => setSelectedDate((current) => (current === date ? null : date))}
+            />
+          </div>
         </div>
       </Card>
     </div>

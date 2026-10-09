@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { statsApi } from './stats.api.js';
 
 /** Carga las métricas calculadas por el backend. */
-export function useStats({ period, date, heatmap }, version = 0) {
+export function useStats({ period, date, heatmap, heatmapDate }, version = 0) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -10,7 +10,7 @@ export function useStats({ period, date, heatmap }, version = 0) {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await statsApi.get({ period, date, heatmap });
+      const data = await statsApi.get({ period, date, heatmap, heatmapDate });
       setStats(data);
       setError('');
     } catch (requestError) {
@@ -18,7 +18,7 @@ export function useStats({ period, date, heatmap }, version = 0) {
     } finally {
       setLoading(false);
     }
-  }, [period, date, heatmap, version]);
+  }, [period, date, heatmap, heatmapDate, version]);
 
   useEffect(() => {
     reload();

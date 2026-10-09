@@ -65,14 +65,15 @@ function buildHeatmap(totalsByDate, from, to) {
 }
 
 export const statsService = {
-  async getStats({ period, date, heatmap } = {}) {
+  async getStats({ period, date, heatmap, heatmapDate } = {}) {
     const reference = date || todayString();
+    const heatmapReference = heatmapDate || reference;
     const periodKey = isValidPeriod(period) ? period : 'week';
     const heatmapKey = isValidPeriod(heatmap) ? heatmap : 'week';
 
     const sessions = await sessionsRepository.findAll();
     const periodRange = getRange(periodKey, reference);
-    const heatmapRange = getRange(heatmapKey, reference);
+    const heatmapRange = getRange(heatmapKey, heatmapReference);
 
     const periodSessions = sessions.filter(
       (session) => session.date >= periodRange.from && session.date <= periodRange.to,
