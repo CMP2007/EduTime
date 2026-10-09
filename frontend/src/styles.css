@@ -550,60 +550,17 @@ button.heatmap__cell:hover {
   font-size: 0.8rem;
 }
 
-.day-detail {
-  margin-top: 16px;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #f8fafc;
-  max-width: 520px;
-}
-
-.day-detail__header {
+.selection-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
-}
-
-.day-detail__close {
-  border: 0;
-  background: transparent;
-  font-size: 1.3rem;
-  line-height: 1;
-  color: var(--muted);
-  cursor: pointer;
-  padding: 0 4px;
-}
-
-.day-detail__summary {
-  margin: 0 0 10px;
-  font-size: 0.9rem;
-}
-
-.day-detail__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.day-detail__list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 0.9rem;
-}
-
-.day-detail__title {
-  font-weight: 600;
-}
-
-.day-detail__duration {
-  color: var(--muted);
+  padding: 10px 14px;
+  border: 1px solid var(--primary);
+  border-radius: 12px;
+  background: #eef2ff;
+  font-size: 0.92rem;
+  margin-bottom: 16px;
 }
 
 /* ---------- Modales ---------- */

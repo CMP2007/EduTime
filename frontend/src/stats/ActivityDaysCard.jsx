@@ -1,13 +1,16 @@
 import Card from '../components/Card.jsx';
 
-function ActivityDaysCard({ global }) {
+function ActivityDaysCard({ weekDays, global, selected }) {
   return (
-    <Card title="Días con meta cumplida" description="Días que llegaron a 3 horas o más">
+    <Card
+      title="Días con meta cumplida"
+      description={selected ? 'Días con 3 h o más en esa semana' : 'Días con 3 h o más esta semana'}
+    >
       <div className="metric">
-        <span className="metric__value">{global?.goalDays ?? 0}</span>
+        <span className="metric__value">{weekDays ?? 0}</span>
         <span className="metric__unit">días</span>
       </div>
-      <p className="metric__hint">Histórico completo</p>
+      <p className="metric__hint">Total histórico: {global?.goalDays ?? 0} días</p>
     </Card>
   );
 }

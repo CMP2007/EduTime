@@ -1,9 +1,12 @@
 import Card from '../components/Card.jsx';
 import { formatMinutes } from '../utils/time.js';
 
-function WeeklyHoursCard({ minutes }) {
+function WeeklyHoursCard({ minutes, selected }) {
   return (
-    <Card title="Esta semana" description="Horas estudiadas de lunes a domingo">
+    <Card
+      title={selected ? 'Semana seleccionada' : 'Esta semana'}
+      description="Horas estudiadas de lunes a domingo"
+    >
       <div className="metric">
         <span className="metric__value">{formatMinutes(minutes)}</span>
       </div>

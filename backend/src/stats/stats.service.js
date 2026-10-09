@@ -33,9 +33,10 @@ function findLongest(sessions) {
   );
 }
 
-/** Racha = días consecutivos con al menos una clase. */
-function computeStreaks(activityDates) {
-  const sorted = [...activityDates].sort();
+/** Racha = días consecutivos con al menos una clase, hasta la fecha de referencia. */
+function computeStreaks(activityDates, reference) {
+  const today = reference || todayString();
+  const sorted = [...activityDates].filter((date) => date <= today).sort();
   if (sorted.length === 0) return { current: 0, best: 0 };
 
   let best = 1;
@@ -46,7 +47,6 @@ function computeStreaks(activityDates) {
   }
 
   const set = new Set(sorted);
-  const today = todayString();
   let cursor = set.has(today) ? today : addDays(today, -1);
   let current = 0;
   while (set.has(cursor)) {
@@ -112,7 +112,7 @@ export const statsService = {
         totalMinutes: totalMinutes(sessions),
         totalSessions: sessions.length,
         goalDays,
-        streak: computeStreaks(totalsByDate.keys()),
+        streak: computeStreaks(totalsByDate.keys(), reference),
       },
       today: {
         date: reference,

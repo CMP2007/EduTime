@@ -1,7 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import Card from '../components/Card.jsx';
-import { useSessions } from '../sessions/useSessions.js';
-import { todayString } from '../utils/date.js';
+import { formatDateLong, todayString } from '../utils/date.js';
 import { useStats } from './useStats.js';
 import ActivityDaysCard from './ActivityDaysCard.jsx';
 import ActivityHeatmap from './ActivityHeatmap.jsx';
@@ -12,36 +11,45 @@ import WeeklyHoursCard from './WeeklyHoursCard.jsx';
 
 const HEATMAP_OPTIONS = PERIOD_OPTIONS.filter((option) => option.key !== 'day');
 
-/** Pestaña Inicio: resumen del día, la racha y el calendario de actividad. */
+/** Pestaña Inicio: resumen y calendario. Al elegir un día, las tarjetas se enfocan en él. */
 function StatsDashboard({ version }) {
   const [heatmapRange, setHeatmapRange] = useState('week');
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  const referenceDate = selectedDate || todayString();
   const { stats, loading, error } = useStats(
-    { period: 'week', date: todayString(), heatmap: heatmapRange },
+    { period: 'week', date: referenceDate, heatmap: heatmapRange },
     version,
   );
-  const { sessions } = useSessions({}, version);
-
-  const sessionsByDate = useMemo(() => {
-    const map = {};
-    for (const session of sessions) {
-      (map[session.date] ??= []).push(session);
-    }
-    return map;
-  }, [sessions]);
 
   if (error) return <p className="error">{error}</p>;
   if (!stats) return <p className="muted">{loading ? 'Cargando resumen…' : 'Sin datos.'}</p>;
 
   return (
     <div className="dashboard">
+      {selectedDate && (
+        <div className="selection-banner">
+          <span>
+            Mostrando datos del <strong>{formatDateLong(selectedDate)}</strong>
+          </span>
+          <button type="button" className="button button--ghost" onClick={() => setSelectedDate(null)}>
+            Deshacer
+          </button>
+        </div>
+      )}
+
       <div className="cards">
-        <GoalTodayCard today={stats.today} />
-        <StreakCard streak={stats.global.streak} />
-        <WeeklyHoursCard minutes={stats.summary.totalMinutes} />
-        <ActivityDaysCard global={stats.global} />
+        <GoalTodayCard today={stats.today} selected={Boolean(selectedDate)} />
+        <StreakCard streak={stats.global.streak} selected={Boolean(selectedDate)} />
+        <WeeklyHoursCard minutes={stats.summary.totalMinutes} selected={Boolean(selectedDate)} />
+        <ActivityDaysCard
+          weekDays={stats.summary.activeDays}
+          global={stats.global}
+          selected={Boolean(selectedDate)}
+        />
       </div>
 
-      <Card title="Calendario de actividad" description="Pulsa un día para ver su detalle">
+      <Card title="Calendario de actividad" description="Pulsa un día para enfocar las tarjetas en esa fecha">
         <div className="heatmap__toolbar">
           <label className="field">
             <span className="field__label">Rango</span>
@@ -59,7 +67,8 @@ function StatsDashboard({ version }) {
           rangeKey={stats.heatmap.range}
           from={stats.heatmap.from}
           to={stats.heatmap.to}
-          sessionsByDate={sessionsByDate}
+          selectedDate={selectedDate}
+          onSelectDate={(date) => setSelectedDate((current) => (current === date ? null : date))}
         />
       </Card>
     </div>

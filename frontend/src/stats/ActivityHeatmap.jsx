@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { formatDateLong, formatDateRange, monthNameFromKey, weekdayIndex } from '../utils/date.js';
 import { formatMinutes, GOAL_MINUTES } from '../utils/time.js';
 
@@ -91,43 +90,14 @@ function HeatCell({ day, selected, onSelect }) {
   );
 }
 
-function DayDetail({ day, sessions, onClose }) {
-  const hasSessions = sessions.length > 0;
-
-  return (
-    <div className="day-detail">
-      <div className="day-detail__header">
-        <strong>{formatDateLong(day.date)}</strong>
-        <button type="button" className="day-detail__close" onClick={onClose} aria-label="Cerrar detalle del día">
-          ×
-        </button>
-      </div>
-
-      {hasSessions ? (
-        <>
-          <p className="day-detail__summary">
-            {formatMinutes(day.minutes)} estudiadas ·{' '}
-            {day.goalMet ? '✅ meta cumplida' : 'meta no alcanzada'}
-          </p>
-          <ul className="day-detail__list">
-            {sessions.map((session) => (
-              <li key={session.id}>
-                <span className="day-detail__title">{session.title}</span>
-                <span className="day-detail__duration">{formatMinutes(session.durationMinutes)}</span>
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : (
-        <p className="muted">Este día no tiene clases registradas.</p>
-      )}
-    </div>
-  );
-}
-
-function ActivityHeatmap({ days = [], rangeKey = 'week', from = '', to = '', sessionsByDate = {} }) {
-  const [selectedDate, setSelectedDate] = useState(null);
-
+function ActivityHeatmap({
+  days = [],
+  rangeKey = 'week',
+  from = '',
+  to = '',
+  selectedDate = null,
+  onSelectDate,
+}) {
   if (!days.length) return <p className="muted">Sin datos para este rango.</p>;
 
   const columns = buildColumns(days);
@@ -137,12 +107,6 @@ function ActivityHeatmap({ days = [], rangeKey = 'week', from = '', to = '', ses
   const multiYear = fromYear !== toYear;
   const groups = groupColumns(columns, mode, multiYear);
   const yearLabel = multiYear ? `${fromYear}–${toYear}` : fromYear;
-
-  const selectedDay = selectedDate ? days.find((day) => day.date === selectedDate) : null;
-
-  function handleSelect(date) {
-    setSelectedDate((current) => (current === date ? null : date));
-  }
 
   return (
     <div className="heatmap">
@@ -163,7 +127,7 @@ function ActivityHeatmap({ days = [], rangeKey = 'week', from = '', to = '', ses
                         key={day ? day.date : `empty-${group.key}-${columnIndex}-${dayIndex}`}
                         day={day}
                         selected={Boolean(day) && day.date === selectedDate}
-                        onSelect={handleSelect}
+                        onSelect={onSelectDate}
                       />
                     ))}
                   </div>
@@ -173,14 +137,6 @@ function ActivityHeatmap({ days = [], rangeKey = 'week', from = '', to = '', ses
           ))}
         </div>
       </div>
-
-      {selectedDay && (
-        <DayDetail
-          day={selectedDay}
-          sessions={sessionsByDate[selectedDay.date] ?? []}
-          onClose={() => setSelectedDate(null)}
-        />
-      )}
 
       <div className="heatmap__legend">
         <span className="muted">Menos</span>

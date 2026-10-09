@@ -1,14 +1,17 @@
 import Card from '../components/Card.jsx';
 import { formatMinutes, GOAL_MINUTES, goalProgress } from '../utils/time.js';
 
-function GoalTodayCard({ today }) {
+function GoalTodayCard({ today, selected }) {
   const minutes = today?.minutes ?? 0;
   const goalMinutes = today?.goalMinutes ?? GOAL_MINUTES;
   const met = Boolean(today?.goalMet);
   const progress = goalProgress(minutes);
 
   return (
-    <Card title="Meta de hoy" description={`Objetivo: ${formatMinutes(goalMinutes)}`}>
+    <Card
+      title={selected ? 'Meta del día' : 'Meta de hoy'}
+      description={`Objetivo: ${formatMinutes(goalMinutes)}`}
+    >
       <div className="metric">
         <span className="metric__value">{formatMinutes(minutes)}</span>
         <span className="metric__unit">
