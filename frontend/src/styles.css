@@ -454,11 +454,12 @@ textarea {
 
 /* ---------- Heatmap ---------- */
 .heatmap-layout {
+  --heatmap-gap: 16px;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  justify-content: center;
-  gap: 16px;
+  justify-content: flex-start;
+  gap: var(--heatmap-gap);
 }
 
 .heatmap-panel {
@@ -471,13 +472,15 @@ textarea {
 .heatmap-panel--controls {
   flex: 0 0 auto;
   width: 240px;
+  margin-left: calc(var(--heatmap-gap) * 2);
 }
 
 .heatmap-panel--grid {
-  flex: 0 0 auto;
-  max-width: 100%;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .heatmap__top {
