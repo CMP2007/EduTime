@@ -44,7 +44,12 @@ function StatsDashboard({ version }) {
             </select>
           </label>
         </div>
-        <ActivityHeatmap days={stats.heatmap.days} />
+        <ActivityHeatmap
+          days={stats.heatmap.days}
+          rangeKey={stats.heatmap.range}
+          from={stats.heatmap.from}
+          to={stats.heatmap.to}
+        />
       </Card>
     </div>
   );

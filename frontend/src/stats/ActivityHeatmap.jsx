@@ -1,4 +1,4 @@
-import { formatDateLong, weekdayIndex } from '../utils/date.js';
+import { formatDateLong, formatDateRange, monthNameFromKey, weekdayIndex } from '../utils/date.js';
 import { formatMinutes, GOAL_MINUTES } from '../utils/time.js';
 
 function level(minutes) {
@@ -9,53 +9,120 @@ function level(minutes) {
   return 1;
 }
 
-/** Agrupa los días en columnas de 7, empezando en lunes. */
-function groupIntoWeeks(days) {
-  const weeks = [];
+/** Convierte la lista de días en columnas semanales (7 celdas, empezando en lunes). */
+function buildColumns(days) {
+  const columns = [];
   let current = [];
 
   days.forEach((day, index) => {
     if (index === 0) {
-      const offset = weekdayIndex(day.date);
-      for (let blank = 0; blank < offset; blank += 1) current.push(null);
+      for (let blank = 0; blank < weekdayIndex(day.date); blank += 1) current.push(null);
     }
     current.push(day);
     if (current.length === 7) {
-      weeks.push(current);
+      columns.push(current);
       current = [];
     }
   });
 
-  if (current.length) weeks.push(current);
-  return weeks;
+  if (current.length) columns.push(current);
+
+  return columns.map((cells) => {
+    const realDays = cells.filter(Boolean);
+    const monthCounts = new Map();
+    realDays.forEach((day) => {
+      const key = day.date.slice(0, 7);
+      monthCounts.set(key, (monthCounts.get(key) ?? 0) + 1);
+    });
+    const monthKey = [...monthCounts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+
+    return {
+      cells,
+      firstDate: realDays[0].date,
+      lastDate: realDays[realDays.length - 1].date,
+      monthKey,
+    };
+  });
 }
 
-function ActivityHeatmap({ days = [] }) {
-  const weeks = groupIntoWeeks(days);
+/** Agrupa las columnas por semana o por mes, con la etiqueta de cabecera. */
+function groupColumns(columns, mode, multiYear) {
+  if (mode === 'weeks') {
+    return columns.map((column) => ({
+      key: column.firstDate,
+      label: formatDateRange(column.firstDate, column.lastDate),
+      columns: [column],
+    }));
+  }
 
+  const groups = [];
+  columns.forEach((column) => {
+    const label = multiYear
+      ? `${monthNameFromKey(column.monthKey)} ${column.monthKey.slice(0, 4)}`
+      : monthNameFromKey(column.monthKey);
+    const previous = groups[groups.length - 1];
+
+    if (previous && previous.key === column.monthKey) {
+      previous.columns.push(column);
+    } else {
+      groups.push({ key: column.monthKey, label, columns: [column] });
+    }
+  });
+  return groups;
+}
+
+function HeatCell({ day }) {
+  if (!day) return <span className="heatmap__cell heatmap__cell--empty" />;
+
+  return (
+    <span
+      className={`heatmap__cell heatmap__cell--l${level(day.minutes)} ${
+        day.goalMet ? 'heatmap__cell--goal' : ''
+      }`}
+      title={`${formatDateLong(day.date)}: ${formatMinutes(day.minutes)}`}
+    />
+  );
+}
+
+function ActivityHeatmap({ days = [], rangeKey = 'week', from = '', to = '' }) {
   if (!days.length) return <p className="muted">Sin datos para este rango.</p>;
+
+  const columns = buildColumns(days);
+  const mode = rangeKey === 'week' ? 'weeks' : 'months';
+  const fromYear = from.slice(0, 4);
+  const toYear = to.slice(0, 4);
+  const multiYear = fromYear !== toYear;
+  const groups = groupColumns(columns, mode, multiYear);
+  const yearLabel = multiYear ? `${fromYear}–${toYear}` : fromYear;
 
   return (
     <div className="heatmap">
-      <div className="heatmap__grid">
-        {weeks.map((week, weekIndex) => (
-          <div className="heatmap__week" key={`week-${weekIndex}`}>
-            {week.map((day, dayIndex) =>
-              day ? (
-                <span
-                  key={day.date}
-                  className={`heatmap__cell heatmap__cell--l${level(day.minutes)} ${
-                    day.goalMet ? 'heatmap__cell--goal' : ''
-                  }`}
-                  title={`${formatDateLong(day.date)}: ${formatMinutes(day.minutes)}`}
-                />
-              ) : (
-                <span key={`empty-${weekIndex}-${dayIndex}`} className="heatmap__cell heatmap__cell--empty" />
-              ),
-            )}
-          </div>
-        ))}
+      <div className="heatmap__top">
+        <span className="heatmap__year">{yearLabel}</span>
       </div>
+
+      <div className="heatmap__scroll">
+        <div className="heatmap__groups">
+          {groups.map((group) => (
+            <div className="heatmap__group" key={group.key}>
+              <span className="heatmap__group-label">{group.label}</span>
+              <div className="heatmap__weeks">
+                {group.columns.map((column, columnIndex) => (
+                  <div className="heatmap__week" key={`${group.key}-${columnIndex}`}>
+                    {column.cells.map((day, dayIndex) => (
+                      <HeatCell
+                        key={day ? day.date : `empty-${group.key}-${columnIndex}-${dayIndex}`}
+                        day={day}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="heatmap__legend">
         <span className="muted">Menos</span>
         {[0, 1, 2, 3, 4].map((value) => (

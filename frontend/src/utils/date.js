@@ -1,4 +1,18 @@
 const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const MONTHS_LONG = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+];
 const WEEKDAYS = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
 
 export function fromDateString(value) {
@@ -25,6 +39,31 @@ export function formatDateShort(value) {
   if (!value) return '';
   const date = fromDateString(value);
   return `${date.getDate()} ${MONTHS[date.getMonth()]}`;
+}
+
+/** Rango de fechas legible: "5–11 oct" o "29 sep – 4 oct". */
+export function formatDateRange(fromValue, toValue) {
+  if (!fromValue || !toValue) return '';
+  const from = fromDateString(fromValue);
+  const to = fromDateString(toValue);
+  const sameYear = from.getFullYear() === to.getFullYear();
+  const sameMonth = sameYear && from.getMonth() === to.getMonth();
+
+  if (sameMonth) {
+    return `${from.getDate()}–${to.getDate()} ${MONTHS[from.getMonth()]}`;
+  }
+  if (sameYear) {
+    return `${from.getDate()} ${MONTHS[from.getMonth()]} – ${to.getDate()} ${MONTHS[to.getMonth()]}`;
+  }
+  return `${from.getDate()} ${MONTHS[from.getMonth()]} ${from.getFullYear()} – ${to.getDate()} ${
+    MONTHS[to.getMonth()]
+  } ${to.getFullYear()}`;
+}
+
+/** Nombre del mes a partir de una clave "YYYY-MM". */
+export function monthNameFromKey(key) {
+  if (!key) return '';
+  return MONTHS_LONG[Number(key.slice(5, 7)) - 1] ?? '';
 }
 
 /** Índice del día de la semana con lunes = 0. */
