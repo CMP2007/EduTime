@@ -119,8 +119,9 @@ export const statsService = {
       global: {
         totalMinutes: totalMinutes(sessions),
         totalSessions: sessions.length,
+        activeDays: totalsByDate.size,
         goalDays,
-        streak: computeStreaks(goalDates, reference),
+        streak: computeStreaks(goalDates, todayString()),
       },
       today: {
         date: reference,

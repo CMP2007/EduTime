@@ -1,15 +1,12 @@
 import Card from '../components/Card.jsx';
 
-/** Resumen de actividad: días con clases, cuántos cumplieron la meta y el porcentaje. */
-function ActivityDaysCard({ activeDays = 0, goalDays = 0, selected }) {
+/** Resumen global de actividad: días con clases, cuántos cumplieron la meta y el porcentaje. */
+function ActivityDaysCard({ activeDays = 0, goalDays = 0 }) {
   const notMet = Math.max(0, activeDays - goalDays);
   const percent = activeDays > 0 ? Math.round((goalDays / activeDays) * 100) : 0;
 
   return (
-    <Card
-      title="Días con actividad"
-      description={selected ? 'Actividad de la semana seleccionada' : 'Actividad de esta semana'}
-    >
+    <Card title="Días con actividad" description="Histórico completo">
       <div className="metric">
         <span className="metric__value">{activeDays}</span>
         <span className="metric__unit">{activeDays === 1 ? 'día con clases' : 'días con clases'}</span>

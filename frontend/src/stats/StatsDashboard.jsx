@@ -45,13 +45,9 @@ function StatsDashboard({ version }) {
 
       <div className="cards">
         <GoalTodayCard today={stats.today} selected={Boolean(selectedDate)} />
-        <StreakCard streak={stats.global.streak} selected={Boolean(selectedDate)} />
         <WeeklyHoursCard minutes={stats.summary.totalMinutes} selected={Boolean(selectedDate)} />
-        <ActivityDaysCard
-          activeDays={stats.summary.activeDays}
-          goalDays={stats.summary.goalDays}
-          selected={Boolean(selectedDate)}
-        />
+        <StreakCard streak={stats.global.streak} />
+        <ActivityDaysCard activeDays={stats.global.activeDays} goalDays={stats.global.goalDays} />
       </div>
 
       <Card>

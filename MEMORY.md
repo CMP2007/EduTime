@@ -24,8 +24,8 @@ aporte.
   su propio archivo, para que el código sea fácil de leer y mantener.
 - El backend calcula las métricas (`/api/stats`): racha, periodos, temáticas y heatmap.
 - Meta diaria = 180 min (≥ 3h). La racha cuenta días consecutivos con la meta cumplida
-  y se calcula hasta la fecha de referencia. La tarjeta "Días con actividad" muestra el
-  conteo de días con clases, cuántos cumplieron la meta y el porcentaje de cumplimiento.
+  (global hasta hoy). Las tarjetas "Racha" y "Días con actividad" son globales y no cambian
+  al seleccionar un día; el calendario se ancla a hoy para no moverse.
 - Duración en dos campos (horas + minutos) con mínimo de 15 min por clase.
 
 #### ##Aprendizajes y errores a evitar

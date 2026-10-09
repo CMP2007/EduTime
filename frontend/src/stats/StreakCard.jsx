@@ -1,14 +1,12 @@
 import Card from '../components/Card.jsx';
 
-function StreakCard({ streak, selected }) {
+/** Racha global: días consecutivos (hasta hoy) en los que se cumplió la meta. */
+function StreakCard({ streak }) {
   const current = streak?.current ?? 0;
   const best = streak?.best ?? 0;
 
   return (
-    <Card
-      title="Racha"
-      description={selected ? 'Días seguidos con la meta cumplida hasta esa fecha' : 'Días seguidos con la meta cumplida'}
-    >
+    <Card title="Racha" description="Días seguidos con la meta cumplida">
       <div className="metric">
         <span className="metric__value">{current}</span>
         <span className="metric__unit">{current === 1 ? 'día' : 'días'}</span>

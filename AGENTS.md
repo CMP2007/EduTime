@@ -73,7 +73,7 @@ frontend/src/
 ## Reglas de negocio
 
 - **Meta diaria**: 180 minutos (3h). Un "día con meta cumplida" suma **≥ 180 min**, da igual si es una o varias clases.
-- **Racha**: días consecutivos en los que se **cumplió la meta** (≥ 180 min). Si el día de referencia aún no llega a la meta, la racha sigue viva hasta fin del día. Se guarda la **racha más extensa** (récord). Se calcula "hasta" la fecha de referencia.
+- **Racha**: días consecutivos en los que se **cumplió la meta** (≥ 180 min). Si hoy aún no llega a la meta, la racha sigue viva hasta fin del día. Se guarda la **racha más extensa** (récord). Es un cálculo **global hasta hoy**: no cambia al seleccionar un día en el calendario.
 - **Semana**: lunes a domingo. **Mes**: calendario. **Año**: natural.
 - **Periodos** de estadísticas: `day`, `week`, `month`, `3m`, `6m`, `12m`, `year`.
 - **Heatmap**: días coloreados según horas; los días con meta cumplida se marcan con un borde. En Inicio, pulsar un día enfoca las tarjetas en esa fecha (con botón para deshacer); el calendario se ancla a hoy (`heatmapDate`) para no moverse al seleccionar.
