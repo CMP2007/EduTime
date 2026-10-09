@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { formatDateLong, formatDateRange, monthNameFromKey, weekdayIndex } from '../utils/date.js';
 import { formatMinutes, GOAL_MINUTES } from '../utils/time.js';
 
@@ -71,20 +72,62 @@ function groupColumns(columns, mode, multiYear) {
   return groups;
 }
 
-function HeatCell({ day }) {
-  if (!day) return <span className="heatmap__cell heatmap__cell--empty" />;
+function HeatCell({ day, selected, onSelect }) {
+  if (!day) return <span className="heatmap__cell heatmap__cell--empty" aria-hidden="true" />;
+
+  const description = day.minutes ? formatMinutes(day.minutes) : 'sin clases';
 
   return (
-    <span
+    <button
+      type="button"
       className={`heatmap__cell heatmap__cell--l${level(day.minutes)} ${
         day.goalMet ? 'heatmap__cell--goal' : ''
-      }`}
-      title={`${formatDateLong(day.date)}: ${formatMinutes(day.minutes)}`}
+      } ${selected ? 'heatmap__cell--selected' : ''}`}
+      title={`${formatDateLong(day.date)}: ${description}`}
+      aria-label={`${formatDateLong(day.date)}: ${description}`}
+      aria-pressed={selected}
+      onClick={() => onSelect(day.date)}
     />
   );
 }
 
-function ActivityHeatmap({ days = [], rangeKey = 'week', from = '', to = '' }) {
+function DayDetail({ day, sessions, onClose }) {
+  const hasSessions = sessions.length > 0;
+
+  return (
+    <div className="day-detail">
+      <div className="day-detail__header">
+        <strong>{formatDateLong(day.date)}</strong>
+        <button type="button" className="day-detail__close" onClick={onClose} aria-label="Cerrar detalle del día">
+          ×
+        </button>
+      </div>
+
+      {hasSessions ? (
+        <>
+          <p className="day-detail__summary">
+            {formatMinutes(day.minutes)} estudiadas ·{' '}
+            {day.goalMet ? '✅ meta cumplida' : 'meta no alcanzada'}
+          </p>
+          <ul className="day-detail__list">
+            {sessions.map((session) => (
+              <li key={session.id}>
+                <span className="day-detail__title">{session.title}</span>
+                <span className="day-detail__duration">{formatMinutes(session.durationMinutes)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p className="muted">Este día no tiene clases registradas.</p>
+      )}
+    </div>
+  );
+}
+
+function ActivityHeatmap({ days = [], rangeKey = 'week', from = '', to = '', sessionsByDate = {} }) {
+  const [selectedDate, setSelectedDate] = useState(null);
+
   if (!days.length) return <p className="muted">Sin datos para este rango.</p>;
 
   const columns = buildColumns(days);
@@ -95,13 +138,19 @@ function ActivityHeatmap({ days = [], rangeKey = 'week', from = '', to = '' }) {
   const groups = groupColumns(columns, mode, multiYear);
   const yearLabel = multiYear ? `${fromYear}–${toYear}` : fromYear;
 
+  const selectedDay = selectedDate ? days.find((day) => day.date === selectedDate) : null;
+
+  function handleSelect(date) {
+    setSelectedDate((current) => (current === date ? null : date));
+  }
+
   return (
     <div className="heatmap">
       <div className="heatmap__top">
         <span className="heatmap__year">{yearLabel}</span>
       </div>
 
-      <div className="heatmap__scroll">
+      <div className="heatmap__body">
         <div className="heatmap__groups">
           {groups.map((group) => (
             <div className="heatmap__group" key={group.key}>
@@ -113,6 +162,8 @@ function ActivityHeatmap({ days = [], rangeKey = 'week', from = '', to = '' }) {
                       <HeatCell
                         key={day ? day.date : `empty-${group.key}-${columnIndex}-${dayIndex}`}
                         day={day}
+                        selected={Boolean(day) && day.date === selectedDate}
+                        onSelect={handleSelect}
                       />
                     ))}
                   </div>
@@ -122,6 +173,14 @@ function ActivityHeatmap({ days = [], rangeKey = 'week', from = '', to = '' }) {
           ))}
         </div>
       </div>
+
+      {selectedDay && (
+        <DayDetail
+          day={selectedDay}
+          sessions={sessionsByDate[selectedDay.date] ?? []}
+          onClose={() => setSelectedDate(null)}
+        />
+      )}
 
       <div className="heatmap__legend">
         <span className="muted">Menos</span>

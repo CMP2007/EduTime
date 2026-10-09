@@ -445,16 +445,20 @@ textarea {
   letter-spacing: 0.04em;
 }
 
-.heatmap__scroll {
-  overflow-x: auto;
-  padding-bottom: 4px;
+.heatmap {
+  max-width: 100%;
+}
+
+.heatmap__body {
+  width: fit-content;
+  max-width: 100%;
 }
 
 .heatmap__groups {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
-  gap: 18px;
-  width: max-content;
+  gap: 16px 18px;
 }
 
 .heatmap__group {
@@ -486,8 +490,27 @@ textarea {
 .heatmap__cell {
   width: 14px;
   height: 14px;
+  border: 0;
+  padding: 0;
   border-radius: 3px;
   background: #eef2f7;
+  appearance: none;
+  font: inherit;
+}
+
+button.heatmap__cell {
+  cursor: pointer;
+}
+
+button.heatmap__cell:hover {
+  outline: 2px solid #94a3b8;
+  outline-offset: 1px;
+}
+
+.heatmap__cell--selected,
+.heatmap__cell--selected:hover {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
 }
 
 .heatmap__cell--empty {
@@ -525,6 +548,62 @@ textarea {
   gap: 4px;
   margin-top: 12px;
   font-size: 0.8rem;
+}
+
+.day-detail {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #f8fafc;
+  max-width: 520px;
+}
+
+.day-detail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.day-detail__close {
+  border: 0;
+  background: transparent;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.day-detail__summary {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+}
+
+.day-detail__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.day-detail__list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.day-detail__title {
+  font-weight: 600;
+}
+
+.day-detail__duration {
+  color: var(--muted);
 }
 
 /* ---------- Modales ---------- */

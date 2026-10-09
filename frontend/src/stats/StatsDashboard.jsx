@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Card from '../components/Card.jsx';
+import { useSessions } from '../sessions/useSessions.js';
 import { todayString } from '../utils/date.js';
 import { useStats } from './useStats.js';
 import ActivityDaysCard from './ActivityDaysCard.jsx';
@@ -18,6 +19,15 @@ function StatsDashboard({ version }) {
     { period: 'week', date: todayString(), heatmap: heatmapRange },
     version,
   );
+  const { sessions } = useSessions({}, version);
+
+  const sessionsByDate = useMemo(() => {
+    const map = {};
+    for (const session of sessions) {
+      (map[session.date] ??= []).push(session);
+    }
+    return map;
+  }, [sessions]);
 
   if (error) return <p className="error">{error}</p>;
   if (!stats) return <p className="muted">{loading ? 'Cargando resumen…' : 'Sin datos.'}</p>;
@@ -31,7 +41,7 @@ function StatsDashboard({ version }) {
         <ActivityDaysCard global={stats.global} />
       </div>
 
-      <Card title="Calendario de actividad" description="Cada día según las horas estudiadas">
+      <Card title="Calendario de actividad" description="Pulsa un día para ver su detalle">
         <div className="heatmap__toolbar">
           <label className="field">
             <span className="field__label">Rango</span>
@@ -49,6 +59,7 @@ function StatsDashboard({ version }) {
           rangeKey={stats.heatmap.range}
           from={stats.heatmap.from}
           to={stats.heatmap.to}
+          sessionsByDate={sessionsByDate}
         />
       </Card>
     </div>
