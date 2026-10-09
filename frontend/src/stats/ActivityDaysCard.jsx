@@ -15,11 +15,15 @@ function ActivityDaysCard({ activeDays = 0, goalDays = 0 }) {
       <ul className="goal-breakdown">
         <li>
           <span className="goal-breakdown__label">Meta cumplida</span>
-          <span className="goal-breakdown__value">{goalDays}</span>
+          <span className="goal-breakdown__value">
+            {goalDays} <span className="goal-breakdown__unit">{goalDays === 1 ? 'día' : 'días'}</span>
+          </span>
         </li>
         <li>
           <span className="goal-breakdown__label">Sin meta</span>
-          <span className="goal-breakdown__value">{notMet}</span>
+          <span className="goal-breakdown__value">
+            {notMet} <span className="goal-breakdown__unit">{notMet === 1 ? 'día' : 'días'}</span>
+          </span>
         </li>
       </ul>
 

@@ -166,12 +166,6 @@ body {
 .card--center {
   display: flex;
   flex-direction: column;
-}
-
-.card--center .card__body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   justify-content: center;
 }
 
@@ -277,6 +271,12 @@ body {
 .goal-breakdown__value {
   font-size: 1.15rem;
   font-weight: 700;
+}
+
+.goal-breakdown__unit {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
 /* ---------- Historial ---------- */

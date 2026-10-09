@@ -9,6 +9,7 @@ function GoalTodayCard({ today, selected }) {
 
   return (
     <Card
+      className="card--center"
       title={selected ? 'Meta del día' : 'Meta de hoy'}
       description={`Objetivo: ${formatMinutes(goalMinutes)}`}
     >
