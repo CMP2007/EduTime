@@ -76,7 +76,7 @@ frontend/src/
 - **Racha**: días consecutivos en los que se **cumplió la meta** (≥ 180 min). Si hoy aún no llega a la meta, la racha sigue viva hasta fin del día. Se guarda la **racha más extensa** (récord). Es un cálculo **global hasta hoy**: no cambia al seleccionar un día en el calendario.
 - **Semana**: lunes a domingo. **Mes**: calendario. **Año**: natural.
 - **Periodos** de estadísticas: `day`, `week`, `month`, `3m`, `6m`, `12m`, `year`.
-- **Heatmap**: días coloreados según horas; los días con meta cumplida se marcan con un borde. En Inicio, pulsar un día enfoca las tarjetas en esa fecha (con botón para deshacer); el calendario se ancla a hoy (`heatmapDate`) para no moverse al seleccionar.
+- **Heatmap**: días coloreados según horas; los días con meta cumplida se marcan con un borde; cada celda es un botón. Se agrupa por **semana** (etiqueta de rango, p. ej. `5–11 oct`) o por **mes** (nombre, con año si el rango cruza años) según el periodo. En Inicio, pulsar un día enfoca las tarjetas **Meta** y **Horas** en esa fecha (con botón para deshacer); **Racha** y **Días con actividad** son globales y no cambian. El calendario se ancla a hoy (`heatmapDate`) para no moverse al seleccionar.
 
 ## API
 
@@ -90,6 +90,27 @@ frontend/src/
 | GET    | `/api/stats`             | Métricas. Params: `period`, `date`, `heatmap`, `heatmapDate`.|
 
 Los errores de validación responden `400`; los recursos inexistentes, `404`.
+
+### Respuesta de `/api/stats`
+
+`date` es el **día de referencia** (define el periodo y el campo `today`); `heatmapDate` ancla el
+calendario (por defecto, `date`).
+
+```jsonc
+{
+  "period":  { "key": "week", "label": "…", "from": "YYYY-MM-DD", "to": "YYYY-MM-DD" },
+  "summary": { "totalMinutes", "totalSessions",
+               "activeDays",   // días con clases en el periodo
+               "goalDays",     // días con meta cumplida en el periodo
+               "longestClass", "subjects" },
+  "global":  { "totalMinutes", "totalSessions",
+               "activeDays", "goalDays",              // históricos (todos los días)
+               "streak": { "current", "best" } },      // global hasta hoy
+  "today":   { "date", "minutes", "goalMinutes", "goalMet" },  // día de referencia
+  "heatmap": { "range", "label", "from", "to", "goalMinutes",
+               "days": [ { "date", "minutes", "goalMet" } ] }
+}
+```
 
 ## Convenciones de código
 

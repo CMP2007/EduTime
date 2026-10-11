@@ -9,12 +9,12 @@ aporte.
   (Node + Express 4).
 - Registrar clases (temática, fecha, duración y observaciones) desde un formulario
   emergente.
-- Pestañas: Inicio (meta del día, racha, horas de la semana, días con actividad y heatmap),
+- Pestañas: Inicio (meta del día, horas del día/semana, racha, días con actividad y heatmap),
   Historial (listado con filtros, editar y eliminar) y Estadísticas (métricas por
   periodo y horas por temática).
-- En Inicio, pulsar un día del heatmap enfoca las cuatro tarjetas en esa fecha; un botón
-  "Deshacer" vuelve a los valores actuales (hoy/semana en curso). El calendario se ancla a
-  hoy (no se mueve al seleccionar) y se muestra junto al selector, cada uno en un panel sutil.
+- Inicio (terminado): tarjetas **Meta del día** y **Horas** (cambian al seleccionar un día en
+  el heatmap, con botón "Deshacer") y **Racha** y **Días con actividad** (globales, fijas). El
+  calendario se ancla a hoy para no moverse y va junto al selector (izquierda), cada uno en un panel.
 - Persistencia en `backend/data/sessions.json` (ignorado por git).
 
 #### ##Decisiones (y por qué)
@@ -32,6 +32,8 @@ aporte.
 
 - Mantener `MEMORY.md` y `AGENTS.md` sincronizados con el estado real del proyecto.
 - Cuidado con las fechas: usar siempre fecha local y comparar como `YYYY-MM-DD`.
+- CSS: en un flex item, `width: 100%` cuenta para el corte de línea y provoca saltos; usar
+  `flex: 1 1 0` + `min-width` para ocupar el espacio disponible sin saltar.
 
 #### ##Próximos pasos
 
