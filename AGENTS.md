@@ -43,7 +43,7 @@ backend/src/
   storage/fileStore.js         # lectura/escritura del JSON en disco
   utils/date.js                # utilidades de fecha y periodos
   sessions/
-    sessions.repository.js     # CRUD sobre el almacenamiento
+    sessions.repository.js     # CRUD sobre el almacenamiento (fábrica: createSessionsRepository)
     sessions.service.js        # validación + reglas de negocio
     sessions.routes.js         # endpoints /api/sessions
     seed.js                    # datos de ejemplo iniciales
@@ -53,6 +53,8 @@ backend/src/
 
 backend/test/                  # tests (espejo de backend/src/)
   date.test.js                 # utilidades de fecha y periodos
+  fileStore.test.js            # lectura/escritura del JSON (ficheros reales temporales)
+  sessions.repository.test.js  # carreras/concurrencia con el almacenamiento simulado
   stats.service.test.js        # estadísticas con el repositorio simulado
 
 frontend/src/
@@ -129,7 +131,7 @@ calendario (por defecto, `date`).
 - **Estilo**: punto y coma al final, comillas simples, indentación de 2 espacios, funciones flecha, sin clases.
 - Los repositorios y servicios devuelven copias (`{ ...item }`) para no exponer el estado interno.
 - El frontend usa `VITE_API_URL` (por defecto `http://localhost:3001/api`); el proxy de Vite ya reenvía `/api`.
-- **Tests**: runner nativo de Node (`node:test` + `node --test`), sin dependencias. Un archivo `*.test.js` por módulo bajo prueba, en `backend/test/`. La capa de datos se **simula** con `mock.method` (no se toca el disco).
+- **Tests**: runner nativo de Node (`node:test` + `node --test`), sin dependencias. Un archivo `*.test.js` por módulo bajo prueba, en `backend/test/`. La capa de datos se **simula** con `mock.method` (no se toca el disco); la excepción es `fileStore`, cuyo comportamiento **es** el disco y se prueba con ficheros reales en un directorio temporal. El repositorio es una fábrica con punto de inyección del almacenamiento para poder simularlo.
 - **Lint**: ESLint impone las reglas recomendadas de JavaScript, las de hooks de React y el estilo declarado (2 espacios, comillas simples, punto y coma). No impone opiniones no documentadas (paréntesis en flechas, saltos de línea en JSX…).
 
 ## Reglas al modificar el proyecto

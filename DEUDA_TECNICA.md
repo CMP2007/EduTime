@@ -34,7 +34,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 |----|-----------|-----------|--------|
 | B0-1 | Constantes de dominio duplicadas entre backend y frontend | Media | pendiente |
 | B0-2 | Sin tests ni linter configurado | Alta | resuelto |
-| B0-3 | Persistencia acoplada al proceso (condiciones de carrera) | Media-Alta | pendiente |
+| B0-3 | Persistencia acoplada al proceso (condiciones de carrera) | Media-Alta | resuelto |
 | B0-4 | `README.md` desincronizado con la regla real de racha | Baja | pendiente |
 | B0-5 | Patrón `version` / refresh por props (invalidación gruesa) | Media | pendiente |
 | B0-6 | Sin TypeScript ni validación del contrato de datos | Media-Alta | pendiente |
@@ -65,7 +65,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
-| B3-1 | Fichero JSON corrupto se trata como vacío (riesgo de pérdida de datos) | Media-Alta | pendiente |
+| B3-1 | Fichero JSON corrupto se trata como vacío (riesgo de pérdida de datos) | Media-Alta | resuelto |
 | B3-2 | `fromDateString` no valida la entrada (fechas `NaN` silenciosas) | Baja | pendiente |
 | B3-3 | `enumerateDays` trunca en silencio a 4000 días (número mágico) | Baja | pendiente |
 | B3-4 | Periodos inválidos degradan en silencio a `week` | Baja | pendiente |
@@ -245,6 +245,16 @@ escrituras ni loads.
 2. Serializar escrituras (cola/mutex encadenando promesas).
 3. Nombre de tmp único por escritura.
 4. Para multi-proceso real: lock de fichero o SQLite (fuera del alcance "cero deps").
+
+**Resuelto:** en `sessions.repository.js`, el repositorio es ahora una fábrica
+(`createSessionsRepository(store)`) con instancia por defecto. `load()` cachea la **promesa en
+vuelo** (single-flight): las llamadas concurrentes comparten una única lectura y, si falla, la
+promesa se limpia para reintentar. Las escrituras pasan por una **cola** (`writeChain`) que
+evita solapes, y `writeData` usa un tmp **único** (`pid + randomUUID`) con limpieza si el
+`rename` falla. La doble semilla desaparece al haber una sola ejecución de `buildSeed()`.
+**Alcance:** un proceso; el caso multi-proceso (lock de fichero o SQLite) queda fuera, como ya
+anticipaba la mitigación 4. Tests: `backend/test/sessions.repository.test.js` (carreras,
+semilla única y no solape de escrituras), verificados por mutación.
 
 ### B0-4 · `README.md` desincronizado con la regla real de racha
 
@@ -490,6 +500,16 @@ se pierde sin aviso, copia ni error.
 datos del usuario.
 **Mitigación sugerida:** distinguir "vacío" de "corrupto": ante `SyntaxError`, fallar (500)
 o mover el fichero a un `.bak` antes de continuar, en lugar de devolver `[]`.
+
+**Resuelto (opción: fallar):** `readData` ya no devuelve `[]` ante contenido inválido: distingue
+`ENOENT` (no existe → `null`, primer arranque → semilla) de cualquier contenido que no sea un
+array JSON válido (corrupto, **vacío**, no-array) → **lanza error** y **no toca el fichero**. Se
+eligió fallar en vez de copiar a `.bak` y arrancar vacío: el arranque vacío ocultaría la pérdida
+y normalizaría el "sobrescribe y sigue". El fichero vacío no es un primer arranque (existe, la
+escritura atómica nunca lo dejaría así), así que también falla. `app.js` no se toca: el
+manejador actual ya responde 500 y registra el mensaje en el log (mejora de mensajes = punto 3).
+Tests: `backend/test/fileStore.test.js` (corrupto/vacío/no-array fallan y el fichero queda
+intacto), verificados por mutación.
 
 ### B3-2 · `fromDateString` no valida la entrada
 
@@ -958,8 +978,9 @@ ataque en una sesión futura:
 
 1. ✅ **B0-2 / B1-2 / B5-1** — tests y linter *(hecho: 32 tests con `node --test` y ESLint;
    ver `MEMORY.md`)*.
-2. **B0-3 / B3-1** — persistencia (single-flight del load, cola de escrituras, tmp único) y
-   no perder datos si el fichero está corrupto.
+2. ✅ **B0-3 / B3-1** — persistencia (single-flight del load, cola de escrituras, tmp único) y
+   no perder datos si el fichero está corrupto. *(hecho: repositorio como fábrica, cola de
+   escrituras y `readData` que falla ante corrupción; 17 tests nuevos, verificados por mutación)*.
 3. **B2-1 / B6-1 / B6-2 / B7-1 / B10-6** — manejo de errores: JSON malformado → 400; añadir *Error
    Boundary*; gestionar el fallo de borrado; conservar el código HTTP en los errores del cliente;
    mostrar el estado de `useSessions` en `StatsPanel`.

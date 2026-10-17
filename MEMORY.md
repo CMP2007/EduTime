@@ -15,15 +15,23 @@ aporte.
 - Inicio (terminado): tarjetas **Meta del día** y **Horas** (cambian al seleccionar un día en
   el heatmap, con botón "Deshacer") y **Racha** y **Días con actividad** (globales, fijas). El
   calendario se ancla a hoy para no moverse y va junto al selector (izquierda), cada uno en un panel.
-- Persistencia en `backend/data/sessions.json` (ignorado por git).
-- **Calidad**: 32 tests de backend (runner nativo de Node) sobre fechas y estadísticas, y ESLint
-  en todo el monorepo. `npm test` y `npm run lint` en verde.
+- Persistencia en `backend/data/sessions.json` (ignorado por git). Robusta: lectura única
+  (single-flight), cola de escrituras (sin solapes), tmp único y sin arranque vacío si el
+  fichero está corrupto (falla en vez de sobrescribir).
+- **Calidad**: 49 tests de backend (runner nativo de Node) sobre fechas, estadísticas y
+  persistencia, y ESLint en todo el monorepo. `npm test` y `npm run lint` en verde.
 - **Dependencias**: `npm audit fix` resolvió las vulnerabilidades crítica/alta (`concurrently`→9.2.5,
   `source-map-js`→1.2.2). Quedan `esbuild`/`vite` (solo se arreglan subiendo Vite de major; ver B1-8).
 
 #### ##Decisiones (y por qué)
 
 - Persistencia en archivo JSON con `fs`: sobrevive a reinicios sin añadir dependencias.
+- Concurrencia en la persistencia (B0-3): el repositorio cachea la **promesa** de lectura
+  (single-flight), serializa las escrituras en una cola y usa un tmp único. El repositorio es
+  una **fábrica** (`createSessionsRepository(store)`) para poder simular el almacenamiento en
+  tests; la app usa la instancia por defecto.
+- Fichero de datos corrupto/vacío (B3-1): **fallar** (500) y no tocarlo, en vez de tratarlo como
+  vacío y sobrescribirlo. Un fallo visible es mejor que una pérdida silenciosa de datos.
 - Un archivo por funcionalidad: cada componente, hook, ruta, servicio y repositorio en
   su propio archivo, para que el código sea fácil de leer y mantener.
 - El backend calcula las métricas (`/api/stats`): racha, periodos, temáticas y heatmap.
@@ -51,4 +59,4 @@ aporte.
 
 - Tests de frontend (requieren DOM: valorar Vitest + Testing Library más adelante).
 - Posibles mejoras: exportar datos, gráficos de evolución, temas de color.
-- Continuar con el orden de `DEUDA_TECNICA.md` (siguiente: persistencia/errores HTTP).
+- Continuar con el orden de `DEUDA_TECNICA.md` (siguiente: manejo de errores, punto 3).
