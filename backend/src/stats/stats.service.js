@@ -108,11 +108,11 @@ export const statsService = {
         goalDays: goalDaysInPeriod,
         longestClass: longest
           ? {
-              id: longest.id,
-              title: longest.title,
-              date: longest.date,
-              durationMinutes: longest.durationMinutes,
-            }
+            id: longest.id,
+            title: longest.title,
+            date: longest.date,
+            durationMinutes: longest.durationMinutes,
+          }
           : null,
         subjects: groupBySubject(periodSessions),
       },

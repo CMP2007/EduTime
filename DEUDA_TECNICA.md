@@ -1,8 +1,8 @@
 # Registro de deuda técnica — StudyTrack
 
 Registro global de debilidades detectadas durante la revisión de calidad del proyecto. Se
-organiza **por secciones (bloques) de la explicación**: cada bloque aporta sus hallazgos. Aún
-**no** se han corregido; este archivo es la lista de trabajo para una sesión futura.
+organiza **por secciones (bloques) de la explicación**: cada bloque aporta sus hallazgos. La
+mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ver `MEMORY.md`).
 
 - **Estados:** `pendiente` · `en curso` · `resuelto`.
 - **Severidad:** `baja` · `media` · `alta`.
@@ -33,7 +33,7 @@ organiza **por secciones (bloques) de la explicación**: cada bloque aporta sus 
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
 | B0-1 | Constantes de dominio duplicadas entre backend y frontend | Media | pendiente |
-| B0-2 | Sin tests ni linter configurado | Alta | pendiente |
+| B0-2 | Sin tests ni linter configurado | Alta | resuelto |
 | B0-3 | Persistencia acoplada al proceso (condiciones de carrera) | Media-Alta | pendiente |
 | B0-4 | `README.md` desincronizado con la regla real de racha | Baja | pendiente |
 | B0-5 | Patrón `version` / refresh por props (invalidación gruesa) | Media | pendiente |
@@ -44,11 +44,13 @@ organiza **por secciones (bloques) de la explicación**: cada bloque aporta sus 
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
 | B1-1 | Falta `"engines"` (versión de Node) en los `package.json` | Baja-Media | pendiente |
-| B1-2 | Sin scripts de `test`/`lint` en los paquetes (refuerza B0-2) | Baja | pendiente |
+| B1-2 | Sin scripts de `test`/`lint` en los paquetes (refuerza B0-2) | Baja | resuelto |
 | B1-3 | Proxy de Vite acoplado al puerto `3001` del backend | Baja | pendiente |
 | B1-4 | `.gitignore` con entradas redundantes de `node_modules` | Trivial | pendiente |
 | B1-5 | Estructura/funcionalidades duplicadas: `README.md` vs `AGENTS.md` | Baja | pendiente |
 | B1-6 | Configuración de red permisiva (`cors()` abierto + `--host 0.0.0.0`) | Baja | pendiente |
+| B1-7 | El proxy de Vite no se usa: la URL por defecto de la API es absoluta | Baja | pendiente |
+| B1-8 | Dependencias con vulnerabilidades conocidas (`esbuild`/`vite`) | Media | en curso |
 
 ### Bloque 2 — Backend: arranque y composición
 
@@ -76,12 +78,13 @@ organiza **por secciones (bloques) de la explicación**: cada bloque aporta sus 
 | B4-2 | Update parcial de duración exige horas y minutos juntos | Baja-Media | pendiente |
 | B4-3 | `clone` superficial en el repositorio | Baja | pendiente |
 | B4-4 | Filtros `from`/`to` sin validar | Baja | pendiente |
+| B4-5 | El seed se persiste sin pasar por la validación del servicio | Baja | pendiente |
 
 ### Bloque 5 — Backend: dominio de estadísticas
 
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
-| B5-1 | Sin tests en la lógica crítica de estadísticas | Alta | pendiente |
+| B5-1 | Sin tests en la lógica crítica de estadísticas | Alta | resuelto |
 | B5-2 | Agrupación por temática por título exacto (sin normalizar) | Baja | pendiente |
 | B5-3 | Racha recalculada en cada petición (sin caché) | Baja | pendiente |
 | B5-4 | Meta diaria fija (180) y duplicada backend/frontend | Baja | pendiente |
@@ -121,7 +124,7 @@ organiza **por secciones (bloques) de la explicación**: cada bloque aporta sus 
 |----|-----------|-----------|--------|
 | B9-1 | Validación de dominio duplicada en `SessionForm` (refuerza B0-1) | Baja-Media | pendiente |
 | B9-2 | Búsqueda sin `debounce` (una petición por pulsación) | Media | pendiente |
-| B9-3 | Límite de duración inconsistente: front permite 23h59m, backend 23h | Baja-Media | pendiente |
+| B9-3 | Límite de duración: el mensaje del backend dice "23 h" pero admite 23h59; el cliente solo valida el mínimo en JS | Baja | pendiente |
 | B9-4 | Mensajes de error del formulario sin rol accesible | Baja | pendiente |
 | B9-5 | Filtros `from`/`to` sin comprobar rango invertido | Baja | pendiente |
 | B9-6 | `Number(...) || 0` enmascara entradas inválidas del formulario | Muy baja | pendiente |
@@ -182,6 +185,9 @@ proyecto (cálculo de racha, periodos, heatmap) no tiene ninguna prueba automati
 cálculo (racha, periodos) no se detectarían.
 **Mitigación sugerida:** tests de `stats.service.js` (racha, `getRange`, heatmap) como
 prioridad; añadir ESLint/Prettier para fijar el estilo ya documentado en `AGENTS.md`.
+
+**Resuelto:** tests con el runner nativo de Node (`node --test`, 32 casos) y ESLint (flat
+config en la raíz). El comentario `eslint-disable` sin efecto de `app.js` ya se retiró.
 
 ### B0-3 · Persistencia acoplada al proceso (condiciones de carrera)
 
@@ -335,6 +341,9 @@ Ni la raíz ni los workspaces exponen scripts `test` o `lint`. Es la cara de con
 **Mitigación sugerida:** añadir `"test"` y `"lint"` (aunque sea un placeholder que falle) y
 engancharlos en la raíz; así se hace evidente la ausencia en lugar de quedar implícita.
 
+**Resuelto:** raíz expone `npm test` (`node --test` por workspace) y `npm run lint` (ESLint);
+`backend` expone su propio `test`.
+
 ### B1-3 · Proxy de Vite acoplado al puerto `3001` del backend
 
 `frontend/vite.config.js:9` fija `proxy: { '/api': 'http://localhost:3001' }` con el puerto
@@ -373,6 +382,41 @@ expone en una red no confiable.
 
 **Mitigación sugerida:** restringir `origin` al frontend esperado y no usar `0.0.0.0` por
 defecto (o dejarlo tras un flag/script aparte).
+
+### B1-7 · El proxy de Vite no se usa: la URL por defecto de la API es absoluta
+
+`frontend/src/api/client.js:1` define `API_URL` como
+`import.meta.env.VITE_API_URL || 'http://localhost:3001/api'`. Al ser una **URL absoluta** (con
+dominio y puerto), las peticiones del navegador van **directas** al `:3001` y **nunca llegan al
+servidor de Vite**, de modo que el proxy de `frontend/vite.config.js:8-10` **no se usa** en la
+práctica. Para colmo, `AGENTS.md` afirma que "el proxy de Vite ya reenvía `/api`", lo que
+induce a creer que sí actúa. Como consecuencia inevitable, en desarrollo el navegador habla con
+un origen distinto (`:5173` → `:3001`) y **CORS sí es necesario** (de ahí el `cors()` abierto,
+ver **B1-6**).
+
+**Impacto:** configuración muerta y engañosa; se cree tener proxy cuando no lo hay.
+**Mitigación sugerida:** usar una ruta relativa por defecto (`VITE_API_URL || '/api'`) para que
+el proxy haga su trabajo (y CORS deje de ser necesario en desarrollo), **o** eliminar el proxy
+y documentar explícitamente que las peticiones van directas al backend.
+
+### B1-8 · Dependencias con vulnerabilidades conocidas (`npm audit`)
+
+`npm audit` detectó 5 vulnerabilidades. **Todas están en `devDependencies`** (herramientas de
+desarrollo/build): ninguna llega al código de producción.
+
+| Paquete | Vía | Severidad | Causa |
+|---------|-----|-----------|-------|
+| `shell-quote` | `concurrently` | Crítica | Inyección de comandos en `quote()` |
+| `concurrently` | raíz | Crítica | Depende de la `shell-quote` vulnerable |
+| `source-map-js` | `vite` → `postcss` | Alta | DoS con offsets de source-map |
+| `vite` | frontend | Alta | Depende de `esbuild` vulnerable |
+| `esbuild` | `vite` | Moderada | El dev-server acepta peticiones de cualquier web |
+
+**Resuelto (parcial):** `npm audit fix` (sin `--force`) actualizó `concurrently` a 9.2.5
+(`shell-quote` 1.12.0) y `source-map-js` a 1.2.2 → quedan **2** de las 5.
+**Pendiente:** `esbuild`/`vite` solo se arreglan subiendo **Vite a una *major* nueva**
+(`vite@8`), un cambio *breaking* que afecta a `vite.config.js` y `@vitejs/plugin-react`.
+Requiere una tarea propia con pruebas.
 
 ---
 
@@ -521,6 +565,20 @@ inválidos.
 > **Refuerza B0-1:** las reglas de validación (título, notas, 15 min, 23 h) están duplicadas
 > en `frontend/src/sessions/SessionForm.jsx`.
 
+### B4-5 · El seed se persiste sin pasar por la validación del servicio
+
+En `sessions.repository.js:10-12`, cuando no existe el fichero, `load()` hace
+`cache = buildSeed()` y `await writeData(cache)` **directamente**, sin pasar por
+`sessionsService`. Las entradas de ejemplo nunca se validan (título máx. 80, duración mín. 15,
+etc.). Si alguien añade una entrada de seed inválida, se guardaría una sesión que la API
+rechazaría si se enviara por HTTP, rompiendo el invariante "toda sesión persistida cumple las
+reglas del dominio".
+
+**Impacto:** bajo (los datos de ejemplo son fijos y hoy válidos), pero es un invariante no
+garantizado.
+**Mitigación sugerida:** validar el seed antes de escribirlo, o documentar explícitamente que
+el seed es de confianza y se construye conforme al modelo.
+
 ---
 
 ## Bloque 5 — Backend: dominio de estadísticas
@@ -536,6 +594,10 @@ refactor puede alterar números sin que nada lo detecte.
 
 **Mitigación:** tests unitarios de `computeStreaks`, `getRange`, `sumByDate` y `groupBySubject`
 es el primer test a escribir del proyecto.
+
+**Resuelto:** `backend/test/stats.service.test.js` cubre racha (`current`/`best`), meta del día,
+periodos, resumen y heatmap, con el repositorio simulado (`mock.method`). Verificado con
+pruebas de mutación (romper el código a propósito hace fallar la suite).
 
 ### B5-2 · Agrupación por temática por título exacto (sin normalizar)
 
@@ -720,13 +782,23 @@ capas pueden divergir sin que nada avise.
 
 **Mitigación:** `debounce` (o búsqueda al enviar).
 
-### B9-3 · Límite de duración inconsistente: front permite 23h59m, backend 23h
+### B9-3 · Límite de duración: el mensaje no coincide con el máximo real (front y back sí coinciden)
 
-`SessionForm.jsx:107-125` pone `max="23"` en horas y `max="59"` en minutos, así que admite
-23h 59m; el backend topa en 23 h (1380 min, `sessions.service.js`). El formulario **solo**
-valida el mínimo, no el máximo. Un valor 23h01m pasa el cliente y el servidor lo rechaza.
+> **Corrección (auditoría del código):** una lectura previa afirmaba que el front permitía
+> 23h59m y el backend solo 23h. **Es incorrecto.** `SessionForm.jsx` limita a `max="23"` h y
+> `max="59"` m, y el backend calcula `DURATION_MAX = HOURS_MAX * 60 + MINUTES_MAX = 1439` min
+> (23h 59m). **Ambas capas coinciden**; no hay inconsistencia de límites.
 
-**Mitigación:** unificar el máximo y validarlo también en cliente.
+Lo que sí queda como debilidad:
+
+- El mensaje de error del backend (`sessions.service.js:30`) dice "no puede superar las 23
+  horas", pero en realidad admite hasta 23h 59m: el texto no describe el límite real.
+- `SessionForm.jsx:59` **solo** valida el mínimo en JS; el máximo se delega al atributo HTML
+  `max`, no a una comprobación explícita. Si ese atributo se saltara (navegador permisivo,
+  pegado, scripts), el cliente no lo detectaría.
+
+**Mitigación:** alinear el texto del mensaje con el límite real (o cambiar el límite) y validar
+el máximo también en JavaScript.
 
 ### B9-4 · Mensajes de error del formulario sin rol accesible
 
@@ -884,8 +956,8 @@ El proyecto es pequeño y monousuario, así que **prioriza simplicidad**; las co
 notan al crecer (más escritores concurrentes, más vistas, más campos). Orden sugerido de
 ataque en una sesión futura:
 
-1. **B0-2 / B1-2 / B5-1** — tests y linter; empezar por la lógica crítica de estadísticas
-   (racha, rangos, heatmap).
+1. ✅ **B0-2 / B1-2 / B5-1** — tests y linter *(hecho: 32 tests con `node --test` y ESLint;
+   ver `MEMORY.md`)*.
 2. **B0-3 / B3-1** — persistencia (single-flight del load, cola de escrituras, tmp único) y
    no perder datos si el fichero está corrupto.
 3. **B2-1 / B6-1 / B6-2 / B7-1 / B10-6** — manejo de errores: JSON malformado → 400; añadir *Error
@@ -897,7 +969,7 @@ ataque en una sesión futura:
 6. **B0-1 / B5-4 / B9-1 / B10-1 / B10-2** — fuente única de constantes y reglas de dominio
    (meta diaria, periodos, validaciones) y eliminar el filtrado duplicado en cliente.
 7. **B0-4 / B1-5** — sincronizar documentación.
-8. **B1-1 / B1-3 / B1-4 / B1-6 / B2-2 / B2-3 / B2-4 / B3-2 / B3-3 / B3-4 / B4-1 / B4-3 /
+8. **B1-1 / B1-3 / B1-4 / B1-6 / B1-7 / B2-2 / B2-3 / B2-4 / B3-2 / B3-3 / B3-4 / B4-1 / B4-3 /
    B4-4 / B5-2 / B5-3 / B5-4 / B6-3 / B6-4 / B6-5 / B7-3 / B7-4 / B8-1 / B8-3 / B8-4 /
    B8-5 / B9-3 / B9-5 / B9-6 / B10-3 / B10-4 / B10-5 / B11-1 / B11-2 / B11-3 / B11-5 /
    B11-6** — ajustes de configuración y limpieza (engines, proxy, gitignore, CORS, clase base de
@@ -911,3 +983,6 @@ ataque en una sesión futura:
 10. **B8-2 / B9-4 / B11-4** — accesibilidad: `Modal` (focus trap, restaurar foco, bloquear
     scroll), mensajes de error accesibles y `:focus-visible`/`prefers-reduced-motion`.
 11. **B9-2** — `debounce` en la búsqueda por temática.
+12. **B1-8** — subir **Vite a una *major*** para eliminar las vulnerabilidades `esbuild`/`vite`
+    (cambio *breaking*: afecta a `vite.config.js` y `@vitejs/plugin-react`). Hacerlo con
+    `npm test` y `npm run lint` como red de seguridad.

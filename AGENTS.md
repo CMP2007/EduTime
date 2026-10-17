@@ -22,11 +22,15 @@ npm run dev          # levanta frontend (5173) y backend (3001) juntos
 npm run frontend     # solo frontend (vite --host 0.0.0.0)
 npm run backend      # solo backend (node --watch src/server.js)
 npm run build        # build de producción del frontend (vite build)
+npm test             # tests de todos los workspaces (Node test runner)
+npm run lint         # ESLint sobre todo el monorepo
 ```
 
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3001
-- No hay suite de tests ni linter configurados actualmente.
+- **Tests**: runner nativo de Node (`node --test`), sin dependencias. Viven en `backend/test/`
+  (espejo de `src/`). Convención: `*.test.js`.
+- **Linter**: ESLint (flat config en la raíz, `eslint.config.js`).
 
 ## Estructura
 
@@ -46,6 +50,10 @@ backend/src/
   stats/
     stats.service.js           # racha, periodos, temáticas, heatmap
     stats.routes.js            # endpoint /api/stats
+
+backend/test/                  # tests (espejo de backend/src/)
+  date.test.js                 # utilidades de fecha y periodos
+  stats.service.test.js        # estadísticas con el repositorio simulado
 
 frontend/src/
   main.jsx                     # punto de entrada de React
@@ -121,6 +129,8 @@ calendario (por defecto, `date`).
 - **Estilo**: punto y coma al final, comillas simples, indentación de 2 espacios, funciones flecha, sin clases.
 - Los repositorios y servicios devuelven copias (`{ ...item }`) para no exponer el estado interno.
 - El frontend usa `VITE_API_URL` (por defecto `http://localhost:3001/api`); el proxy de Vite ya reenvía `/api`.
+- **Tests**: runner nativo de Node (`node:test` + `node --test`), sin dependencias. Un archivo `*.test.js` por módulo bajo prueba, en `backend/test/`. La capa de datos se **simula** con `mock.method` (no se toca el disco).
+- **Lint**: ESLint impone las reglas recomendadas de JavaScript, las de hooks de React y el estilo declarado (2 espacios, comillas simples, punto y coma). No impone opiniones no documentadas (paréntesis en flechas, saltos de línea en JSX…).
 
 ## Reglas al modificar el proyecto
 
@@ -131,6 +141,7 @@ calendario (por defecto, `date`).
 5. **Persistencia en archivo JSON** (`backend/data/sessions.json`, ignorado por git). No dejar datos solo en memoria. Los IDs son estables.
 6. Al añadir una funcionalidad, actualizar este `AGENTS.md` (si cambia la estructura, el modelo o los comandos) y `MEMORY.md`.
 7. Para planificar una funcionalidad antes de codificar, usar el comando `/feature`.
+8. Antes de dar algo por terminado, `npm test` y `npm run lint` deben pasar (los tests en verde y el lint sin errores).
 
 ## Notas
 

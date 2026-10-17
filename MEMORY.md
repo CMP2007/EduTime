@@ -16,6 +16,10 @@ aporte.
   el heatmap, con botón "Deshacer") y **Racha** y **Días con actividad** (globales, fijas). El
   calendario se ancla a hoy para no moverse y va junto al selector (izquierda), cada uno en un panel.
 - Persistencia en `backend/data/sessions.json` (ignorado por git).
+- **Calidad**: 32 tests de backend (runner nativo de Node) sobre fechas y estadísticas, y ESLint
+  en todo el monorepo. `npm test` y `npm run lint` en verde.
+- **Dependencias**: `npm audit fix` resolvió las vulnerabilidades crítica/alta (`concurrently`→9.2.5,
+  `source-map-js`→1.2.2). Quedan `esbuild`/`vite` (solo se arreglan subiendo Vite de major; ver B1-8).
 
 #### ##Decisiones (y por qué)
 
@@ -27,15 +31,24 @@ aporte.
   (global hasta hoy). Las tarjetas "Racha" y "Días con actividad" son globales y no cambian
   al seleccionar un día; el calendario se ancla a hoy para no moverse.
 - Duración en dos campos (horas + minutos) con mínimo de 15 min por clase.
+- Tests con el runner **nativo de Node** (`node --test`): sin dependencias. La capa de datos se
+  simula con `mock.method`, así los tests son rápidos y no tocan el disco.
+- ESLint solo impone el estilo ya declarado (2 espacios, comillas simples, punto y coma) y no las
+  opiniones del preset completo (evita un diff masivo de estilo sin acordar).
 
 #### ##Aprendizajes y errores a evitar
 
 - Mantener `MEMORY.md` y `AGENTS.md` sincronizados con el estado real del proyecto.
+- Un test que pasa no prueba nada por sí solo: conviene **romper el código a propósito** y
+  comprobar que la suite falla (prueba de mutación).
+- Al deshacer cambios con git, revertir **archivo por archivo** (`git checkout -- <archivo>`), no la
+  carpeta entera: un `git checkout -- <dir>` se llevó por delante cambios buenos sin querer.
 - Cuidado con las fechas: usar siempre fecha local y comparar como `YYYY-MM-DD`.
 - CSS: en un flex item, `width: 100%` cuenta para el corte de línea y provoca saltos; usar
   `flex: 1 1 0` + `min-width` para ocupar el espacio disponible sin saltar.
 
 #### ##Próximos pasos
 
-- Añadir tests (backend y frontend) más adelante.
+- Tests de frontend (requieren DOM: valorar Vitest + Testing Library más adelante).
 - Posibles mejoras: exportar datos, gráficos de evolución, temas de color.
+- Continuar con el orden de `DEUDA_TECNICA.md` (siguiente: persistencia/errores HTTP).

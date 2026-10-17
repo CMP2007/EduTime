@@ -20,7 +20,6 @@ app.use((_request, response) => {
   response.status(404).json({ error: 'Ruta no encontrada' });
 });
 
-// eslint-disable-next-line no-unused-vars
 app.use((error, _request, response, _next) => {
   if (error instanceof ValidationError) {
     return response.status(400).json({ error: error.message });
