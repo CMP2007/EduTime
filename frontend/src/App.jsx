@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ConfirmDialog from './components/ConfirmDialog.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 import Tabs from './components/Tabs.jsx';
 import HistoryView from './sessions/HistoryView.jsx';
 import SessionForm from './sessions/SessionForm.jsx';
@@ -19,6 +20,7 @@ function App() {
   const [formState, setFormState] = useState({ open: false, session: null });
   const [toDelete, setToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   function refresh() {
     setVersion((current) => current + 1);
@@ -46,13 +48,21 @@ function App() {
     refresh();
   }
 
+  function closeDeleteDialog() {
+    setToDelete(null);
+    setDeleteError('');
+  }
+
   async function handleConfirmDelete() {
     if (!toDelete) return;
     setDeleting(true);
+    setDeleteError('');
     try {
       await sessionsApi.remove(toDelete.id);
-      setToDelete(null);
+      closeDeleteDialog();
       refresh();
+    } catch (requestError) {
+      setDeleteError(requestError.message);
     } finally {
       setDeleting(false);
     }
@@ -73,9 +83,12 @@ function App() {
       <Tabs tabs={TABS} active={tab} onChange={setTab} />
 
       <main className="app__content">
-        {tab === 'home' && <StatsDashboard version={version} />}
-        {tab === 'history' && <HistoryView version={version} onEdit={openEdit} onDelete={setToDelete} />}
-        {tab === 'stats' && <StatsPanel version={version} onEdit={openEdit} onDelete={setToDelete} />}
+        {/* key={tab} reinicia el límite de error al cambiar de pestaña */}
+        <ErrorBoundary key={tab}>
+          {tab === 'home' && <StatsDashboard version={version} />}
+          {tab === 'history' && <HistoryView version={version} onEdit={openEdit} onDelete={setToDelete} />}
+          {tab === 'stats' && <StatsPanel version={version} onEdit={openEdit} onDelete={setToDelete} />}
+        </ErrorBoundary>
       </main>
 
       <SessionForm
@@ -94,7 +107,8 @@ function App() {
             : ''
         }
         onConfirm={handleConfirmDelete}
-        onCancel={() => setToDelete(null)}
+        onCancel={closeDeleteDialog}
+        error={deleteError}
         busy={deleting}
       />
     </div>

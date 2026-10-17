@@ -7,6 +7,8 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 - **Estados:** `pendiente` · `en curso` · `resuelto`.
 - **Severidad:** `baja` · `media` · `alta`.
 - **IDs:** `B<n>-<m>` = bloque `n`, hallazgo `m` (estables aunque se reordene el resumen).
+- **Referencias de código:** citar `archivo` + símbolo (función, constante…), no números de
+  línea: se pudren con cada cambio (verificado al limpiar este archivo).
 
 ## Índice
 
@@ -38,6 +40,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | B0-4 | `README.md` desincronizado con la regla real de racha | Baja | pendiente |
 | B0-5 | Patrón `version` / refresh por props (invalidación gruesa) | Media | pendiente |
 | B0-6 | Sin TypeScript ni validación del contrato de datos | Media-Alta | pendiente |
+| B0-7 | Sin tests de frontend ni E2E (requisito de culminación) | Alta | en curso |
 
 ### Bloque 1 — Cimientos y configuración
 
@@ -50,13 +53,14 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | B1-5 | Estructura/funcionalidades duplicadas: `README.md` vs `AGENTS.md` | Baja | pendiente |
 | B1-6 | Configuración de red permisiva (`cors()` abierto + `--host 0.0.0.0`) | Baja | pendiente |
 | B1-7 | El proxy de Vite no se usa: la URL por defecto de la API es absoluta | Baja | pendiente |
-| B1-8 | Dependencias con vulnerabilidades conocidas (`esbuild`/`vite`) | Media | en curso |
+| B1-8 | Dependencias con vulnerabilidades conocidas (`esbuild`/`vite`) | Media | resuelto |
+| B1-9 | Mayores de dependencias pendientes (`react` 19, `express` 5, `concurrently` 10) | Media | pendiente |
 
 ### Bloque 2 — Backend: arranque y composición
 
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
-| B2-1 | JSON malformado responde 500 en lugar de 400 | Media | pendiente |
+| B2-1 | JSON malformado responde 500 en lugar de 400 | Media | resuelto |
 | B2-2 | `app.js` acoplado a `ValidationError` de sessions | Baja-Media | pendiente |
 | B2-3 | Boilerplate de `try/catch` en cada ruta | Baja | pendiente |
 | B2-4 | Sin logging de peticiones/errores | Baja | pendiente |
@@ -93,8 +97,8 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
-| B6-1 | Sin Error Boundary (un error deja la pantalla en blanco) | Media | pendiente |
-| B6-2 | Error de borrado no gestionado (se traga el fallo) | Media | pendiente |
+| B6-1 | Sin Error Boundary (un error deja la pantalla en blanco) | Media | resuelto |
+| B6-2 | Error de borrado no gestionado (se traga el fallo) | Media | resuelto |
 | B6-3 | Sin enrutado/URL (recargar siempre vuelve a Inicio) | Baja | pendiente |
 | B6-4 | `App` accede a la API directamente (mezcla capas) | Baja | pendiente |
 | B6-5 | Fecha cruda `YYYY-MM-DD` en el diálogo de borrado | Baja | pendiente |
@@ -103,7 +107,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
-| B7-1 | `request` pierde el código de estado HTTP | Media | pendiente |
+| B7-1 | `request` pierde el código de estado HTTP | Media | resuelto |
 | B7-2 | Sin cancelación ni orden de respuestas (race en los hooks) | Baja-Media | pendiente |
 | B7-3 | Merge de cabeceras frágil (`Content-Type` se puede borrar) | Baja | pendiente |
 | B7-4 | `Content-Type` enviado también en peticiones `GET` | Muy baja | pendiente |
@@ -138,7 +142,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | B10-3 | Umbrales del heatmap (`level`) hardcodeados sin documentar | Baja | pendiente |
 | B10-4 | `buildColumns` asume serie contigua y no rellena la última semana | Baja | pendiente |
 | B10-5 | Tarjetas con `?? 0` silencian cambios de forma del contrato | Baja | pendiente |
-| B10-6 | El error/estado de `useSessions` en `StatsPanel` no se muestra | Baja-Media | pendiente |
+| B10-6 | El error/estado de `useSessions` en `StatsPanel` no se muestra | Baja-Media | resuelto |
 
 ### Bloque 11 — Frontend: estilos
 
@@ -175,86 +179,21 @@ lado referenciado desde el resto) y usarlo en ambos extremos.
 
 ### B0-2 · Sin tests ni linter configurado
 
-`AGENTS.md` lo reconoce: no hay suite de tests ni linter. La lógica más delicada del
-proyecto (cálculo de racha, periodos, heatmap) no tiene ninguna prueba automatizada.
-
-**Evidencia adicional:** `backend/src/app.js:23` contiene
-`// eslint-disable-next-line no-unused-vars`, pese a que **no hay ESLint configurado**.
-
-**Impacto:** cualquier refactor del servicio de estadísticas es a ciegas; regresiones de
-cálculo (racha, periodos) no se detectarían.
-**Mitigación sugerida:** tests de `stats.service.js` (racha, `getRange`, heatmap) como
-prioridad; añadir ESLint/Prettier para fijar el estilo ya documentado en `AGENTS.md`.
-
-**Resuelto:** tests con el runner nativo de Node (`node --test`, 32 casos) y ESLint (flat
-config en la raíz). El comentario `eslint-disable` sin efecto de `app.js` ya se retiró.
+**Resuelto:** 49 tests con el runner nativo de Node (`node --test`, en `backend/test/`) y
+ESLint con flat config en la raíz (`eslint.config.js`); de paso se retiró un `eslint-disable`
+sin efecto en `app.js`. Detalle en `MEMORY.md` y en el commit `6e4c1d5`.
 
 ### B0-3 · Persistencia acoplada al proceso (condiciones de carrera)
 
-El repositorio mantiene el array completo en memoria (`cache`) y reescribe el fichero entero
-en cada mutación. El ciclo `load()` → mutar → `persist()` es **read-modify-write** sin
-coordinación.
-
-#### Bug concreto (check-then-act / TOCTOU)
-
-```js
-let cache = null;
-async function load() {
-  if (cache) return cache;          // 1. comprueba
-  const stored = await readData();  // 2. await SÍ suspende la función...
-  cache = stored;                   // 3. ...asigna tarde
-  return cache;
-}
-```
-
-Entre (1) y (3) hay un `await` donde pueden colarse otras peticiones. Si dos `load()` en
-frío (`cache === null`) se solapan, cada uno lee **su propio array**, cada uno muta el suyo
-y el último `persist()` gana → **lost update**.
-
-#### Evidencia ejecutada (simulación fiel de la lógica)
-
-| Escenario | Disco resultante | Esperado | Resultado |
-|-----------|------------------|----------|-----------|
-| 1 proceso, 2 inserts simultáneos **en frío** | `["B"]` | `["A","B"]` | ❌ pierde A |
-| 2 "procesos" (2 cachés) | `["B"]` | `["A","B"]` | ❌ pierde A |
-| 1 proceso, caché **ya caliente** | `["warm","A","B"]` | `["warm","A","B"]` | ✅ correcto |
-
-La ventana de fallo es el **arranque en frío** dentro de un proceso y el **multi-proceso**
-siempre. Con la caché caliente el array es compartido y los `push` concurrentes sobreviven.
-
-#### Problemas colaterales
-
-- **Doble seed en primer arranque:** dos `load()` en frío con el fichero inexistente ven
-  `null`, ambos `buildSeed()` y ambos escriben; gana uno.
-- **Fichero temporal de nombre fijo:** `writeData` usa siempre `sessions.json.tmp`
-  (`backend/src/storage/fileStore.js:29`). Dos escrituras solapadas escriben al mismo tmp y
-  luego ambas hacen `rename`; el segundo puede fallar con `ENOENT` (500). Considerar nombre
-  único (`pid + randomUUID`).
-- **Multi-instancia:** la caché en memoria no se comparte entre procesos.
-
-#### Lo que sí está bien
-
-La escritura es **atómica** (`tmp` + `rename`, `fileStore.js:27-32`): un corte de luz no
-deja el JSON corrupto. El problema no es *cómo* se escribe, sino que no se **coordinan**
-escrituras ni loads.
-
-#### Mitigación sugerida (sin dependencias)
-
-1. Single-flight del load: cachear la **promesa en vuelo** en vez del valor
-   (`cachePromise ??= readData()`).
-2. Serializar escrituras (cola/mutex encadenando promesas).
-3. Nombre de tmp único por escritura.
-4. Para multi-proceso real: lock de fichero o SQLite (fuera del alcance "cero deps").
-
-**Resuelto:** en `sessions.repository.js`, el repositorio es ahora una fábrica
-(`createSessionsRepository(store)`) con instancia por defecto. `load()` cachea la **promesa en
-vuelo** (single-flight): las llamadas concurrentes comparten una única lectura y, si falla, la
-promesa se limpia para reintentar. Las escrituras pasan por una **cola** (`writeChain`) que
-evita solapes, y `writeData` usa un tmp **único** (`pid + randomUUID`) con limpieza si el
-`rename` falla. La doble semilla desaparece al haber una sola ejecución de `buildSeed()`.
-**Alcance:** un proceso; el caso multi-proceso (lock de fichero o SQLite) queda fuera, como ya
-anticipaba la mitigación 4. Tests: `backend/test/sessions.repository.test.js` (carreras,
-semilla única y no solape de escrituras), verificados por mutación.
+**Resuelto:** el ciclo `load()` → mutar → `persist()` era *read-modify-write* sin
+coordinación: dos lecturas en frío solapadas se quedaban cada una con su propio array
+(**lost update**), el primer arranque podía siembrar dos veces y las escrituras usaban el
+mismo tmp fijo (`sessions.json.tmp`). Ahora `sessions.repository.js` es una fábrica
+(`createSessionsRepository(store)`) que cachea la **promesa** de lectura (single-flight),
+serializa las escrituras en una cola (`writeChain`) y escribe en un tmp único
+(`pid + randomUUID`). Verificado con pruebas de mutación.
+**Alcance:** un proceso; multi-proceso (lock de fichero o SQLite) queda fuera.
+Tests: `backend/test/sessions.repository.test.js`. Evidencia y detalle: commit `158b325`.
 
 ### B0-4 · `README.md` desincronizado con la regla real de racha
 
@@ -325,6 +264,27 @@ un error visible.
 - Módulo de constantes/contratos compartido (enlaza con B0-1).
 - Schemas en runtime (zod/joi) o TypeScript si se justifica la dependencia.
 
+### B0-7 · Sin tests de frontend ni E2E (requisito de culminación)
+
+La suite (49 casos con `node --test`) cubre **solo el backend**. El frontend no tiene ninguna
+prueba automatizada: ni tests unitarios/DOM de hooks y componentes, ni tests de integración, ni
+E2E de punta a punta.
+
+**Impacto:** cualquier refactor de frontend es a ciegas (regresiones de UX: errores tragados,
+estados mal mostrados) y, sobre todo, **el proyecto no puede considerarse culminado** sin tests
+en ambas capas, de integración y E2E.
+**Mitigación:** (1) tests unitarios/DOM con **Vitest + Testing Library + jsdom** en
+`frontend/test/` (espejo de `src/`, misma convención que `backend/test/`); (2) tests HTTP del
+backend (`app.test.js`) como nivel de integración; (3) tests E2E con **Playwright** (flujo
+completo: crear/editar/borrar + fallos de red).
+
+**En curso (infraestructura hecha):** en la sesión del punto 3 se montó la infraestructura
+(**Vitest 5 + jsdom + Testing Library**, versiones exactas en `frontend/package.json`;
+`frontend/vitest.config.js`, `frontend/test/` espejo de `src/`, script `test` por workspace) y
+ya hay **13 tests unitarios/DOM** en verde junto a los 55 de backend (68 en total con
+`npm test`). Quedan, para la culminación, los tests de **integración ampliados** y los **E2E**
+(Playwright: dependencia aparte, a aprobar).
+
 ---
 
 ## Bloque 1 — Cimientos y configuración
@@ -335,7 +295,7 @@ Revisión de `package.json` (raíz, `backend`, `frontend`), `frontend/vite.confi
 ### B1-1 · Falta `"engines"` (versión de Node) en los `package.json`
 
 Ninguno de los tres `package.json` declara la versión de Node que necesita el proyecto. El
-código usa APIs modernas (`crypto.randomUUID` en `utils/date.js:1,104`, `structuredClone`
+código usa APIs modernas (`crypto.randomUUID` en `utils/date.js:1,105`, `structuredClone`
 disponible, `fs/promises`), y el entorno verificado es **Node 22.22.2 / npm 10.9.7**. Con un
 Node antiguo fallaría en runtime sin aviso previo.
 
@@ -345,14 +305,8 @@ confuso.
 
 ### B1-2 · Sin scripts de `test`/`lint` en los paquetes
 
-Ni la raíz ni los workspaces exponen scripts `test` o `lint`. Es la cara de configuración de
-**B0-2**: aunque existiera tooling, no hay punto de entrada para ejecutarlo.
-
-**Mitigación sugerida:** añadir `"test"` y `"lint"` (aunque sea un placeholder que falle) y
-engancharlos en la raíz; así se hace evidente la ausencia en lugar de quedar implícita.
-
-**Resuelto:** raíz expone `npm test` (`node --test` por workspace) y `npm run lint` (ESLint);
-`backend` expone su propio `test`.
+**Resuelto:** la raíz expone `npm test` (`node --test` por workspace) y `npm run lint`
+(ESLint); `backend` expone su propio `test`. Detalle: commit `6e4c1d5`.
 
 ### B1-3 · Proxy de Vite acoplado al puerto `3001` del backend
 
@@ -424,9 +378,29 @@ desarrollo/build): ninguna llega al código de producción.
 
 **Resuelto (parcial):** `npm audit fix` (sin `--force`) actualizó `concurrently` a 9.2.5
 (`shell-quote` 1.12.0) y `source-map-js` a 1.2.2 → quedan **2** de las 5.
-**Pendiente:** `esbuild`/`vite` solo se arreglan subiendo **Vite a una *major* nueva**
-(`vite@8`), un cambio *breaking* que afecta a `vite.config.js` y `@vitejs/plugin-react`.
-Requiere una tarea propia con pruebas.
+**Resuelto (en la sesión del punto 3):** se subió el stack de build a `vite@8.3.4` +
+`@vitejs/plugin-react@6.1.2` (Vite 8 exige Node `^20.19 || >=22.12`; el entorno, Node 22.22.2,
+lo cumple). El momento elegido evita retrabajo: la infraestructura de tests de frontend necesita
+Vitest y solo Vitest 5+ convive con Vite ≥6 — subir primero el build permite montar los tests
+directamente sobre lo último. Verificación: `npm run build`, `npm run dev` (humo con
+`VITE v8.3.4 ready`), `npm run lint`, suites completas en verde y **`npm audit` → 0
+vulnerabilidades** (desaparecen `esbuild`/`vite`).
+
+### B1-9 · Mayores de dependencias pendientes (`react` 19, `express` 5, `concurrently` 10)
+
+`npm outdated` (17-10-2026) muestra estas dependencias por detrás de su *major* actual. Todas
+dentro de su rango están actualizadas (lo último de la serie); **faltan los saltos de major**:
+
+| Paquete | Instalada | Última | Impacto del salto |
+|---------|-----------|--------|-------------------|
+| `react` / `react-dom` | 18.3.1 | 19.3.1 | Compatible con el código actual (componentes funcionales + hooks). Testing Library 16 soporta 18 **y** 19: los tests escritos sobre 18 **no se rehacen**. |
+| `express` | 4.22.3 (última 4.x) | 5.3.0 | El contrato HTTP no cambia (mismos `app.use`, `response.status().json()`, middleware de errores); los tests de backend son a nivel HTTP y siguen siendo válidos. Revisar guía de migración de Express 5. |
+| `concurrently` | 9.2.5 | 10.0.6 | Solo afecta al script `dev` de la raíz. |
+
+**Impacto:** series *major* antiguas dejan de recibir mejoras (Express 4 queda en mantenimiento);
+sin vulnerabilidades conocidas asociadas (las de `esbuild`/`vite` son B1-8).
+**Mitigación:** subirlas **en la sesión siguiente al punto 3 y antes del encarar el punto 4**,
+con la suite como red de seguridad. Ninguna obliga a rehacer el trabajo del punto 3.
 
 ---
 
@@ -437,7 +411,7 @@ middlewares, rutas, 404 y manejador de errores).
 
 ### B2-1 · JSON malformado responde 500 en lugar de 400
 
-`app.js:24-31` solo traduce a 400 los `ValidationError`. Cuando `express.json()` no puede
+El manejador de errores de `app.js` solo traduce a 400 los `ValidationError`. Cuando `express.json()` no puede
 parsear el body, lanza un `SyntaxError` de `body-parser` con `status: 400` y
 `type: 'entity.parse.failed'`, pero **no es** `ValidationError`, así que cae en el `500`.
 
@@ -455,6 +429,14 @@ parsear el body, lanza un `SyntaxError` de `body-parser` con `status: 400` y
 "Error interno del servidor" y se ensucia el log con un stacktrace.
 **Mitigación:** respetar `error.status`/`error.statusCode` (o detectar
 `error.type === 'entity.parse.failed'`) y responder 400.
+
+**Resuelto:** el manejador de errores de `app.js` respeta ahora cualquier `status`/`statusCode`
+4xx **antes** de caer al 500; para `entity.parse.failed` responde 400 con un mensaje amigable
+("JSON inválido en el cuerpo de la petición") en vez del mensaje crudo del parser, y los 4xx ya
+**no** se registran con `console.error` (el log solo ve fallos reales del servidor). Sin nuevas
+dependencias y **sin adelantar el punto 8**: la rama `instanceof ValidationError` sigue intacta
+(B2-2/B2-3/B2-4 quedan pendientes). Tests: `backend/test/app.test.js` (app real en puerto
+efímero; ningún caso escribe en disco), verificado por mutación.
 
 ### B2-2 · `app.js` acoplado a `ValidationError` de sessions
 
@@ -491,25 +473,14 @@ Revisión de `backend/src/storage/fileStore.js` (leer/escribir el JSON) y
 
 ### B3-1 · Fichero JSON corrupto se trata como vacío (riesgo de pérdida de datos)
 
-En `fileStore.js:19-23`, si `JSON.parse` falla (`SyntaxError`) `readData` devuelve `[]` en
-silencio; lo mismo si el contenido no es un array. El repositorio cachea ese `[]` y, en la
-siguiente escritura, **sobrescribe el fichero entero**: el contenido corrupto (o recuperable)
-se pierde sin aviso, copia ni error.
-
-**Impacto:** una corrupción puntual del JSON puede convertirse en **pérdida total** de los
-datos del usuario.
-**Mitigación sugerida:** distinguir "vacío" de "corrupto": ante `SyntaxError`, fallar (500)
-o mover el fichero a un `.bak` antes de continuar, en lugar de devolver `[]`.
-
-**Resuelto (opción: fallar):** `readData` ya no devuelve `[]` ante contenido inválido: distingue
-`ENOENT` (no existe → `null`, primer arranque → semilla) de cualquier contenido que no sea un
-array JSON válido (corrupto, **vacío**, no-array) → **lanza error** y **no toca el fichero**. Se
-eligió fallar en vez de copiar a `.bak` y arrancar vacío: el arranque vacío ocultaría la pérdida
-y normalizaría el "sobrescribe y sigue". El fichero vacío no es un primer arranque (existe, la
-escritura atómica nunca lo dejaría así), así que también falla. `app.js` no se toca: el
-manejador actual ya responde 500 y registra el mensaje en el log (mejora de mensajes = punto 3).
-Tests: `backend/test/fileStore.test.js` (corrupto/vacío/no-array fallan y el fichero queda
-intacto), verificados por mutación.
+**Resuelto:** `readData` (`backend/src/storage/fileStore.js`) ya no devuelve `[]` ante
+contenido inválido: distingue `ENOENT` (no existe → `null`, primer arranque → semilla) de
+cualquier contenido que no sea un array JSON válido (corrupto, **vacío**, no-array) → **lanza
+error y no toca el fichero**. Se eligió fallar en vez de copiar a `.bak` y arrancar vacío: un
+arranque vacío ocultaría la pérdida y normalizaría el "sobrescribe y sigue". `app.js` no se
+tocó: el manejador actual ya responde 500 y registra el mensaje en el log (mejora de mensajes
+= punto 3). Tests: `backend/test/fileStore.test.js` (el fichero corrupto queda intacto),
+verificado por mutación. Evidencia y detalle: commit `158b325`.
 
 ### B3-2 · `fromDateString` no valida la entrada
 
@@ -567,7 +538,8 @@ valor existente (como ya se hace cuando no viene ninguno).
 
 ### B4-3 · `clone` superficial en el repositorio
 
-`sessions.repository.js:24-26` clona con `{ ...session }` (superficial). Hoy todos los campos
+El `clone` de `sessions.repository.js` (dentro de la fábrica) clona con una copia superficial
+`{ ...session }`. Hoy todos los campos
 son primitivos, así que aísla bien; pero si se añadiera un campo anidado (p. ej. un array de
 etiquetas), la copia compartiría esa referencia y el estado interno quedaría expuesto.
 
@@ -587,9 +559,9 @@ inválidos.
 
 ### B4-5 · El seed se persiste sin pasar por la validación del servicio
 
-En `sessions.repository.js:10-12`, cuando no existe el fichero, `load()` hace
-`cache = buildSeed()` y `await writeData(cache)` **directamente**, sin pasar por
-`sessionsService`. Las entradas de ejemplo nunca se validan (título máx. 80, duración mín. 15,
+En `sessions.repository.js`, cuando no existe el fichero, `load()` construye la semilla
+(`buildSeed()`) y la escribe **directamente**, sin pasar por `sessionsService`. Las entradas
+de ejemplo nunca se validan (título máx. 80, duración mín. 15,
 etc.). Si alguien añade una entrada de seed inválida, se guardaría una sesión que la API
 rechazaría si se enviara por HTTP, rompiendo el invariante "toda sesión persistida cumple las
 reglas del dominio".
@@ -608,22 +580,15 @@ Revisión de `backend/src/stats/stats.service.js` (cálculo de métricas) y `sta
 
 ### B5-1 · Sin tests en la lógica crítica de estadísticas
 
-Toda la analítica (racha `current`/`best`, rangos de periodo, heatmap, agrupación) vive en
-`stats.service.js` y no tiene ninguna prueba. Es el punto de mayor riesgo del proyecto: un
-refactor puede alterar números sin que nada lo detecte.
-
-**Mitigación:** tests unitarios de `computeStreaks`, `getRange`, `sumByDate` y `groupBySubject`
-es el primer test a escribir del proyecto.
-
-**Resuelto:** `backend/test/stats.service.test.js` cubre racha (`current`/`best`), meta del día,
-periodos, resumen y heatmap, con el repositorio simulado (`mock.method`). Verificado con
-pruebas de mutación (romper el código a propósito hace fallar la suite).
+**Resuelto:** `backend/test/stats.service.test.js` cubre racha (`current`/`best`), meta del
+día, periodos, resumen y heatmap con el repositorio simulado (`mock.method`), verificado con
+pruebas de mutación. Commit `6e4c1d5`.
 
 ### B5-2 · Agrupación por temática por título exacto (sin normalizar)
 
-`groupBySubject` agrupa por `session.title` tal cual. "Programacion" y "programacion" (los hay
-en `backend/data/sessions.json`) cuentan como temáticas distintas. La app no tiene un catálogo
-de temáticas: la identidad es el texto.
+`groupBySubject` agrupa por `session.title` tal cual. "Programación" y "programacion" (ambos
+aparecen en los datos locales de ejemplo) cuentan como temáticas distintas. La app no tiene un
+catálogo de temáticas: la identidad es el texto.
 
 **Mitigación:** normalizar (trim + minúsculas/acentos) para agrupar, o introducir temáticas
 con id propio.
@@ -658,6 +623,13 @@ blanco sin mensaje ni opción de recuperación.
 **Mitigación:** añadir un *Error Boundary* (clase con `componentDidCatch`) o
 `react-error-boundary` alrededor de las vistas.
 
+**Resuelto:** nuevo `frontend/src/components/ErrorBoundary.jsx` (clase: React lo exige, los hooks
+no cubren `componentDidCatch`; excepción documentada a "sin clases") con fallback en español
+(`role="alert"` + botón "Recargar página"), envolviendo el `<main>` de `App.jsx` con `key={tab}`:
+la cabecera y las pestañas siguen utilizables y **cambiar de pestaña reinicia el límite de error**.
+Sin `react-error-boundary` (regla 1: sin dependencias innecesarias).
+Tests: `frontend/test/components/ErrorBoundary.test.jsx`, verificado por mutación.
+
 ### B6-2 · Error de borrado no gestionado (se traga el fallo)
 
 `App.jsx:49-59`, `handleConfirmDelete` tiene `try/finally` pero **sin `catch`**. Si
@@ -666,6 +638,13 @@ error, permanece abierto y no se informa al usuario.
 
 **Mitigación:** capturar el error y mostrarlo (p. ej. pasarlo a `ConfirmDialog`), o notificar
 con un aviso.
+
+**Resuelto:** `handleConfirmDelete` (`App.jsx`) añade `catch` que guarda el mensaje en
+`deleteError` y lo pasa al `ConfirmDialog` (nuevo prop `error`, pintado con `role="alert"`);
+el diálogo queda **abierto** para reintentar o cancelar y el error se limpia al cancelar o al
+volver a intentar (mismo patrón inline que `SessionForm`). Tests:
+`frontend/test/App.test.jsx` y `frontend/test/components/ConfirmDialog.test.jsx`, verificados
+por mutación.
 
 ### B6-3 · Sin enrutado/URL (recargar siempre vuelve a Inicio)
 
@@ -705,6 +684,11 @@ distinto (p. ej. mostrar "no encontrado" frente a "error de red").
 
 **Mitigación:** lanzar un error con `status` (clase propia o `error.status = response.status`).
 
+**Resuelto:** clase `ApiError extends Error` con `status`, en su propio archivo
+`frontend/src/api/ApiError.js`; `request` la lanza con el `status` de la respuesta. Los
+consumidores actuales no cambian (usan `.message`) pero ya pueden distinguir 400/404/500.
+Test: `frontend/test/api/client.test.js` (con `fetch` simulado), verificado por mutación.
+
 ### B7-2 · Sin cancelación ni orden de respuestas (race en los hooks)
 
 `useSessions`/`useStats` no usan `AbortController` ni comprueban el orden de las respuestas. Si
@@ -738,7 +722,7 @@ Revisión de `frontend/src/utils/time.js`, `frontend/src/utils/date.js` y los co
 
 ### B8-1 · Formateadores de fecha sin validar (producen `Invalid Date`)
 
-`fromDateString` (`date.js:1`) construye un `Date` a partir de un string sin comprobar su
+`fromDateString` (`date.js:18-21`) construye un `Date` a partir de un string sin comprobar su
 formato. Con un valor mal formado, el `Date` queda inválido y `formatDateLong` devuelve texto
 con `NaN` ("NaN undefined NaN") **sin lanzar error**. Es el mismo patrón de validación de fechas
 ausente que en **B3-2** y **B4-4**.
@@ -882,9 +866,9 @@ contigüidad.
 
 ### B10-5 · Tarjetas con `?? 0` silencian cambios de forma del contrato
 
-`StreakCard`, `GoalTodayCard`, `ActivityDaysCard` usan valores por defecto (`?? 0`) sobre los
-datos del backend. Si el contrato cambiara, mostrarían `0` en vez de fallar (relacionado con
-**B0-6**).
+`StreakCard` y `GoalTodayCard` usan valores por defecto (`?? 0`) y `ActivityDaysCard`
+parámetros por defecto, todo sobre los datos del backend. Si el contrato cambiara, mostrarían
+`0` en vez de fallar (relacionado con **B0-6**).
 
 **Mitigación:** validar el contrato en el borde.
 
@@ -896,6 +880,11 @@ y pasa a `SessionList` el `loading`/`error` de `useStats`. Si falla la carga de 
 error.
 
 **Mitigación:** propagar también el estado de `useSessions`.
+
+**Resuelto:** `StatsPanel` desestructura `loading`/`error` de `useSessions` y los combina con los
+de `useStats` para `SessionList` (`loading || sessionsLoading`, `error || sessionsError`): si la
+carga de sesiones falla, la lista muestra el error en vez de "No hay clases".
+Test: `frontend/test/stats/StatsPanel.test.jsx`, verificado por mutación.
 
 ---
 
@@ -913,7 +902,7 @@ paleta obliga a buscar y reemplazar.
 
 ### B11-2 · Estilos de elemento globales (`input/select/textarea`) con posible fuga
 
-`styles.css:324-335` estiliza por **elemento** (`input, select, textarea { width: 100% }`,
+`styles.css:312-335` estiliza por **elemento** (`input, select, textarea { width: 100% }`,
 `textarea { resize: none }`). Estos estilos alcanzan a **cualquier** input futuro (y al buscador
 `type="search"`), dificultando variantes locales.
 
@@ -976,34 +965,34 @@ El proyecto es pequeño y monousuario, así que **prioriza simplicidad**; las co
 notan al crecer (más escritores concurrentes, más vistas, más campos). Orden sugerido de
 ataque en una sesión futura:
 
-1. ✅ **B0-2 / B1-2 / B5-1** — tests y linter *(hecho: 32 tests con `node --test` y ESLint;
+1. ✅ **B0-2 / B1-2 / B5-1** — tests y linter *(hecho: 49 tests con `node --test` y ESLint;
    ver `MEMORY.md`)*.
 2. ✅ **B0-3 / B3-1** — persistencia (single-flight del load, cola de escrituras, tmp único) y
    no perder datos si el fichero está corrupto. *(hecho: repositorio como fábrica, cola de
    escrituras y `readData` que falla ante corrupción; 17 tests nuevos, verificados por mutación)*.
-3. **B2-1 / B6-1 / B6-2 / B7-1 / B10-6** — manejo de errores: JSON malformado → 400; añadir *Error
+3. ✅ **B2-1 / B6-1 / B6-2 / B7-1 / B10-6** — manejo de errores: JSON malformado → 400; añadir *Error
    Boundary*; gestionar el fallo de borrado; conservar el código HTTP en los errores del cliente;
-   mostrar el estado de `useSessions` en `StatsPanel`.
-4. **B0-6** — contratos (JSDoc + `@ts-check`, constantes compartidas).
-5. **B0-5 / B7-2** — invalidación de datos (Context por recurso + `AbortController`) y orden de
+   mostrar el estado de `useSessions` en `StatsPanel`. *(hecho: rama 4xx en `app.js`, `ErrorBoundary`
+   con `key={tab}` alrededor del `<main>`, `catch` + prop `error` en `ConfirmDialog`, `ApiError` con
+   `status` y estados combinados en `StatsPanel`; 19 tests nuevos — 6 de backend y 13 de frontend —
+   verificados por mutación)*.
+4. **B1-9** — subir los majors pendientes (`react` 19, `express` 5, `concurrently` 10) con la suite
+   como red de seguridad. **En la sesión siguiente a esta, antes de abordar el punto 4** (la
+   numeración de los puntos es la de `CONTEXTO_SESION.md`).
+5. **B0-6** — contratos (JSDoc + `@ts-check`, constantes compartidas).
+6. **B0-5 / B7-2** — invalidación de datos (Context por recurso + `AbortController`) y orden de
    respuestas en los hooks.
-6. **B0-1 / B5-4 / B9-1 / B10-1 / B10-2** — fuente única de constantes y reglas de dominio
+7. **B0-1 / B5-4 / B9-1 / B10-1 / B10-2** — fuente única de constantes y reglas de dominio
    (meta diaria, periodos, validaciones) y eliminar el filtrado duplicado en cliente.
-7. **B0-4 / B1-5** — sincronizar documentación.
-8. **B1-1 / B1-3 / B1-4 / B1-6 / B1-7 / B2-2 / B2-3 / B2-4 / B3-2 / B3-3 / B3-4 / B4-1 / B4-3 /
-   B4-4 / B5-2 / B5-3 / B5-4 / B6-3 / B6-4 / B6-5 / B7-3 / B7-4 / B8-1 / B8-3 / B8-4 /
-   B8-5 / B9-3 / B9-5 / B9-6 / B10-3 / B10-4 / B10-5 / B11-1 / B11-2 / B11-3 / B11-5 /
-   B11-6** — ajustes de configuración y limpieza (engines, proxy, gitignore, CORS, clase base de
-   error, `asyncHandler`, logging, validación de fechas, límite de `enumerateDays`, periodos,
-   código muerto, `clone` profundo, validar filtros, normalizar temáticas, caché de racha, meta
-   configurable, enrutado, mutaciones centralizadas, formato de fecha, merge de cabeceras,
-   `Content-Type` en `GET`, guardas de rango, reutilizar `weekdayIndex`, entrada inválida,
-   límite de duración, umbrales del heatmap, rejilla del calendario, contrato de tarjetas,
-   tokens de color, selectores por clase, modularizar CSS, `z-index`/tamaños, resize).
-9. **B4-2** — endurecer/documentar el update parcial de duración.
-10. **B8-2 / B9-4 / B11-4** — accesibilidad: `Modal` (focus trap, restaurar foco, bloquear
+8. **B0-4 / B1-5** — sincronizar documentación.
+9. **Resto de pendientes de baja severidad** — ajustes de configuración y limpieza suelta,
+   atacables por orden de bloque y severidad según las tablas de resumen.
+10. **B4-2** — endurecer/documentar el update parcial de duración.
+11. **B8-2 / B9-4 / B11-4** — accesibilidad: `Modal` (focus trap, restaurar foco, bloquear
     scroll), mensajes de error accesibles y `:focus-visible`/`prefers-reduced-motion`.
-11. **B9-2** — `debounce` en la búsqueda por temática.
-12. **B1-8** — subir **Vite a una *major*** para eliminar las vulnerabilidades `esbuild`/`vite`
+12. **B9-2** — `debounce` en la búsqueda por temática.
+13. ✅ **B1-8** — subir **Vite a una *major*** para eliminar las vulnerabilidades `esbuild`/`vite`
     (cambio *breaking*: afecta a `vite.config.js` y `@vitejs/plugin-react`). Hacerlo con
-    `npm test` y `npm run lint` como red de seguridad.
+    `npm test` y `npm run lint` como red de seguridad. *(hecho en la sesión del punto 3:
+    `vite@8.3.4` + `@vitejs/plugin-react@6.1.2`, `npm audit` → 0 vulnerabilidades; de paso quedó
+    montada la infraestructura de tests de frontend sobre Vite 8)*.

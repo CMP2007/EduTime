@@ -22,14 +22,16 @@ npm run dev          # levanta frontend (5173) y backend (3001) juntos
 npm run frontend     # solo frontend (vite --host 0.0.0.0)
 npm run backend      # solo backend (node --watch src/server.js)
 npm run build        # build de producción del frontend (vite build)
-npm test             # tests de todos los workspaces (Node test runner)
+npm test             # tests de todos los workspaces (backend: node --test; frontend: Vitest)
 npm run lint         # ESLint sobre todo el monorepo
 ```
 
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3001
-- **Tests**: runner nativo de Node (`node --test`), sin dependencias. Viven en `backend/test/`
-  (espejo de `src/`). Convención: `*.test.js`.
+- **Tests backend**: runner nativo de Node (`node --test`), sin dependencias. Viven en
+  `backend/test/` (espejo de `src/`). Convención: `*.test.js`.
+- **Tests frontend**: Vitest + jsdom + Testing Library. Viven en `frontend/test/` (espejo de
+  `src/`); config en `frontend/vitest.config.js`. Convención: `*.test.js` / `*.test.jsx`.
 - **Linter**: ESLint (flat config en la raíz, `eslint.config.js`).
 
 ## Estructura
@@ -52,16 +54,23 @@ backend/src/
     stats.routes.js            # endpoint /api/stats
 
 backend/test/                  # tests (espejo de backend/src/)
+  app.test.js                  # respuestas HTTP y manejo de errores de la app
   date.test.js                 # utilidades de fecha y periodos
   fileStore.test.js            # lectura/escritura del JSON (ficheros reales temporales)
   sessions.repository.test.js  # carreras/concurrencia con el almacenamiento simulado
   stats.service.test.js        # estadísticas con el repositorio simulado
 
+frontend/
+  vitest.config.js             # configuración de los tests (Vitest + jsdom)
+  test/                        # tests (espejo de frontend/src/)
+    setup.js                   # registro global: cleanup de Testing Library
+
 frontend/src/
   main.jsx                     # punto de entrada de React
   App.jsx                      # layout + pestaña activa + modales globales
-  api/client.js                # fetch genérico a la API
-  components/                  # componentes reutilizables (Modal, Tabs, Card…)
+  api/ApiError.js              # error de API que conserva el status HTTP
+  api/client.js                # fetch genérico a la API (lanza ApiError)
+  components/                  # componentes reutilizables (Modal, Tabs, Card, ErrorBoundary…)
   sessions/                    # feature de clases: api, hook, formulario, historial
   stats/                       # feature de métricas: api, hook, tarjetas, heatmap
   utils/                       # helpers de tiempo y fecha
@@ -128,10 +137,11 @@ calendario (por defecto, `date`).
 - **Idioma**: identificadores y nombres técnicos en inglés; textos de UI, mensajes de error y comentarios dirigidos al usuario en español.
 - **Backend**: `server.js` solo arranca; las rutas viven en `*.routes.js`; la lógica en `*.service.js`; el acceso a datos en `*.repository.js`. No mezclar capas.
 - **Frontend**: un componente por archivo. La lógica de datos en hooks (`use*.js`) y las llamadas HTTP en `*.api.js`.
-- **Estilo**: punto y coma al final, comillas simples, indentación de 2 espacios, funciones flecha, sin clases.
+- **Estilo**: punto y coma al final, comillas simples, indentación de 2 espacios, funciones flecha, sin clases (excepción: `ErrorBoundary`, que React exige como clase para `componentDidCatch`).
 - Los repositorios y servicios devuelven copias (`{ ...item }`) para no exponer el estado interno.
 - El frontend usa `VITE_API_URL` (por defecto `http://localhost:3001/api`); el proxy de Vite ya reenvía `/api`.
-- **Tests**: runner nativo de Node (`node:test` + `node --test`), sin dependencias. Un archivo `*.test.js` por módulo bajo prueba, en `backend/test/`. La capa de datos se **simula** con `mock.method` (no se toca el disco); la excepción es `fileStore`, cuyo comportamiento **es** el disco y se prueba con ficheros reales en un directorio temporal. El repositorio es una fábrica con punto de inyección del almacenamiento para poder simularlo.
+- **Tests backend**: runner nativo de Node (`node:test` + `node --test`), sin dependencias. Un archivo `*.test.js` por módulo bajo prueba, en `backend/test/`. La capa de datos se **simula** con `mock.method` (no se toca el disco); la excepción es `fileStore`, cuyo comportamiento **es** el disco y se prueba con ficheros reales en un directorio temporal. El repositorio es una fábrica con punto de inyección del almacenamiento para poder simularlo.
+- **Tests frontend**: Vitest en modo run (`vitest run`) con entorno jsdom. **Sin `globals`**: los tests importan `describe`/`it`/`expect` de `vitest` explícitamente; el cleanup de Testing Library está registrado en `frontend/test/setup.js`. Se mockean los módulos `*.api.js` con `vi.mock` (no hay red) y `fetch` con `vi.stubGlobal` cuando se prueba el cliente. Antes de cerrar un fix, comprobar que su test **falla si se revierte el cambio** (mutación).
 - **Lint**: ESLint impone las reglas recomendadas de JavaScript, las de hooks de React y el estilo declarado (2 espacios, comillas simples, punto y coma). No impone opiniones no documentadas (paréntesis en flechas, saltos de línea en JSX…).
 
 ## Reglas al modificar el proyecto

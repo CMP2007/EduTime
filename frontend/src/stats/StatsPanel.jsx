@@ -16,7 +16,7 @@ function StatsPanel({ version, onEdit, onDelete }) {
     { period: filter.period, date: filter.date, heatmap: 'week' },
     version,
   );
-  const { sessions } = useSessions({}, version);
+  const { sessions, loading: sessionsLoading, error: sessionsError } = useSessions({}, version);
 
   const periodSessions = stats
     ? sessions.filter((session) => session.date >= stats.period.from && session.date <= stats.period.to)
@@ -67,8 +67,8 @@ function StatsPanel({ version, onEdit, onDelete }) {
           <Card title="Registros del periodo" description="Puedes editar o eliminar">
             <SessionList
               sessions={periodSessions}
-              loading={loading}
-              error={error}
+              loading={loading || sessionsLoading}
+              error={error || sessionsError}
               onEdit={onEdit}
               onDelete={onDelete}
             />

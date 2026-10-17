@@ -4,6 +4,7 @@ function ConfirmDialog({
   open,
   title = 'Confirmar',
   message,
+  error = '',
   confirmLabel = 'Eliminar',
   cancelLabel = 'Cancelar',
   onConfirm,
@@ -15,6 +16,7 @@ function ConfirmDialog({
   return (
     <Modal title={title} onClose={onCancel} labelledBy="confirm-dialog-title" size="sm">
       <p className="confirm__message">{message}</p>
+      {error && <p className="error" role="alert">{error}</p>}
       <div className="modal__actions">
         <button type="button" className="button button--ghost" onClick={onCancel} disabled={busy}>
           {cancelLabel}
