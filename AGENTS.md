@@ -17,7 +17,7 @@ Es un monorepo con **npm workspaces** (`frontend` y `backend`).
 Todos se ejecutan desde la raíz.
 
 ```bash
-npm install          # instala dependencias de todos los workspaces
+npm install          # instala dependencias de todos los workspaces (usa las versiones fijadas en package.json)
 npm run dev          # levanta frontend (5173) y backend (3001) juntos
 npm run frontend     # solo frontend (vite --host 0.0.0.0)
 npm run backend      # solo backend (node --watch src/server.js)
@@ -146,7 +146,11 @@ calendario (por defecto, `date`).
 
 ## Reglas al modificar el proyecto
 
-1. **No añadir dependencias** sin justificar por qué no se resuelve con lo existente.
+1. **No añadir dependencias** sin justificar por qué no se resuelve con lo existente. Si añades
+   o actualizas dependencias, usa **versiones exactas** (coherente con `save-exact=true`) y
+   deja la versión **actualizada o compatible con lo que ya existe en el proyecto**. No
+   uses `@latest` ni instales versiones deliberadamente antiguas; consulta `npm outdated`
+   antes de proponer un cambio.
 2. Mantener la separación por capas: `repository` (datos) / `service` (reglas) / `routes` (HTTP).
 3. Mantener la regla de **un archivo por funcionalidad/componente**.
 4. Validar toda entrada del usuario en el backend antes de usarla.
