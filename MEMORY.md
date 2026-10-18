@@ -17,9 +17,11 @@ aporte.
   stacktrace en el log); `ErrorBoundary` (clase) en el `<main>` con `key={tab}`; `catch` +
   prop `error` en el borrado (`App.jsx`/`ConfirmDialog`); `ApiError` con `status`;
   `StatsPanel` combina `useStats` y `useSessions`. 19 tests nuevos, verificados por mutación.
-- **Dependencias**: Vite 5→8.3.4 (+ plugin-react 6.1.2) → `npm audit` 0 vulnerabilidades
-  (fin de B1-8). Pendientes (B1-9, sesión siguiente antes del punto 4): React 19, Express 5,
-  concurrently 10.
+- **Dependencias al día (B1-9 cerrado, 18/10/2026)**: `react`/`react-dom` **19.3.1**, `express`
+  **5.3.0**, `concurrently` **10.0.6** (versiones exactas, `npm outdated` vacío, `npm audit` 0
+  vulnerabilidades). Sin cambios de código: RTL 16 reutilizó los 13 tests y los tests HTTP de
+  Express sirvieron de red. Ojo: tras instalar React 19 quedó la 18 hoisteada como peer de RTL
+  (lockfile); `npm dedupe` la colapsó a una única 19.
 
 #### ##Decisiones (y por qué)
 
@@ -46,11 +48,13 @@ aporte.
   usuario (patrón: prop `error` en `ConfirmDialog`).
 - Cuidado con las fechas: fecha local y comparar como `YYYY-MM-DD`. CSS: en un flex item,
   `width: 100%` cuenta para el corte; usar `flex: 1 1 0` + `min-width`.
+- Al subir un major de una librería con *peers* (p. ej. React), revisar `npm ls <paquete> --all`:
+  el lockfile puede conservar la resolución peer vieja y quedar **dos copias**; `npm dedupe`
+  la colapsa. `git status` limpio antes de tocar dependencias = revert seguro.
 
 #### ##Próximos pasos
 
-- **Sesión siguiente, antes del punto 4**: B1-9 — subir majors pendientes (React 19, Express 5,
-  concurrently 10) con la suite como red de seguridad.
+- **Siguiente**: encarar el **punto 4** (B1-9 quedó atrás: majors subidos con la suite en verde).
 - Culminación (B0-7): tests de integración ampliados y E2E con Playwright (dependencia aparte).
 - Posibles mejoras: exportar datos, gráficos de evolución, temas de color; y seguir el orden
   de `DEUDA_TECNICA.md`.

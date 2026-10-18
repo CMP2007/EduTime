@@ -54,7 +54,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | B1-6 | Configuración de red permisiva (`cors()` abierto + `--host 0.0.0.0`) | Baja | pendiente |
 | B1-7 | El proxy de Vite no se usa: la URL por defecto de la API es absoluta | Baja | pendiente |
 | B1-8 | Dependencias con vulnerabilidades conocidas (`esbuild`/`vite`) | Media | resuelto |
-| B1-9 | Mayores de dependencias pendientes (`react` 19, `express` 5, `concurrently` 10) | Media | pendiente |
+| B1-9 | Mayores de dependencias pendientes (`react` 19, `express` 5, `concurrently` 10) | Media | resuelto |
 
 ### Bloque 2 — Backend: arranque y composición
 
@@ -401,6 +401,22 @@ dentro de su rango están actualizadas (lo último de la serie); **faltan los sa
 sin vulnerabilidades conocidas asociadas (las de `esbuild`/`vite` son B1-8).
 **Mitigación:** subirlas **en la sesión siguiente al punto 3 y antes del encarar el punto 4**,
 con la suite como red de seguridad. Ninguna obliga a rehacer el trabajo del punto 3.
+
+**Resuelto (18-10-2026):** los tres saltos ejecutados **de menor a mayor riesgo**, con
+verificación tras cada uno (commits `cded6f2`, `b6a9e51`, `eaa9b69`):
+
+| Paquete | De → a | Verificación |
+|---------|--------|--------------|
+| `concurrently` | 9.2.5 → **10.0.6** | Humo de `npm run dev`: frontend (5173) y backend (3001) arrancan y responden. |
+| `express` | 4.22.3 → **5.3.0** | 55 tests HTTP en verde; en vivo: health 200, 404, JSON malformado → 400, validaciones → 400, stats 200 (mismos mensajes que en 4.x). Sin cambios de código: rutas `/:id` sin comodines (path-to-regexp v8 no afecta) y manejador de errores compatible con body-parser 2. |
+| `react`/`react-dom` | 18.3.1 → **19.3.1** | 13 tests RTL en verde sin reescribir ninguno; lint y build en verde. Sin cambios de código (createRoot + hooks). |
+
+**Incidencia resuelta:** tras instalar React 19 quedó una copia 18.3.1 hoisteada en la raíz
+(resolución *peer* vieja de `@testing-library/react` en el lockfile) junto a la 19 anidada en
+`frontend/node_modules/`: RTL habría renderizado con 18 y la app con 19. `npm dedupe` colapsó
+ambas a una única 19.3.1 (`npm ls react react-dom --all` lo confirma).
+**De paso:** los tres `package.json` pasan de rangos `^` a **versiones exactas** (coherente con
+`save-exact=true`). Cierre: `npm outdated` vacío, 68 tests y lint en verde, `npm audit` → 0.
 
 ---
 
@@ -976,9 +992,9 @@ ataque en una sesión futura:
    con `key={tab}` alrededor del `<main>`, `catch` + prop `error` en `ConfirmDialog`, `ApiError` con
    `status` y estados combinados en `StatsPanel`; 19 tests nuevos — 6 de backend y 13 de frontend —
    verificados por mutación)*.
-4. **B1-9** — subir los majors pendientes (`react` 19, `express` 5, `concurrently` 10) con la suite
-   como red de seguridad. **En la sesión siguiente a esta, antes de abordar el punto 4** (la
-   numeración de los puntos es la de `CONTEXTO_SESION.md`).
+4. ✅ **B1-9** — subir los majors pendientes (`react` 19, `express` 5, `concurrently` 10) con la suite
+   como red de seguridad. *(hecho: `concurrently` 10.0.6, `express` 5.3.0, `react`/`react-dom` 19.3.1;
+   verificación tras cada salto y `npm outdated` vacío)*.
 5. **B0-6** — contratos (JSDoc + `@ts-check`, constantes compartidas).
 6. **B0-5 / B7-2** — invalidación de datos (Context por recurso + `AbortController`) y orden de
    respuestas en los hooks.

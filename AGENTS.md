@@ -6,8 +6,8 @@ Guía para agentes de IA que trabajen en este repositorio. Léela antes de tocar
 
 **StudyTrack**: aplicación para el control de horas de estudio.
 
-- **Frontend**: React 18 + Vite (JavaScript/JSX).
-- **Backend**: Node.js + Express 4.
+- **Frontend**: React 19 + Vite (JavaScript/JSX).
+- **Backend**: Node.js + Express 5.
 - **Persistencia**: archivo JSON (`backend/data/sessions.json`).
 
 Es un monorepo con **npm workspaces** (`frontend` y `backend`).
