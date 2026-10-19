@@ -5,7 +5,7 @@ aporte.
 
 #### ##Estado actual
 
-- v1 de StudyTrack funcionando: monorepo con frontend (React 18 + **Vite 8**) y backend
+- v1 de StudyTrack funcionando: monorepo con frontend (React 19 + **Vite 8**) y backend
   (Node + Express 4). Pestañas: Inicio (tarjetas + heatmap), Historial (filtros, editar,
   eliminar) y Estadísticas (periodos, temáticas, clase más larga).
 - Persistencia en `backend/data/sessions.json` (ignorado por git): lectura única
@@ -14,9 +14,8 @@ aporte.
   Library) — y ESLint en verde. Tests de frontend en `frontend/test/` (espejo de `src/`),
   sin `globals`, con `vi.mock` de las APIs y `vi.stubGlobal` de `fetch`.
 - **Punto 3 (manejo de errores) resuelto** (17/10/2026): JSON malformado → 400 (4xx sin
-  stacktrace en el log); `ErrorBoundary` (clase) en el `<main>` con `key={tab}`; `catch` +
-  prop `error` en el borrado (`App.jsx`/`ConfirmDialog`); `ApiError` con `status`;
-  `StatsPanel` combina `useStats` y `useSessions`. 19 tests nuevos, verificados por mutación.
+  stacktrace en el log); `ErrorBoundary` en `<main>` con `key={tab}`; `ApiError` con
+  `status` y prop `error` en `ConfirmDialog`. 19 tests nuevos, verificados por mutación.
 - **Dependencias al día (B1-9 cerrado, 18/10/2026)**: `react`/`react-dom` **19.3.1**, `express`
   **5.3.0**, `concurrently` **10.0.6** (versiones exactas, `npm outdated` vacío, `npm audit` 0
   vulnerabilidades). Sin cambios de código: RTL 16 reutilizó los 13 tests y los tests HTTP de
@@ -38,6 +37,10 @@ aporte.
   regla "sin clases" documentada en `AGENTS.md`. Sin `react-error-boundary` ni jest-dom.
 - ESLint solo impone el estilo ya declarado. Duración en dos campos (horas + minutos),
   mínimo 15 min por clase.
+- **Skills de agente versionadas**: `.agents/skills/` y `skills-lock.json` se commitean
+  (config de proyecto, como `AGENTS.md`; el lockfile aporta reproducibilidad y detección
+  de alteraciones, igual que `package-lock.json`). `.gitignore` solo para artefactos y
+  estado desechable de máquina.
 
 #### ##Aprendizajes y errores a evitar
 
@@ -51,6 +54,9 @@ aporte.
 - Al subir un major de una librería con *peers* (p. ej. React), revisar `npm ls <paquete> --all`:
   el lockfile puede conservar la resolución peer vieja y quedar **dos copias**; `npm dedupe`
   la colapsa. `git status` limpio antes de tocar dependencias = revert seguro.
+- Una skill cuyo `SKILL.md` solo redirige es un punto muerto si la skill destino no está
+  instalada; verificar el destino antes de darla por puesta. `grill-me`: el protocolo va
+  dentro de su propio `SKILL.md` (`.agents/skills/`, invocación solo manual).
 
 #### ##Próximos pasos
 
