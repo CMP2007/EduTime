@@ -1,0 +1,18 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "chrome-devtools": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "chrome-devtools-mcp@latest",
+          "--no-usage-statistics",
+          "--headless",
+          "--executablePath=/home/carlos_puche/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome"
+        ]
+      }
+    }
+  }
+}
