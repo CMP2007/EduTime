@@ -5,6 +5,3 @@ frontend/dist/
 backend/data/
 .env
 .env.*
-
-# Contexto de sesión para el agente (desechable, no se versiona)
-CONTEXTO_SESION.md

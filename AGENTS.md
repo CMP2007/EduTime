@@ -12,6 +12,33 @@ Guía para agentes de IA que trabajen en este repositorio. Léela antes de tocar
 
 Es un monorepo con **npm workspaces** (`frontend` y `backend`).
 
+## Cómo trabajar con el agente
+
+- **Idioma**: todo el texto dirigido al usuario (planes, explicaciones, resúmenes **y el
+  razonamiento**) va en español; identificadores y código, en inglés.
+- **Perfil del usuario**: estudiante autodidacta (Full Stack Open, parte 7), con nivel
+  básico-intermedio de JavaScript, React y Express, y arquitecto de las decisiones del
+  proyecto. Por eso las explicaciones deben ser **más detalladas y simples de lo normal**:
+  el objetivo es que aprenda, no solo que el cambio funcione.
+- **Razonamiento visible**: antes de actuar, explicar qué se va a hacer, por qué, qué se
+  espera obtener y qué dudas hay. El usuario supervisa paso a paso: mejor pecar de
+  explicativo que quedarse corto.
+- **Aprobación**: no avanzar en decisiones de fondo (dependencias, arquitectura, ficheros
+  nuevos importantes) sin aprobación; proponer y esperar.
+- **Formato de propuesta** (hallazgos, cambios, fixes):
+
+  ```text
+  Problema:      qué está mal, en concreto
+  Consecuencia:  qué se rompe o qué riesgo hay
+  Solución:      qué se va a hacer
+  Por qué:       y por qué no la alternativa
+  ```
+
+- **Arranque de sesión**: leer `AGENTS.md` → `MEMORY.md` → `DEUDA_TECNICA.md`, confirmar el
+  contexto y proponer un plan antes de tocar código.
+- **Commits**: Conventional Commits en español (`feat(inicio): …`, `docs: …`,
+  `chore(calidad): …`), asunto **sin tildes**, cuerpo con el qué y el por qué.
+
 ## Comandos
 
 Todos se ejecutan desde la raíz.
@@ -33,6 +60,8 @@ npm run lint         # ESLint sobre todo el monorepo
 - **Tests frontend**: Vitest + jsdom + Testing Library. Viven en `frontend/test/` (espejo de
   `src/`); config en `frontend/vitest.config.js`. Convención: `*.test.js` / `*.test.jsx`.
 - **Linter**: ESLint (flat config en la raíz, `eslint.config.js`).
+- **`~/.npmrc`**: fija `save-exact=true` e `ignore-scripts=true` (config global del usuario);
+  por eso las dependencias se instalan con versión exacta.
 
 ## Estructura
 
@@ -136,12 +165,17 @@ calendario (por defecto, `date`).
 - **ES Modules** (`import`/`export`) en backend y frontend. Los `package.json` usan `"type": "module"`.
 - **Idioma**: identificadores y nombres técnicos en inglés; textos de UI, mensajes de error y comentarios dirigidos al usuario en español.
 - **Backend**: `server.js` solo arranca; las rutas viven en `*.routes.js`; la lógica en `*.service.js`; el acceso a datos en `*.repository.js`. No mezclar capas.
+- **Repositorios**: cualquier repositorio nuevo sigue el patrón fábrica (`createXRepository(store)`) con el almacenamiento inyectable, para poder simularlo en tests.
 - **Frontend**: un componente por archivo. La lógica de datos en hooks (`use*.js`) y las llamadas HTTP en `*.api.js`.
 - **Estilo**: punto y coma al final, comillas simples, indentación de 2 espacios, funciones flecha, sin clases (excepción: `ErrorBoundary`, que React exige como clase para `componentDidCatch`).
 - Los repositorios y servicios devuelven copias (`{ ...item }`) para no exponer el estado interno.
 - El frontend usa `VITE_API_URL` (por defecto `http://localhost:3001/api`); el proxy de Vite ya reenvía `/api`.
 - **Tests backend**: runner nativo de Node (`node:test` + `node --test`), sin dependencias. Un archivo `*.test.js` por módulo bajo prueba, en `backend/test/`. La capa de datos se **simula** con `mock.method` (no se toca el disco); la excepción es `fileStore`, cuyo comportamiento **es** el disco y se prueba con ficheros reales en un directorio temporal. El repositorio es una fábrica con punto de inyección del almacenamiento para poder simularlo.
 - **Tests frontend**: Vitest en modo run (`vitest run`) con entorno jsdom. **Sin `globals`**: los tests importan `describe`/`it`/`expect` de `vitest` explícitamente; el cleanup de Testing Library está registrado en `frontend/test/setup.js`. Se mockean los módulos `*.api.js` con `vi.mock` (no hay red) y `fetch` con `vi.stubGlobal` cuando se prueba el cliente. Antes de cerrar un fix, comprobar que su test **falla si se revierte el cambio** (mutación).
+- **Pruebas de mutación**: antes de romper el código a propósito, copiar los archivos a
+  `/tmp/opencode` y restaurarlos con `cp`; revertir con git **archivo por archivo**, nunca una
+  carpeta entera (`git checkout -- <dir>` se lleva cambios buenos). `git checkout -- <archivo>`
+  solo es seguro si el archivo ya está commiteado; sobre cambios sin commitear los borra.
 - **Lint**: ESLint impone las reglas recomendadas de JavaScript, las de hooks de React y el estilo declarado (2 espacios, comillas simples, punto y coma). No impone opiniones no documentadas (paréntesis en flechas, saltos de línea en JSX…).
 
 ## Reglas al modificar el proyecto

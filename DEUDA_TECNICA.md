@@ -233,6 +233,9 @@ y se pasa a las vistas (`App.jsx:76-78`). Los hooks lo incluyen en las dependenc
 - Cancelar peticiones con `AbortController`.
 - Alternativa con dependencia: React Query / SWR (requiere justificar la dep).
 
+**Estado actual (22/10/2026):** ESLint emite **2 avisos** `react-hooks/exhaustive-deps`
+intencionados (`useSessions.js`, `useStats.js`) que desaparecen al resolver este hallazgo.
+
 ### B0-6 · Sin TypeScript ni validación del contrato de datos
 
 El contrato de la API solo está **documentado** (tabla en `AGENTS.md`), no verificado. El

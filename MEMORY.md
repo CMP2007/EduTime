@@ -41,12 +41,17 @@ aporte.
   (config de proyecto, como `AGENTS.md`; el lockfile aporta reproducibilidad y detección
   de alteraciones, igual que `package-lock.json`). `.gitignore` solo para artefactos y
   estado desechable de máquina.
+- **Adopción de SDD (22/10/2026)**: `AGENTS.md` es la constitución del proyecto y el trabajo
+  por funcionalidad vivirá en artefactos versionados (`specs/`). `CONTEXTO_SESION.md` se
+  elimina: su contenido exclusivo (idioma/razonamiento, perfil, plantilla de propuesta,
+  commits, orden de lectura) se consolidó en `AGENTS.md` y `MEMORY.md`.
 
 #### ##Aprendizajes y errores a evitar
 
 - Mantener `MEMORY.md` y `AGENTS.md` sincronizados con el estado real del proyecto.
 - Un test que pasa no prueba nada: **romper el código a propósito** (mutación). Antes, copiar
-  los ficheros a `/tmp/opencode`; revertir git **archivo por archivo**, nunca una carpeta.
+  los ficheros a `/tmp/opencode`; `git checkout -- <archivo>` solo es seguro si ya está
+  commiteado; revertir **archivo por archivo**, nunca una carpeta.
 - `try/finally` sin `catch` = *Unhandled Rejection* silencioso: siempre mostrar el error al
   usuario (patrón: prop `error` en `ConfirmDialog`).
 - Cuidado con las fechas: fecha local y comparar como `YYYY-MM-DD`. CSS: en un flex item,
@@ -60,7 +65,9 @@ aporte.
 
 #### ##Próximos pasos
 
-- **Siguiente**: encarar el **punto 4** (B1-9 quedó atrás: majors subidos con la suite en verde).
+- **Siguiente (SDD)**: crear `specs/` con plantillas (`spec.md`, `plan.md`, `tasks.md`) y
+  adaptar `/feature` para exigir criterios de aceptación y guardar el plan aprobado.
+- Después, retomar el **punto 4** de `DEUDA_TECNICA.md`.
 - Culminación (B0-7): tests de integración ampliados y E2E con Playwright (dependencia aparte).
 - Posibles mejoras: exportar datos, gráficos de evolución, temas de color; y seguir el orden
   de `DEUDA_TECNICA.md`.
