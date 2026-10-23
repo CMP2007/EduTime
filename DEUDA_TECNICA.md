@@ -117,7 +117,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
 | B8-1 | Formateadores de fecha sin validar (producen `Invalid Date`) | Baja-Media | pendiente |
-| B8-2 | `Modal` sin focus trap, sin restaurar foco ni bloquear scroll | Media | pendiente |
+| B8-2 | `Modal` sin focus trap, sin restaurar foco ni bloquear scroll | Media | resuelto |
 | B8-3 | `goalProgress` sin límite inferior (acepta negativos) | Baja | pendiente |
 | B8-4 | Lógica "lunes = 0" duplicada (`formatDateLong` vs `weekdayIndex`) | Baja | pendiente |
 | B8-5 | `combineDuration` convierte valores inválidos en `0` en silencio | Muy baja | pendiente |
@@ -284,7 +284,7 @@ completo: crear/editar/borrar + fallos de red).
 **En curso (infraestructura hecha):** en la sesión del punto 3 se montó la infraestructura
 (**Vitest 5 + jsdom + Testing Library**, versiones exactas en `frontend/package.json`;
 `frontend/vitest.config.js`, `frontend/test/` espejo de `src/`, script `test` por workspace) y
-ya hay **13 tests unitarios/DOM** en verde junto a los 55 de backend (68 en total con
+ya hay **29 tests unitarios/DOM** en verde junto a los 55 de backend (84 en total con
 `npm test`). Quedan, para la culminación, los tests de **integración ampliados** y los **E2E**
 (Playwright: dependencia aparte, a aprobar).
 
@@ -756,6 +756,15 @@ del fondo. Funciona visualmente, pero es incompleto en accesibilidad.
 
 **Mitigación:** focus trap (o librería de diálogos), restaurar foco al cerrar y `overflow` del
 `body`.
+
+**Resuelto (22/10/2026, spec `specs/001-modal-accesible/`):** `Modal` enfoca al abrir el primer
+campo editable, si no el primer botón del cuerpo y, si no, el contenedor; atrapa Tab/Shift+Tab
+(saltando deshabilitados y `[hidden]`); al desmontar devuelve el foco al disparador o, si ya no
+existe, a `main` (`tabIndex={-1}`); bloquea el scroll del `body` y restaura el `overflow` previo;
+y el fondo ya **no** cierra el diálogo. Se retiró el `autoFocus` de `SessionForm` para que la
+regla viva solo en `Modal`. Sin dependencias nuevas. Tests: `frontend/test/components/Modal.test.jsx`
+(16 casos), verificados por mutación (foco inicial, trampa, restauración, fallback, scroll y
+cierre por fondo).
 
 ### B8-3 · `goalProgress` sin límite inferior (acepta negativos)
 
