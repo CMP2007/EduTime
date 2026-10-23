@@ -6,13 +6,18 @@ aporte.
 #### ##Estado actual
 
 - v1 de StudyTrack funcionando: monorepo con frontend (React 19 + **Vite 8**) y backend
-  (Node + Express 4). Pestañas: Inicio (tarjetas + heatmap), Historial (filtros, editar,
+  (Node + Express 5). Pestañas: Inicio (tarjetas + heatmap), Historial (filtros, editar,
   eliminar) y Estadísticas (periodos, temáticas, clase más larga).
 - Persistencia en `backend/data/sessions.json` (ignorado por git): lectura única
   (single-flight), cola de escrituras, tmp único y fallo explícito si el fichero está corrupto.
-- **Calidad**: 68 tests — 55 backend (`node --test`) + 13 frontend (Vitest + jsdom + Testing
+- **Calidad**: 84 tests — 55 backend (`node --test`) + 29 frontend (Vitest + jsdom + Testing
   Library) — y ESLint en verde. Tests de frontend en `frontend/test/` (espejo de `src/`),
   sin `globals`, con `vi.mock` de las APIs y `vi.stubGlobal` de `fetch`.
+- **Feature 001 (modal accesible) resuelta** (22/10/2026): `Modal` atrapa el foco (Tab y
+  Shift+Tab), enfoca el primer campo/botón/cuerpo al abrir, restaura el foco al disparador
+  (o a `main` si desapareció), bloquea el scroll del `body` y ya no cierra al pulsar el fondo.
+  Deuda **B8-2** cerrada; 16 tests nuevos verificados por mutación. Spec en
+  `specs/001-modal-accesible/`.
 - **Punto 3 (manejo de errores) resuelto** (17/10/2026): JSON malformado → 400 (4xx sin
   stacktrace en el log); `ErrorBoundary` en `<main>` con `key={tab}`; `ApiError` con
   `status` y prop `error` en `ConfirmDialog`. 19 tests nuevos, verificados por mutación.
@@ -41,10 +46,11 @@ aporte.
   (config de proyecto, como `AGENTS.md`; el lockfile aporta reproducibilidad y detección
   de alteraciones, igual que `package-lock.json`). `.gitignore` solo para artefactos y
   estado desechable de máquina.
-- **Adopción de SDD (22/10/2026)**: `AGENTS.md` es la constitución del proyecto y el trabajo
-  por funcionalidad vivirá en artefactos versionados (`specs/`). `CONTEXTO_SESION.md` se
-  elimina: su contenido exclusivo (idioma/razonamiento, perfil, plantilla de propuesta,
-  commits, orden de lectura) se consolidó en `AGENTS.md` y `MEMORY.md`.
+- **Constitución y SDD (22/10/2026)**: `docs/constitution.md` es la constitución del proyecto y
+  `AGENTS.md` su guía operativa resumida; el trabajo por funcionalidad vivirá en artefactos
+  versionados (`specs/`). `CONTEXTO_SESION.md` se elimina: su contenido exclusivo
+  (idioma/razonamiento, perfil, plantilla de propuesta, commits, orden de lectura) se consolidó
+  en `AGENTS.md` y `MEMORY.md`.
 
 #### ##Aprendizajes y errores a evitar
 
@@ -65,8 +71,9 @@ aporte.
 
 #### ##Próximos pasos
 
-- **Siguiente (SDD)**: crear `specs/` con plantillas (`spec.md`, `plan.md`, `tasks.md`) y
-  adaptar `/feature` para exigir criterios de aceptación y guardar el plan aprobado.
+- **Siguiente (SDD)**: extraer `specs/_templates/{spec,plan,tasks}.md` de los artefactos
+  reales de 001 y adaptar `/feature` para exigir criterios de aceptación y guardar el plan
+  aprobado. Después, ratificar la constitución en un commit junto con `specs/`.
 - Después, retomar el **punto 4** de `DEUDA_TECNICA.md`.
 - Culminación (B0-7): tests de integración ampliados y E2E con Playwright (dependencia aparte).
 - Posibles mejoras: exportar datos, gráficos de evolución, temas de color; y seguir el orden
