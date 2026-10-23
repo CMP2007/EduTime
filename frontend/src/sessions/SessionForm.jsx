@@ -90,7 +90,6 @@ function SessionForm({ open, session, onClose, onSubmit }) {
             value={form.title}
             maxLength={TITLE_MAX}
             placeholder="Ej. Matemáticas"
-            autoFocus
             onChange={(event) => update('title', event.target.value)}
           />
         </label>

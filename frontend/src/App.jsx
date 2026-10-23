@@ -82,7 +82,7 @@ function App() {
 
       <Tabs tabs={TABS} active={tab} onChange={setTab} />
 
-      <main className="app__content">
+      <main className="app__content" tabIndex={-1}>
         {/* key={tab} reinicia el límite de error al cambiar de pestaña */}
         <ErrorBoundary key={tab}>
           {tab === 'home' && <StatsDashboard version={version} />}
