@@ -71,9 +71,9 @@ aporte.
 
 #### ##Próximos pasos
 
-- **Siguiente (SDD)**: extraer `specs/_templates/{spec,plan,tasks}.md` de los artefactos
-  reales de 001 y adaptar `/feature` para exigir criterios de aceptación y guardar el plan
-  aprobado. Después, ratificar la constitución en un commit junto con `specs/`.
+- **SDD operativo**: plantillas en `specs/_templates/{spec,plan,tasks}.md` y `/feature` guía
+  spec → plan → tareas con aprobación antes de cada fase. La constitución, la guía y la feature
+  001 quedaron en los commits `58a7e8e`…`24f5d65`.
 - Después, retomar el **punto 4** de `DEUDA_TECNICA.md`.
 - Culminación (B0-7): tests de integración ampliados y E2E con Playwright (dependencia aparte).
 - Posibles mejoras: exportar datos, gráficos de evolución, temas de color; y seguir el orden
