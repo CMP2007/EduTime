@@ -2,6 +2,13 @@
 
 Guía para agentes de IA que trabajen en este repositorio. Léela antes de tocar código.
 
+## Jerarquía documental
+
+La **constitución** ([`docs/constitution.md`](docs/constitution.md)) contiene los principios
+innegociables y prevalece sobre este documento. `AGENTS.md` es la guía operativa: explica cómo
+aplicarlos (comandos, estructura, modelo, API y flujo de trabajo). Ante cualquier conflicto, se
+sigue la constitución y se corrige este documento.
+
 ## Descripción del proyecto
 
 **StudyTrack**: aplicación para el control de horas de estudio.
@@ -14,8 +21,8 @@ Es un monorepo con **npm workspaces** (`frontend` y `backend`).
 
 ## Cómo trabajar con el agente
 
-- **Idioma**: todo el texto dirigido al usuario (planes, explicaciones, resúmenes **y el
-  razonamiento**) va en español; identificadores y código, en inglés.
+- **Idioma**: texto dirigido al usuario (planes, explicaciones, resúmenes y razonamiento) en
+  español; identificadores y código, en inglés (principio 6).
 - **Perfil del usuario**: estudiante autodidacta (Full Stack Open, parte 7), con nivel
   básico-intermedio de JavaScript, React y Express, y arquitecto de las decisiones del
   proyecto. Por eso las explicaciones deben ser **más detalladas y simples de lo normal**:
@@ -163,8 +170,10 @@ calendario (por defecto, `date`).
 ## Convenciones de código
 
 - **ES Modules** (`import`/`export`) en backend y frontend. Los `package.json` usan `"type": "module"`.
-- **Idioma**: identificadores y nombres técnicos en inglés; textos de UI, mensajes de error y comentarios dirigidos al usuario en español.
-- **Backend**: `server.js` solo arranca; las rutas viven en `*.routes.js`; la lógica en `*.service.js`; el acceso a datos en `*.repository.js`. No mezclar capas.
+- **Idioma**: identificadores y nombres técnicos en inglés; textos de UI, errores y comentarios en
+  español (principio 6).
+- **Backend**: `server.js` solo arranca; rutas en `*.routes.js`, lógica en `*.service.js`, datos en
+  `*.repository.js` (principio 3).
 - **Repositorios**: cualquier repositorio nuevo sigue el patrón fábrica (`createXRepository(store)`) con el almacenamiento inyectable, para poder simularlo en tests.
 - **Frontend**: un componente por archivo. La lógica de datos en hooks (`use*.js`) y las llamadas HTTP en `*.api.js`.
 - **Estilo**: punto y coma al final, comillas simples, indentación de 2 espacios, funciones flecha, sin clases (excepción: `ErrorBoundary`, que React exige como clase para `componentDidCatch`).
@@ -180,18 +189,23 @@ calendario (por defecto, `date`).
 
 ## Reglas al modificar el proyecto
 
-1. **No añadir dependencias** sin justificar por qué no se resuelve con lo existente. Si añades
-   o actualizas dependencias, usa **versiones exactas** (coherente con `save-exact=true`) y
-   deja la versión **actualizada o compatible con lo que ya existe en el proyecto**. No
-   uses `@latest` ni instales versiones deliberadamente antiguas; consulta `npm outdated`
-   antes de proponer un cambio.
-2. Mantener la separación por capas: `repository` (datos) / `service` (reglas) / `routes` (HTTP).
-3. Mantener la regla de **un archivo por funcionalidad/componente**.
-4. Validar toda entrada del usuario en el backend antes de usarla.
-5. **Persistencia en archivo JSON** (`backend/data/sessions.json`, ignorado por git). No dejar datos solo en memoria. Los IDs son estables.
-6. Al añadir una funcionalidad, actualizar este `AGENTS.md` (si cambia la estructura, el modelo o los comandos) y `MEMORY.md`.
-7. Para planificar una funcionalidad antes de codificar, usar el comando `/feature`.
-8. Antes de dar algo por terminado, `npm test` y `npm run lint` deben pasar (los tests en verde y el lint sin errores).
+Aplican los principios de [`docs/constitution.md`](docs/constitution.md); si hay conflicto,
+prevalece la constitución.
+
+1. **Dependencias**: justifica que lo existente no basta y espera aprobación (principio 1). Antes
+   de proponer, consulta `npm outdated`; usa versiones exactas y nunca `@latest`.
+2. **Capas**: `repository` (datos) / `service` (reglas) / `routes` (HTTP) en backend; `*.api.js`
+   (HTTP) / `use*.js` (estado) / componente (UI) en frontend (principio 3).
+3. **Un archivo, una responsabilidad**: no mezclar funcionalidades ni roles (principio 3).
+4. **Validación**: valida toda entrada del usuario en el backend antes de usarla.
+5. **Persistencia**: datos en `backend/data/sessions.json` (ignorado por git), nunca solo en
+   memoria; IDs estables; escritura atómica y fallo ante JSON corrupto. Seguridad: principio 5.
+6. **Documentación**: al añadir una funcionalidad, actualiza este `AGENTS.md` (si cambia la
+   estructura, el modelo o los comandos) y `MEMORY.md`.
+7. **Spec**: para funcionalidad o cambio de comportamiento, usa `/feature` y deja la spec
+   aprobada en `specs/<feature>/spec.md` antes de codificar. Bugs, docs y refactors sin cambio
+   observable no requieren spec (principio 2).
+8. **Puerta de calidad**: `npm test` y `npm run lint` en verde antes de terminar (principio 4).
 
 ## Notas
 
