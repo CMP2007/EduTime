@@ -75,6 +75,14 @@ npm run lint         # ESLint sobre todo el monorepo
 Un archivo = una responsabilidad. Nada de mezclar funcionalidades o roles en un archivo.
 
 ```
+docs/constitution.md           # principios innegociables del proyecto
+specs/
+  _templates/                  # plantillas de spec, plan y tareas
+  <NNN>-<slug>/                # una carpeta por funcionalidad
+    spec.md                    # qué y por qué (EARS, sin implementación)
+    plan.md                    # cómo (enfoque técnico y mapa RF → test)
+    tasks.md                   # pasos verificables, con test y «hecho cuando»
+
 backend/src/
   server.js                    # arranque del servidor (puerto 3001, variable PORT)
   app.js                       # monta las rutas /api y maneja errores
@@ -202,9 +210,9 @@ prevalece la constitución.
    memoria; IDs estables; escritura atómica y fallo ante JSON corrupto. Seguridad: principio 5.
 6. **Documentación**: al añadir una funcionalidad, actualiza este `AGENTS.md` (si cambia la
    estructura, el modelo o los comandos) y `MEMORY.md`.
-7. **Spec**: para funcionalidad o cambio de comportamiento, usa `/feature` y deja la spec
-   aprobada en `specs/<feature>/spec.md` antes de codificar. Bugs, docs y refactors sin cambio
-   observable no requieren spec (principio 2).
+7. **Spec**: para funcionalidad o cambio de comportamiento, usa `/feature`, parte de
+   `specs/_templates/` y deja la spec aprobada en `specs/<feature>/spec.md` antes de codificar.
+   Bugs, docs y refactors sin cambio observable no requieren spec (principio 2).
 8. **Puerta de calidad**: `npm test` y `npm run lint` en verde antes de terminar (principio 4).
 
 ## Notas
