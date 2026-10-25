@@ -9,7 +9,9 @@
 
 ## Enfoque
 
-<!-- Pasos técnicos en orden. Cada decisión debe responder a un requisito de la spec. -->
+<!-- Pasos técnicos en orden. Cada decisión debe responder a un requisito de la spec.
+     Si hay lógica compleja, añade pseudocódigo. Si hay fechas, funciones puras con la fecha
+     como parámetro. -->
 
 1. {{...}}
 

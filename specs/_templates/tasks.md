@@ -7,6 +7,10 @@ Cada tarea es un cambio pequeño y verificable. El campo «Test» indica qué pr
 antes de dar la tarea por hecha; si el test no falla al revertir el cambio, la tarea no está
 terminada.
 
+Como guía, una tarea debería cerrarse en una sesión corta (aprox. 20-30 min). Si una tarea no
+cabe o el conjunto supera ~10 tareas, replantea el alcance de la spec en vez de crear tareas
+artificiales.
+
 ## T1 — {{nombre de la tarea}}
 
 - [ ] {{Cambio, en imperativo.}}
