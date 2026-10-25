@@ -2,7 +2,6 @@ import cors from 'cors';
 import express from 'express';
 import sessionsRoutes from './sessions/sessions.routes.js';
 import statsRoutes from './stats/stats.routes.js';
-import { ValidationError } from './sessions/sessions.service.js';
 
 const app = express();
 
@@ -21,10 +20,6 @@ app.use((_request, response) => {
 });
 
 app.use((error, _request, response, _next) => {
-  if (error instanceof ValidationError) {
-    return response.status(400).json({ error: error.message });
-  }
-
   // Los errores con estado 4xx (p. ej. el SyntaxError de express.json con
   // body malformado) son fallos del cliente, no del servidor: se respetan y
   // no se registran con stacktrace.

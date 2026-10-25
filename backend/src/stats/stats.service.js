@@ -1,5 +1,6 @@
+import { ValidationError } from '../errors.js';
 import { sessionsRepository } from '../sessions/sessions.repository.js';
-import { addDays, enumerateDays, getRange, isValidPeriod, todayString } from '../utils/date.js';
+import { addDays, enumerateDays, getRange, isValidPeriod, PERIODS, todayString } from '../utils/date.js';
 
 export const GOAL_MINUTES = 180;
 
@@ -66,10 +67,17 @@ function buildHeatmap(totalsByDate, from, to) {
 
 export const statsService = {
   async getStats({ period, date, heatmap, heatmapDate } = {}) {
+    if (period !== undefined && !isValidPeriod(period)) {
+      throw new ValidationError(`Periodo inválido. Valores permitidos: ${PERIODS.join(', ')}.`);
+    }
+    if (heatmap !== undefined && !isValidPeriod(heatmap)) {
+      throw new ValidationError(`Periodo del heatmap inválido. Valores permitidos: ${PERIODS.join(', ')}.`);
+    }
+
     const reference = date || todayString();
     const heatmapReference = heatmapDate || reference;
-    const periodKey = isValidPeriod(period) ? period : 'week';
-    const heatmapKey = isValidPeriod(heatmap) ? heatmap : 'week';
+    const periodKey = period ?? 'week';
+    const heatmapKey = heatmap ?? 'week';
 
     const sessions = await sessionsRepository.findAll();
     const periodRange = getRange(periodKey, reference);

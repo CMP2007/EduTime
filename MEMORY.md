@@ -10,13 +10,14 @@ aporte.
   eliminar) y Estadísticas (periodos, temáticas, clase más larga).
 - Persistencia en `backend/data/sessions.json` (ignorado por git): lectura única
   (single-flight), cola de escrituras, tmp único y fallo explícito si el fichero está corrupto.
-- **Calidad**: 84 tests — 55 backend (`node --test`) + 29 frontend (Vitest + jsdom + Testing
+- **Calidad**: 87 tests — 59 backend (`node --test`) + 28 frontend (Vitest + jsdom + Testing
   Library) — y ESLint en verde. Tests de frontend en `frontend/test/` (espejo de `src/`),
-  sin `globals`, con `vi.mock` de las APIs y `vi.stubGlobal` de `fetch`.
+  sin `globals`, con `vi.mock` de las APIs y `vi.stubGlobal` de `fetch`. **B3-4/B2-2 resueltos**
+  (25/10/2026): periodos inválidos → 400; `ValidationError` compartido en `backend/src/errors.js`.
 - **Feature 001 (modal accesible) resuelta** (22/10/2026): `Modal` atrapa el foco (Tab y
   Shift+Tab), enfoca el primer campo/botón/cuerpo al abrir, restaura el foco al disparador
   (o a `main` si desapareció), bloquea el scroll del `body` y ya no cierra al pulsar el fondo.
-  Deuda **B8-2** cerrada; 16 tests nuevos verificados por mutación. Spec en
+  Deuda **B8-2** cerrada; 15 tests nuevos verificados por mutación. Spec en
   `specs/001-modal-accesible/`.
 - **Punto 3 (manejo de errores) resuelto** (17/10/2026): JSON malformado → 400 (4xx sin
   stacktrace en el log); `ErrorBoundary` en `<main>` con `key={tab}`; `ApiError` con

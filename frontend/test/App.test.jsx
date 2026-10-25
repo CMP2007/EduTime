@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../src/App.jsx';
 
 const { sessionsApiMock, statsApiMock } = vi.hoisted(() => ({
@@ -21,6 +21,12 @@ const session = {
 };
 
 describe('App · borrado de clases', () => {
+  beforeEach(() => {
+    sessionsApiMock.list.mockReset();
+    sessionsApiMock.remove.mockReset();
+    statsApiMock.get.mockReset();
+  });
+
   it('muestra el error en el diálogo si el borrado falla (no se traga el fallo)', async () => {
     statsApiMock.get.mockRejectedValue(new Error('Backend caído'));
     sessionsApiMock.list.mockResolvedValue([session]);
@@ -46,7 +52,9 @@ describe('App · borrado de clases', () => {
 
   it('cierra el diálogo y refresca cuando el borrado funciona', async () => {
     statsApiMock.get.mockRejectedValue(new Error('Backend caído'));
-    sessionsApiMock.list.mockResolvedValue([session]);
+    sessionsApiMock.list
+      .mockResolvedValueOnce([session])
+      .mockResolvedValueOnce([]);
     sessionsApiMock.remove.mockResolvedValue(null);
 
     render(<App />);
@@ -54,6 +62,8 @@ describe('App · borrado de clases', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Historial' }));
 
     const rowTitle = await screen.findByText('Matemáticas');
+    expect(sessionsApiMock.list).toHaveBeenCalledTimes(1);
+
     const row = rowTitle.closest('li');
     fireEvent.click(within(row).getByRole('button', { name: 'Eliminar' }));
 
@@ -62,5 +72,9 @@ describe('App · borrado de clases', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(sessionsApiMock.remove).toHaveBeenCalledWith('abc-123');
+
+    await waitFor(() => expect(sessionsApiMock.list).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText(/No hay clases registradas/)).toBeTruthy();
+    expect(screen.queryByText('Matemáticas')).toBeNull();
   });
 });

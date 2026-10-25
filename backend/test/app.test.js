@@ -83,3 +83,21 @@ describe('app · manejo de errores (B2-1)', () => {
     assert.equal(errorLog.mock.callCount(), 1);
   });
 });
+
+describe('app · validación de periodos (B3-4)', () => {
+  it('un periodo inválido responde 400', async () => {
+    const response = await fetch(`${baseUrl}/api/stats?period=foo`);
+
+    assert.equal(response.status, 400);
+    const body = await response.json();
+    assert.match(body.error, /Periodo inválido/);
+  });
+
+  it('un heatmap inválido responde 400', async () => {
+    const response = await fetch(`${baseUrl}/api/stats?heatmap=foo`);
+
+    assert.equal(response.status, 400);
+    const body = await response.json();
+    assert.match(body.error, /Periodo del heatmap inválido/);
+  });
+});

@@ -76,7 +76,7 @@ export function isValidPeriod(period) {
 }
 
 /** Devuelve el rango { from, to, label } de un periodo respecto a una fecha. */
-export function getRange(period, reference) {
+export function getRange(period = 'week', reference) {
   const date = reference || todayString();
 
   switch (period) {
@@ -95,8 +95,9 @@ export function getRange(period, reference) {
       return { key: 'year', label: `Año ${year}`, from: `${year}-01-01`, to: `${year}-12-31` };
     }
     case 'week':
-    default:
       return { key: 'week', label: 'Semana', from: startOfWeek(date), to: endOfWeek(date) };
+    default:
+      throw new RangeError(`Periodo no válido: ${period}`);
   }
 }
 

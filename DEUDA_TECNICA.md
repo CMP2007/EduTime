@@ -61,7 +61,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
 | B2-1 | JSON malformado responde 500 en lugar de 400 | Media | resuelto |
-| B2-2 | `app.js` acoplado a `ValidationError` de sessions | Baja-Media | pendiente |
+| B2-2 | `app.js` acoplado a `ValidationError` de sessions | Baja-Media | resuelto |
 | B2-3 | Boilerplate de `try/catch` en cada ruta | Baja | pendiente |
 | B2-4 | Sin logging de peticiones/errores | Baja | pendiente |
 
@@ -72,7 +72,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | B3-1 | Fichero JSON corrupto se trata como vacío (riesgo de pérdida de datos) | Media-Alta | resuelto |
 | B3-2 | `fromDateString` no valida la entrada (fechas `NaN` silenciosas) | Baja | pendiente |
 | B3-3 | `enumerateDays` trunca en silencio a 4000 días (número mágico) | Baja | pendiente |
-| B3-4 | Periodos inválidos degradan en silencio a `week` | Baja | pendiente |
+| B3-4 | Periodos inválidos degradan en silencio a `week` | Baja | resuelto |
 
 ### Bloque 4 — Backend: dominio de sesiones
 
@@ -284,7 +284,7 @@ completo: crear/editar/borrar + fallos de red).
 **En curso (infraestructura hecha):** en la sesión del punto 3 se montó la infraestructura
 (**Vitest 5 + jsdom + Testing Library**, versiones exactas en `frontend/package.json`;
 `frontend/vitest.config.js`, `frontend/test/` espejo de `src/`, script `test` por workspace) y
-ya hay **29 tests unitarios/DOM** en verde junto a los 55 de backend (84 en total con
+ya hay **28 tests unitarios/DOM** en verde junto a los 59 de backend (87 en total con
 `npm test`). Quedan, para la culminación, los tests de **integración ampliados** y los **E2E**
 (Playwright: dependencia aparte, a aprobar).
 
@@ -453,9 +453,10 @@ parsear el body, lanza un `SyntaxError` de `body-parser` con `status: 400` y
 4xx **antes** de caer al 500; para `entity.parse.failed` responde 400 con un mensaje amigable
 ("JSON inválido en el cuerpo de la petición") en vez del mensaje crudo del parser, y los 4xx ya
 **no** se registran con `console.error` (el log solo ve fallos reales del servidor). Sin nuevas
-dependencias y **sin adelantar el punto 8**: la rama `instanceof ValidationError` sigue intacta
-(B2-2/B2-3/B2-4 quedan pendientes). Tests: `backend/test/app.test.js` (app real en puerto
-efímero; ningún caso escribe en disco), verificado por mutación.
+dependencias y **sin adelantar el punto 8**: en esa sesión la rama `instanceof ValidationError`
+quedó intacta. Se retiró después al resolver **B2-2** (25/10/2026); B2-3/B2-4 siguen pendientes.
+Tests: `backend/test/app.test.js` (app real en puerto efímero; ningún caso escribe en disco),
+verificado por mutación.
 
 ### B2-2 · `app.js` acoplado a `ValidationError` de sessions
 
@@ -465,6 +466,10 @@ propia validación, hay que añadir otro `instanceof` aquí.
 
 **Mitigación:** extraer una clase base de error (p. ej. `HttpError`/`AppError` con `status`)
 en un módulo propio, que cada dominio extienda; el handler decide por `error.status`.
+
+**Resuelto (25/10/2026):** `ValidationError` vive en `backend/src/errors.js` y extiende
+`AppError` (`status = 400`). `app.js` ya no importa nada de `sessions`: decide por
+`error.status`, así que cualquier dominio puede lanzar errores 4xx sin añadir un `instanceof`.
 
 ### B2-3 · Boilerplate de `try/catch` en cada ruta
 
@@ -526,6 +531,12 @@ a `'week'` con `isValidPeriod`. Un error de tipeo en el parámetro `period`/`hea
 detecta: se sirve otra cosa.
 
 **Mitigación:** devolver `400` ante un periodo inválido en vez de degradar.
+
+**Resuelto (25/10/2026):** `statsService.getStats` valida `period` y `heatmap` antes de leer
+datos y lanza `ValidationError` (400) con la lista de valores permitidos; si se omiten, siguen
+usando `week`. `getRange` ya no tiene un `default` silencioso: sin periodo usa `week`, pero un
+periodo desconocido lanza `RangeError`. Tests en `date.test.js`, `stats.service.test.js` y
+`app.test.js` (peticiones HTTP reales).
 
 > **Nota:** la lista de periodos está además duplicada entre backend y frontend (ampliación de
 > **B0-1**).
@@ -763,8 +774,8 @@ campo editable, si no el primer botón del cuerpo y, si no, el contenedor; atrap
 existe, a `main` (`tabIndex={-1}`); bloquea el scroll del `body` y restaura el `overflow` previo;
 y el fondo ya **no** cierra el diálogo. Se retiró el `autoFocus` de `SessionForm` para que la
 regla viva solo en `Modal`. Sin dependencias nuevas. Tests: `frontend/test/components/Modal.test.jsx`
-(16 casos), verificados por mutación (foco inicial, trampa, restauración, fallback, scroll y
-cierre por fondo).
+(15 casos), verificados por mutación (foco inicial, trampa, restauración, fallback, scroll y
+cierre por fondo e interior).
 
 ### B8-3 · `goalProgress` sin límite inferior (acepta negativos)
 

@@ -86,6 +86,7 @@ specs/
 backend/src/
   server.js                    # arranque del servidor (puerto 3001, variable PORT)
   app.js                       # monta las rutas /api y maneja errores
+  errors.js                    # errores compartidos (AppError, ValidationError)
   storage/fileStore.js         # lectura/escritura del JSON en disco
   utils/date.js                # utilidades de fecha y periodos
   sessions/
@@ -152,7 +153,8 @@ frontend/src/
 | DELETE | `/api/sessions/:id`      | Elimina una clase (204).                      |
 | GET    | `/api/stats`             | Métricas. Params: `period`, `date`, `heatmap`, `heatmapDate`.|
 
-Los errores de validación responden `400`; los recursos inexistentes, `404`.
+Los errores de validación responden `400` (incluidos `period` y `heatmap` inválidos en
+`/api/stats`); los recursos inexistentes, `404`.
 
 ### Respuesta de `/api/stats`
 

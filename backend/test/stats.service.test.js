@@ -138,12 +138,30 @@ describe('statsService.getStats · periodos y resumen', () => {
     assert.equal(stats.summary.subjects[0].minutes, 180);
   });
 
-  it('degrada a semana un periodo inválido (comportamiento actual documentado)', async () => {
+  it('rechaza un periodo inválido en vez de degradarlo a semana', async () => {
     seed([]);
 
-    const stats = await statsService.getStats({ period: 'foo', date: '2026-10-17' });
+    await assert.rejects(
+      () => statsService.getStats({ period: 'foo', date: '2026-10-17' }),
+      (error) => {
+        assert.equal(error.status, 400);
+        assert.match(error.message, /Periodo inválido/);
+        return true;
+      },
+    );
+  });
 
-    assert.equal(stats.period.key, 'week');
+  it('rechaza un heatmap inválido', async () => {
+    seed([]);
+
+    await assert.rejects(
+      () => statsService.getStats({ heatmap: 'foo', heatmapDate: '2026-10-17' }),
+      (error) => {
+        assert.equal(error.status, 400);
+        assert.match(error.message, /Periodo del heatmap inválido/);
+        return true;
+      },
+    );
   });
 });
 

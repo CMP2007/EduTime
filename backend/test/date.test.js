@@ -137,7 +137,11 @@ describe('getRange', () => {
     assert.equal(rango.to, '2026-12-31');
   });
 
-  it('un periodo desconocido degrada a semana (comportamiento actual documentado)', () => {
-    assert.equal(getRange('foo', referencia).key, 'week');
+  it('sin periodo usa la semana como valor por defecto', () => {
+    assert.equal(getRange(undefined, referencia).key, 'week');
+  });
+
+  it('lanza error con un periodo desconocido', () => {
+    assert.throws(() => getRange('foo', referencia), /Periodo no válido/);
   });
 });

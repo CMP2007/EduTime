@@ -56,8 +56,16 @@ describe('fileStore.readData', () => {
     await assert.rejects(() => readData(dataFile), /no contiene un array/);
   });
 
-  it('propaga los errores de disco que no sean ENOENT', async () => {
-    await assert.rejects(() => readData(directory));
+  it('propaga el error EISDIR al intentar leer un directorio', async () => {
+    await assert.rejects(
+      () => readData(directory),
+      (error) => {
+        assert.equal(error.code, 'EISDIR');
+        assert.equal(error.syscall, 'read');
+        assert.doesNotMatch(error.message, /corrupto/);
+        return true;
+      },
+    );
   });
 });
 

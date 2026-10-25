@@ -67,27 +67,19 @@ describe('Modal', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('no cierra al pulsar sobre el fondo (RF-8)', () => {
+  it('no cierra ni al pulsar el fondo ni dentro del diálogo (RF-8)', () => {
     const onClose = vi.fn();
     render(<ModalHarness onClose={onClose} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Abrir' }));
-    const overlay = screen.getByRole('dialog').parentElement;
+    const dialog = screen.getByRole('dialog');
+    const overlay = dialog.parentElement;
 
     fireEvent.mouseDown(overlay);
+    fireEvent.mouseDown(dialog);
 
     expect(onClose).not.toHaveBeenCalled();
     expect(screen.getByRole('dialog')).toBeTruthy();
-  });
-
-  it('no cierra al pulsar dentro del diálogo (RF-8)', () => {
-    const onClose = vi.fn();
-    render(<ModalHarness onClose={onClose} />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir' }));
-    fireEvent.mouseDown(screen.getByRole('dialog'));
-
-    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('al abrir enfoca el primer campo editable (RF-1)', () => {
