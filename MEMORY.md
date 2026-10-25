@@ -69,13 +69,18 @@ aporte.
 - Una skill cuyo `SKILL.md` solo redirige es un punto muerto si la skill destino no está
   instalada; verificar el destino antes de darla por puesta. `grill-me`: el protocolo va
   dentro de su propio `SKILL.md` (`.agents/skills/`, invocación solo manual).
+- **Protocolo de clarificación (25/10/2026)**: la revisión QA de spec, plan y tareas vive en
+  `docs/clarification.md`; `/feature` la aplica en cada gate y `/clarify` la ejecuta a mano en
+  modo solo lectura. Los comandos no se llaman entre sí: comparten el documento.
 
 #### ##Próximos pasos
 
-- **SDD operativo**: plantillas en `specs/_templates/{spec,plan,tasks}.md` y `/feature` guía
-  spec → plan → tareas con aprobación antes de cada fase. La constitución, la guía y la feature
-  001 quedaron en los commits `58a7e8e`…`24f5d65`.
-- Después, retomar el **punto 4** de `DEUDA_TECNICA.md`.
+- **SDD operativo**: plantillas en `specs/_templates/{spec,plan,tasks}.md`, protocolo en
+  `docs/clarification.md` y `/feature` guía spec → clarificación → plan → clarificación →
+  tareas → clarificación → implementación, con aprobación antes de cada gate. `/clarify`
+  permite reanalizar cualquier artefacto a mano. La constitución, la guía y la feature 001
+  quedaron en los commits `58a7e8e`…`24f5d65`.
+- Después, retomar el siguiente punto pendiente de `DEUDA_TECNICA.md`.
 - Culminación (B0-7): tests de integración ampliados y E2E con Playwright (dependencia aparte).
 - Posibles mejoras: exportar datos, gráficos de evolución, temas de color; y seguir el orden
   de `DEUDA_TECNICA.md`.
