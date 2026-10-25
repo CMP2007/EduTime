@@ -76,6 +76,7 @@ Un archivo = una responsabilidad. Nada de mezclar funcionalidades o roles en un 
 
 ```
 docs/constitution.md           # principios innegociables del proyecto
+docs/clarification.md          # protocolo QA de spec, plan y tareas
 specs/
   _templates/                  # plantillas de spec, plan y tareas
   <NNN>-<slug>/                # una carpeta por funcionalidad
@@ -216,8 +217,12 @@ prevalece la constitución.
    `specs/_templates/` y deja la spec aprobada en `specs/<feature>/spec.md` antes de codificar.
    Bugs, docs y refactors sin cambio observable no requieren spec (principio 2).
 8. **Puerta de calidad**: `npm test` y `npm run lint` en verde antes de terminar (principio 4).
+9. **Clarificación**: antes de aprobar una spec, un plan o unas tareas, aplica el protocolo de
+   `docs/clarification.md`. `/feature` lo hace en cada etapa; `/clarify` permite reanalizar un
+   artefacto a mano en modo solo lectura. Un hallazgo bloqueante se resuelve antes de avanzar.
 
 ## Notas
 
 - `MEMORY.md` es el diario de estudio del proyecto (estado, decisiones, aprendizajes). Revisarlo al empezar una sesión.
-- `.opencode/commands/feature.md` define el flujo de planificación previa.
+- `.opencode/commands/feature.md` define el flujo de planificación previa;
+  `.opencode/commands/clarify.md` revisa un artefacto a mano.
