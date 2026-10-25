@@ -72,6 +72,10 @@ aporte.
 - **Protocolo de clarificación (25/10/2026)**: la revisión QA de spec, plan y tareas vive en
   `docs/clarification.md`; `/feature` la aplica en cada gate y `/clarify` la ejecuta a mano en
   modo solo lectura. Los comandos no se llaman entre sí: comparten el documento.
+- **Contraste con una skill SDD externa (25/10/2026)**: su flujo era redundante y su plan
+  hardcodeaba `node --test`; se adoptaron `Definiciones`, el estado `implementada`, el patrón
+  EARS permanente, una heurística suave de tamaño de tarea y una nota opcional de pseudocódigo
+  y funciones puras de fecha. No se duplicó el flujo.
 
 #### ##Próximos pasos
 
