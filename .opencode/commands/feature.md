@@ -53,7 +53,8 @@ escribas el siguiente artefacto ni código hasta que el anterior esté aprobado.
     Marca la tarea en `tasks.md` y pide mi visto bueno antes de seguir, salvo que te autorice ir
     seguido.
 12. Al cerrar: `npm test` y `npm run lint` en verde, mutación de cada regla nueva, y actualiza
-    `DEUDA_TECNICA.md` y `MEMORY.md` según `AGENTS.md`. Marca `tasks.md` como `completada`.
+    `DEUDA_TECNICA.md` y `MEMORY.md` según `AGENTS.md`. Marca `tasks.md` como `completada` y la
+    spec como `implementada (AAAA-MM-DD)`.
 
 Si una duda mía puede cambiar la spec, el plan o las tareas, pregúntala antes de continuar. No
 avances de etapa sin aprobación explícita.

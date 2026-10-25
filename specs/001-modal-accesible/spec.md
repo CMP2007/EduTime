@@ -1,7 +1,7 @@
 # Spec 001 — Accesibilidad del modal
 
 > Origen: DEUDA_TECNICA.md · B8-2
-> Estado: aprobada (2026-10-22)
+> Estado: implementada (2026-10-22)
 
 ## Contexto y objetivo
 El componente `Modal` es la base de los dos diálogos de la app (formulario de sesión y

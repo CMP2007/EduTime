@@ -39,8 +39,8 @@ revisa el contrato y su coherencia.
    ambigüedades.
 5. **Bloqueante** solo si impide implementar o verificar sin adivinar. Si queda un bloqueante
    sin decidir, el artefacto no se aprueba.
-6. **La revisión no cambia el estado** del artefacto. El estado cambia cuando el mantenedor
-   aprueba.
+6. **La revisión no cambia el estado** del artefacto. La spec pasa a `aprobada` con la
+   aprobación y a `implementada` al cerrar; el plan y las tareas siguen su propio ciclo.
 7. **Después de las respuestas**: actualiza solo lo decidido, vuelve a revisar lo cambiado y
    pide aprobación. Si cambian requisitos, repite la revisión completa. Si una respuesta sigue
    siendo ambigua, vuelve a preguntar.
@@ -79,6 +79,7 @@ revisa el contrato y su coherencia.
 
 - Describe comportamiento, no implementación: sin archivos, funciones, endpoints ni librerías.
 - Actores y permisos definidos.
+- Términos ambiguos definidos en «Definiciones» (si aplica).
 - Requisitos en EARS, observables y verificables.
 - Requisitos no funcionales relevantes (accesibilidad, rendimiento, seguridad, idioma).
 - Casos límite y errores cubiertos por un requisito o declarados fuera de alcance.
@@ -103,6 +104,8 @@ revisa el contrato y su coherencia.
 - Cada `RF-x` tiene al menos una tarea y un test.
 - Cada tarea responde a un paso del plan; sin tareas de alcance nuevo.
 - Tareas pequeñas, con una responsabilidad y un resultado observable.
+- Si una tarea no cabe en una sesión corta o el conjunto supera ~10, el alcance está mal
+  dividido.
 - Test primero y «hecho cuando» verificable.
 - Dependencias y orden correctos.
 - No hay tareas de código sin test.
