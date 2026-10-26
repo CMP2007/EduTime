@@ -42,7 +42,8 @@ Es un monorepo con **npm workspaces** (`frontend` y `backend`).
   ```
 
 - **Arranque de sesión**: leer `AGENTS.md` → `MEMORY.md` → `DEUDA_TECNICA.md`, confirmar el
-  contexto y proponer un plan antes de tocar código.
+  contexto y proponer un plan antes de tocar código. Si retomas una feature, `/statusSDD` resume
+  el punto exacto.
 - **Commits**: Conventional Commits en español (`feat(inicio): …`, `docs: …`,
   `chore(calidad): …`), asunto **sin tildes**, cuerpo con el qué y el por qué.
 
@@ -75,8 +76,10 @@ npm run lint         # ESLint sobre todo el monorepo
 Un archivo = una responsabilidad. Nada de mezclar funcionalidades o roles en un archivo.
 
 ```
+.opencode/commands/            # comandos SDD (feature, clarify, validate, status, task, change)
 docs/constitution.md           # principios innegociables del proyecto
 docs/clarification.md          # protocolo QA de spec, plan y tareas
+docs/validation.md             # protocolo de validación de artefactos y código
 specs/
   _templates/                  # plantillas de spec, plan y tareas
   <NNN>-<slug>/                # una carpeta por funcionalidad
@@ -215,14 +218,19 @@ prevalece la constitución.
    estructura, el modelo o los comandos) y `MEMORY.md`.
 7. **Spec**: para funcionalidad o cambio de comportamiento, usa `/feature`, parte de
    `specs/_templates/` y deja la spec aprobada en `specs/<feature>/spec.md` antes de codificar.
-   Bugs, docs y refactors sin cambio observable no requieren spec (principio 2).
+   Bugs, docs y refactors sin cambio observable no requieren spec (principio 2). `/task` no
+   salta este gate; para un requisito nuevo usa `/change` o `/feature`.
 8. **Puerta de calidad**: `npm test` y `npm run lint` en verde antes de terminar (principio 4).
 9. **Clarificación**: antes de aprobar una spec, un plan o unas tareas, aplica el protocolo de
    `docs/clarification.md`. `/feature` lo hace en cada etapa; `/clarify` permite reanalizar un
    artefacto a mano en modo solo lectura. Un hallazgo bloqueante se resuelve antes de avanzar.
+10. **Validación**: antes de cerrar una feature, aplica `docs/validation.md`. `/validate` lo
+    ejecuta a mano sin lanzar `/feature`; comprueba la matriz RF → test, `npm test`, lint,
+    mutación y UI. Un bloqueante impide cerrar.
 
 ## Notas
 
 - `MEMORY.md` es el diario de estudio del proyecto (estado, decisiones, aprendizajes). Revisarlo al empezar una sesión.
-- `.opencode/commands/feature.md` define el flujo de planificación previa;
-  `.opencode/commands/clarify.md` revisa un artefacto a mano.
+- `.opencode/commands/` contiene los comandos SDD: `feature.md` (flujo completo), `clarify.md`
+  (QA de artefactos), `validate.md` (validación de la implementación), `statusSDD.md` (estado y
+  siguiente paso), `task.md` (una tarea) y `change.md` (cambio de requisito).

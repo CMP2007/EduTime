@@ -160,5 +160,8 @@ Ninguno.
   permiso de escritura para incorporar las respuestas.
 - `/clarify` lee este documento y aplica solo la detección a un artefacto concreto. Es de solo
   lectura.
-- No hay llamadas entre comandos: ambos leen este documento. Si cambias el protocolo, cambia
-  para los dos.
+- `/change` aplica una clarificación enfocada al delta de spec, plan y tareas.
+- `/validate` aplica `docs/validation.md` sobre la implementación; no sustituye a este
+  protocolo ni revisa los artefactos por ti.
+- No hay llamadas entre comandos: comparten documentos. Si cambias un protocolo, cambia para
+  todos los que lo lean.

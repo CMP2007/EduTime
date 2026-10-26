@@ -9,7 +9,8 @@ Lee `docs/clarification.md` y aplícalo. Detecta el tipo (`spec`, `plan` o `task
 si falta alguno, infiérelo del contexto o pregúntame. Lee también los artefactos de referencia
 que indique el protocolo. Si la ruta no existe, dilo y no inventes.
 
-No revises código ni tests de implementación: este comando es para artefactos SDD.
+No revises código ni tests de implementación: este comando es para artefactos SDD. Para
+código ya implementado, usa `/validate`.
 
 Entrega solo la lista de hallazgos, con el formato del protocolo. No propongas soluciones, no
 edites archivos y no escribas planes ni código. Si no hay hallazgos, dilo. Espera mis respuestas

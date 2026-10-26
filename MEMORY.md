@@ -52,6 +52,10 @@ aporte.
   versionados (`specs/`). `CONTEXTO_SESION.md` se elimina: su contenido exclusivo
   (idioma/razonamiento, perfil, plantilla de propuesta, commits, orden de lectura) se consolidó
   en `AGENTS.md` y `MEMORY.md`.
+- **Comandos SDD propios (26/10/2026)**: se conserva `/feature` como orquestador y se añaden
+  `/validate`, `/statusSDD`, `/task` y `/change`; los 9 comandos externos no se copian (duplican
+  el flujo, algunos usan `agent: plan` para escribir y no respetan los gates). Los comandos
+  comparten `docs/clarification.md` y `docs/validation.md`; no se llaman entre sí.
 
 #### ##Aprendizajes y errores a evitar
 
@@ -76,14 +80,18 @@ aporte.
   hardcodeaba `node --test`; se adoptaron `Definiciones`, el estado `implementada`, el patrón
   EARS permanente, una heurística suave de tamaño de tarea y una nota opcional de pseudocódigo
   y funciones puras de fecha. No se duplicó el flujo.
+- **Validación separada del cierre (26/10/2026)**: `docs/validation.md` es la fuente única para
+  `/validate` y el cierre de `/feature`; `npm test` cubre Vitest y Chrome no lo sustituye.
 
 #### ##Próximos pasos
 
-- **SDD operativo**: plantillas en `specs/_templates/{spec,plan,tasks}.md`, protocolo en
-  `docs/clarification.md` y `/feature` guía spec → clarificación → plan → clarificación →
-  tareas → clarificación → implementación, con aprobación antes de cada gate. `/clarify`
-  permite reanalizar cualquier artefacto a mano. La constitución, la guía y la feature 001
-  quedaron en los commits `58a7e8e`…`24f5d65`.
+- **SDD operativo**: plantillas en `specs/_templates/{spec,plan,tasks}.md`, protocolos en
+  `docs/clarification.md` y `docs/validation.md`; `/feature` guía spec → clarificación → plan →
+  clarificación → tareas → clarificación → implementación, con aprobación antes de cada gate.
+  Comandos manuales: `/clarify` (artefactos), `/validate` (implementación), `/statusSDD` (estado),
+  `/task` (una tarea) y `/change` (delta de requisito). La constitución, la guía y la feature
+  001 quedaron en los commits `58a7e8e`…`24f5d65`; los comandos manuales nuevos se cierran en
+  el commit del SDD (26/10/2026).
 - Después, retomar el siguiente punto pendiente de `DEUDA_TECNICA.md`.
 - Culminación (B0-7): tests de integración ampliados y E2E con Playwright (dependencia aparte).
 - Posibles mejoras: exportar datos, gráficos de evolución, temas de color; y seguir el orden

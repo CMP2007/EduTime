@@ -6,20 +6,26 @@ agent: build
 Quiero añadir esta funcionalidad: $ARGUMENTS
 
 Trabaja con Spec-Driven Development. Antes de nada, lee `docs/constitution.md`, `AGENTS.md`,
-`MEMORY.md`, `docs/clarification.md` y las plantillas de `specs/_templates/`.
+`MEMORY.md`, `docs/clarification.md`, `docs/validation.md` y las plantillas de
+`specs/_templates/`.
+
+Si `$ARGUMENTS` describe una feature que ya existe, no empieces de cero: pídeme que use
+`/statusSDD` para retomar el punto exacto.
 
 Regla general: cada artefacto pasa por el protocolo de `docs/clarification.md` antes de pedir
 mi aprobación. Si hay hallazgos bloqueantes, espera mi decisión; si no, pide aprobación. No
 escribas el siguiente artefacto ni código hasta que el anterior esté aprobado. No invoques
-`/clarify` como subcomando: aplica el protocolo directamente.
+`/clarify` ni `/validate` como subcomandos: aplica sus protocolos directamente.
 
 ## Fase 1 — Spec (qué y por qué)
 
 1. Elige `specs/<NNN>-<slug>/`, con el siguiente número libre de `specs/`.
-2. Copia `specs/_templates/spec.md` y rellénala. Solo comportamiento: contexto, actores,
-   historias, requisitos funcionales en EARS, no funcionales, casos límite, fuera de alcance
-   y criterios de finalización. No cites archivos, funciones, endpoints ni librerías. Deja el
-   estado en `propuesta`.
+2. Antes de escribir, haz hasta 5 preguntas de una en una para acotar alcance, casos límite,
+   errores y qué queda fuera. Si con lo que sabes basta, dilo y sigue. Luego copia
+   `specs/_templates/spec.md` y rellénala. Solo comportamiento: contexto, actores, historias,
+   requisitos funcionales en EARS, no funcionales, casos límite, fuera de alcance y criterios
+   de finalización. No cites archivos, funciones, endpoints ni librerías. Deja el estado en
+   `propuesta`.
 3. Aplica el protocolo `spec` de `docs/clarification.md`. Enséñame la spec y la lista de
    hallazgos, y espera mis respuestas. No escribas `plan.md`, `tasks.md` ni código.
 4. Con mis respuestas, actualiza la spec, vuelve a revisar lo cambiado (revisión completa si
@@ -52,9 +58,14 @@ escribas el siguiente artefacto ni código hasta que el anterior esté aprobado.
     Implementa tarea a tarea: primero el test en rojo, luego el cambio mínimo, luego el verde.
     Marca la tarea en `tasks.md` y pide mi visto bueno antes de seguir, salvo que te autorice ir
     seguido.
-12. Al cerrar: `npm test` y `npm run lint` en verde, mutación de cada regla nueva, y actualiza
-    `DEUDA_TECNICA.md` y `MEMORY.md` según `AGENTS.md`. Marca `tasks.md` como `completada` y la
-    spec como `implementada (AAAA-MM-DD)`.
+12. Al cerrar, aplica `docs/validation.md`: matriz RF → test, `npm test` y `npm run lint` en
+    verde, mutación de cada regla nueva y, si toca UI, Chrome DevTools con 375 px. Si hay
+    bloqueantes, no cierres. Si todo pasa, actualiza `DEUDA_TECNICA.md` y `MEMORY.md` según
+    `AGENTS.md`, marca `tasks.md` como `completada` y la spec como `implementada (AAAA-MM-DD)`.
 
 Si una duda mía puede cambiar la spec, el plan o las tareas, pregúntala antes de continuar. No
 avances de etapa sin aprobación explícita.
+
+Si aparece un requisito nuevo durante la implementación, no lo parchees: actualiza primero la
+spec, luego el plan y las tareas, y vuelve a clarificar. Si el cambio es acotado, propón
+`/change` para hacer ese delta sin repetir todo el flujo.
