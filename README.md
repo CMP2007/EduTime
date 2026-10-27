@@ -16,7 +16,7 @@ Aplicación para el **control de tus horas de estudio**.
 ## Reglas de negocio
 
 - Un **día con meta cumplida** es el que suma **3 horas o más** (aunque sean varias clases).
-- La **racha** son días consecutivos con **al menos una clase**.
+- La **racha** son días consecutivos en los que se **cumplió la meta diaria (≥ 180 min)**. Si hoy aún no se llega a la meta, la racha sigue viva hasta fin del día. Se guarda la **racha más extensa** (récord).
 - Cada clase dura como **mínimo 15 minutos**.
 
 ## Ejecutar

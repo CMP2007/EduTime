@@ -34,10 +34,10 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
-| B0-1 | Constantes de dominio duplicadas entre backend y frontend | Media | pendiente |
+| B0-1 | Constantes de dominio duplicadas entre backend y frontend | Media | resuelto |
 | B0-2 | Sin tests ni linter configurado | Alta | resuelto |
 | B0-3 | Persistencia acoplada al proceso (condiciones de carrera) | Media-Alta | resuelto |
-| B0-4 | `README.md` desincronizado con la regla real de racha | Baja | pendiente |
+| B0-4 | `README.md` desincronizado con la regla real de racha | Baja | resuelto |
 | B0-5 | Patrón `version` / refresh por props (invalidación gruesa) | Media | pendiente |
 | B0-6 | Sin TypeScript ni validación del contrato de datos | Media-Alta | pendiente |
 | B0-7 | Sin tests de frontend ni E2E (requisito de culminación) | Alta | en curso |
@@ -197,12 +197,10 @@ Tests: `backend/test/sessions.repository.test.js`. Evidencia y detalle: commit `
 
 ### B0-4 · `README.md` desincronizado con la regla real de racha
 
-`README.md:19` dice: *"La racha son días consecutivos con al menos una clase"*.
-`AGENTS.md`, `MEMORY.md` y el código (`stats.service.js:37-58`) dicen: días consecutivos con
-**meta cumplida (≥ 180 min)**.
-
-**Impacto:** documentación que induce a error sobre una regla de negocio central.
-**Mitigación sugerida:** corregir `README.md` para que coincida con `AGENTS.md`.
+**Resuelto:** `README.md` corregido para reflejar que la racha son días consecutivos con
+**meta cumplida (≥ 180 min)** (coincide con `AGENTS.md` y `backend/src/stats/stats.service.js`).
+Si hoy aún no se llega a la meta, la racha sigue viva hasta fin del día y se guarda la
+**racha más extensa** (récord).
 
 ### B0-5 · Patrón `version` / refresh por props (invalidación gruesa)
 
