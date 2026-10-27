@@ -2,7 +2,7 @@
 
 > Documento compartido por `/validate` (validación manual) y el cierre de `/feature`.
 > Comprueba que lo implementado cumple el contrato. No sustituye a
-> [`docs/clarification.md`](clarification.md), que revisa los artefactos antes de implementar.
+> [`clarification.md`](clarification.md), que revisa los artefactos antes de implementar.
 
 ## Propósito
 
@@ -13,7 +13,7 @@ un veredicto.
 ## Entradas
 
 - La feature (`specs/<NNN>-<slug>/`) y sus tres artefactos: `spec.md`, `plan.md`, `tasks.md`.
-- `docs/constitution.md`, `AGENTS.md` y `docs/clarification.md`.
+- `docs/constitution.md`, `AGENTS.md` y `clarification.md`.
 - El código y los tests de la feature.
 - Chrome DevTools para la UI, si la feature toca interfaz.
 

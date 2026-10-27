@@ -5,7 +5,7 @@ agent: plan
 
 Revisa este artefacto: $ARGUMENTS
 
-Lee `docs/clarification.md` y aplícalo. Detecta el tipo (`spec`, `plan` o `tasks`) y la ruta;
+Lee `.opencode/commands/protocols/clarification.md` y aplícalo. Detecta el tipo (`spec`, `plan` o `tasks`) y la ruta;
 si falta alguno, infiérelo del contexto o pregúntame. Lee también los artefactos de referencia
 que indique el protocolo. Si la ruta no existe, dilo y no inventes.
 

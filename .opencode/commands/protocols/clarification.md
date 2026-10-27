@@ -161,7 +161,7 @@ Ninguno.
 - `/clarify` lee este documento y aplica solo la detección a un artefacto concreto. Es de solo
   lectura.
 - `/change` aplica una clarificación enfocada al delta de spec, plan y tareas.
-- `/validate` aplica `docs/validation.md` sobre la implementación; no sustituye a este
+- `/validate` aplica `validation.md` sobre la implementación; no sustituye a este
   protocolo ni revisa los artefactos por ti.
 - No hay llamadas entre comandos: comparten documentos. Si cambias un protocolo, cambia para
   todos los que lo lean.

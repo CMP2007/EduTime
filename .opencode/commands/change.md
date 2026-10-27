@@ -11,7 +11,7 @@ Cambio solicitado: $2
 Si `$1` está vacío o no coincide con `specs/<NNN>-<slug>/`, pregúntame. Si `$2` está vacío,
 pregúntame qué cambia. No adivines.
 
-Lee `docs/constitution.md`, `AGENTS.md`, `docs/clarification.md` y `docs/validation.md`, y los
+Lee `docs/constitution.md`, `AGENTS.md`, `.opencode/commands/protocols/clarification.md` y `.opencode/commands/protocols/validation.md`, y los
 tres artefactos de la feature. No hagas commit salvo que te lo pida.
 
 ## 1. Decide si este comando es el adecuado
@@ -28,7 +28,7 @@ tres artefactos de la feature. No hagas commit salvo que te lo pida.
 1. **Spec**: añade o modifica el RF en EARS, con criterios verificables, casos límite y fuera
    de alcance si cambian. Ajusta definiciones y NFR si hace falta. No cambies el estado a
    `implementada`; el estado se actualiza tras la aprobación.
-2. **Clarificación enfocada**: aplica el protocolo de `docs/clarification.md` solo a lo que
+2. **Clarificación enfocada**: aplica el protocolo de `.opencode/commands/protocols/clarification.md` solo a lo que
    cambia (coherencia, ambigüedad, casos límite, constitución). Si hay un bloqueante, espera mi
    respuesta y no escribas el resto.
 3. **Plan**: actualiza el enfoque, archivos, riesgos, orden y el mapa `RF → test` para el
@@ -47,7 +47,7 @@ tres artefactos de la feature. No hagas commit salvo que te lo pida.
 3. Ejecuta el test concreto, `npm test` y `npm run lint` desde la raíz. Haz mutación de la
    regla nueva y, si toca UI, comprueba 375 px con Chrome DevTools.
 4. Marca la tarea. Si con esto quedan todas las tareas completadas, aplica el cierre de
-   `docs/validation.md`: spec `implementada (AAAA-MM-DD)`, `tasks.md` `completada`, y actualiza
+   `.opencode/commands/protocols/validation.md`: spec `implementada (AAAA-MM-DD)`, `tasks.md` `completada`, y actualiza
    `MEMORY.md` y `DEUDA_TECNICA.md` si corresponde. Si no, deja el estado `en curso` y di qué
    falta.
 5. Reporta el cambio, los archivos, los tests y la deuda. No hagas commit.

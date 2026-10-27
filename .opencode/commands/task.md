@@ -7,7 +7,7 @@ Uso: `/task <NNN-slug> <T3|descripción>` o `/task <descripción>`
 
 Solicitud: $ARGUMENTS
 
-Lee `docs/constitution.md`, `AGENTS.md`, `docs/clarification.md` y `docs/validation.md` antes de
+Lee `docs/constitution.md`, `AGENTS.md`, `.opencode/commands/protocols/clarification.md` y `.opencode/commands/protocols/validation.md` antes de
 tocar nada. No hagas commit salvo que te lo pida.
 
 ## 1. Identifica el caso

@@ -55,7 +55,7 @@ aporte.
 - **Comandos SDD propios (26/10/2026)**: se conserva `/feature` como orquestador y se añaden
   `/validate`, `/statusSDD`, `/task` y `/change`; los 9 comandos externos no se copian (duplican
   el flujo, algunos usan `agent: plan` para escribir y no respetan los gates). Los comandos
-  comparten `docs/clarification.md` y `docs/validation.md`; no se llaman entre sí.
+  comparten `.opencode/commands/protocols/clarification.md` y `.opencode/commands/protocols/validation.md`; no se llaman entre sí.
 
 #### ##Aprendizajes y errores a evitar
 
@@ -74,19 +74,19 @@ aporte.
   instalada; verificar el destino antes de darla por puesta. `grill-me`: el protocolo va
   dentro de su propio `SKILL.md` (`.agents/skills/`, invocación solo manual).
 - **Protocolo de clarificación (25/10/2026)**: la revisión QA de spec, plan y tareas vive en
-  `docs/clarification.md`; `/feature` la aplica en cada gate y `/clarify` la ejecuta a mano en
+  `.opencode/commands/protocols/clarification.md`; `/feature` la aplica en cada gate y `/clarify` la ejecuta a mano en
   modo solo lectura. Los comandos no se llaman entre sí: comparten el documento.
 - **Contraste con una skill SDD externa (25/10/2026)**: su flujo era redundante y su plan
   hardcodeaba `node --test`; se adoptaron `Definiciones`, el estado `implementada`, el patrón
   EARS permanente, una heurística suave de tamaño de tarea y una nota opcional de pseudocódigo
   y funciones puras de fecha. No se duplicó el flujo.
-- **Validación separada del cierre (26/10/2026)**: `docs/validation.md` es la fuente única para
+- **Validación separada del cierre (26/10/2026)**: `.opencode/commands/protocols/validation.md` es la fuente única para
   `/validate` y el cierre de `/feature`; `npm test` cubre Vitest y Chrome no lo sustituye.
 
 #### ##Próximos pasos
 
 - **SDD operativo**: plantillas en `specs/_templates/{spec,plan,tasks}.md`, protocolos en
-  `docs/clarification.md` y `docs/validation.md`; `/feature` guía spec → clarificación → plan →
+  `.opencode/commands/protocols/clarification.md` y `.opencode/commands/protocols/validation.md`; `/feature` guía spec → clarificación → plan →
   clarificación → tareas → clarificación → implementación, con aprobación antes de cada gate.
   Comandos manuales: `/clarify` (artefactos), `/validate` (implementación), `/statusSDD` (estado),
   `/task` (una tarea) y `/change` (delta de requisito). La constitución, la guía y la feature

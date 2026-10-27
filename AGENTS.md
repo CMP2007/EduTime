@@ -78,8 +78,8 @@ Un archivo = una responsabilidad. Nada de mezclar funcionalidades o roles en un 
 ```
 .opencode/commands/            # comandos SDD (feature, clarify, validate, status, task, change)
 docs/constitution.md           # principios innegociables del proyecto
-docs/clarification.md          # protocolo QA de spec, plan y tareas
-docs/validation.md             # protocolo de validación de artefactos y código
+.opencode/commands/protocols/clarification.md          # protocolo QA de spec, plan y tareas
+.opencode/commands/protocols/validation.md             # protocolo de validación de artefactos y código
 specs/
   _templates/                  # plantillas de spec, plan y tareas
   <NNN>-<slug>/                # una carpeta por funcionalidad
@@ -222,9 +222,9 @@ prevalece la constitución.
    salta este gate; para un requisito nuevo usa `/change` o `/feature`.
 8. **Puerta de calidad**: `npm test` y `npm run lint` en verde antes de terminar (principio 4).
 9. **Clarificación**: antes de aprobar una spec, un plan o unas tareas, aplica el protocolo de
-   `docs/clarification.md`. `/feature` lo hace en cada etapa; `/clarify` permite reanalizar un
+   `.opencode/commands/protocols/clarification.md`. `/feature` lo hace en cada etapa; `/clarify` permite reanalizar un
    artefacto a mano en modo solo lectura. Un hallazgo bloqueante se resuelve antes de avanzar.
-10. **Validación**: antes de cerrar una feature, aplica `docs/validation.md`. `/validate` lo
+10. **Validación**: antes de cerrar una feature, aplica `.opencode/commands/protocols/validation.md`. `/validate` lo
     ejecuta a mano sin lanzar `/feature`; comprueba la matriz RF → test, `npm test`, lint,
     mutación y UI. Un bloqueante impide cerrar.
 
