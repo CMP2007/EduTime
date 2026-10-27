@@ -1,13 +1,7 @@
 import { ValidationError } from '../errors.js';
 import { createId } from '../utils/date.js';
 import { sessionsRepository } from './sessions.repository.js';
-
-const TITLE_MAX = 80;
-const NOTES_MAX = 500;
-const HOURS_MAX = 23;
-const MINUTES_MAX = 59;
-const DURATION_MIN = 15;
-const DURATION_MAX = HOURS_MAX * 60 + MINUTES_MAX;
+import { DURATION_MAX, DURATION_MIN, HOURS_MAX, MINUTES_MAX, NOTES_MAX, TITLE_MAX } from 'domain-constants';
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 function parseDuration(payload) {

@@ -87,6 +87,10 @@ specs/
     plan.md                    # cómo (enfoque técnico y mapa RF → test)
     tasks.md                   # pasos verificables, con test y «hecho cuando»
 
+packages/
+  domain-constants/           # constantes de dominio compartidas entre backend y frontend
+    index.js                  # fuente única de verdad para reglas de dominio
+
 backend/src/
   server.js                    # arranque del servidor (puerto 3001, variable PORT)
   app.js                       # monta las rutas /api y maneja errores

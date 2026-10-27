@@ -1,4 +1,7 @@
 import { randomUUID } from 'node:crypto';
+import { PERIODS } from 'domain-constants';
+
+export { PERIODS };
 
 /** Utilidades de fecha compartidas por el resto del backend. */
 
@@ -68,8 +71,6 @@ export function enumerateDays(from, to) {
   }
   return days;
 }
-
-export const PERIODS = ['day', 'week', 'month', '3m', '6m', '12m', 'year'];
 
 export function isValidPeriod(period) {
   return PERIODS.includes(period);

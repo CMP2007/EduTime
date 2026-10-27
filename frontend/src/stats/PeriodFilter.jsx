@@ -1,12 +1,6 @@
-export const PERIOD_OPTIONS = [
-  { key: 'day', label: 'Día' },
-  { key: 'week', label: 'Semana' },
-  { key: 'month', label: 'Mes' },
-  { key: '3m', label: '3 meses' },
-  { key: '6m', label: '6 meses' },
-  { key: '12m', label: '12 meses' },
-  { key: 'year', label: 'Año' },
-];
+import { PERIOD_OPTIONS } from 'domain-constants';
+
+export { PERIOD_OPTIONS };
 
 function PeriodFilter({ period, date, onChange }) {
   return (

@@ -1,8 +1,9 @@
 import { ValidationError } from '../errors.js';
 import { sessionsRepository } from '../sessions/sessions.repository.js';
-import { addDays, enumerateDays, getRange, isValidPeriod, PERIODS, todayString } from '../utils/date.js';
+import { addDays, enumerateDays, getRange, isValidPeriod, todayString } from '../utils/date.js';
+import { GOAL_MINUTES, PERIODS } from 'domain-constants';
 
-export const GOAL_MINUTES = 180;
+export { GOAL_MINUTES };
 
 function sumByDate(sessions) {
   const map = new Map();

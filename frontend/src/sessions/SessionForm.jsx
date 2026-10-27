@@ -2,10 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Modal from '../components/Modal.jsx';
 import { combineDuration, splitDuration } from '../utils/time.js';
 import { todayString } from '../utils/date.js';
-
-const TITLE_MAX = 80;
-const NOTES_MAX = 500;
-const MIN_DURATION = 15;
+import { DURATION_MIN as MIN_DURATION, NOTES_MAX, TITLE_MAX } from 'domain-constants';
 
 function emptyForm() {
   return { title: '', date: todayString(), hours: 0, minutes: 0, notes: '' };
