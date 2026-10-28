@@ -2,6 +2,7 @@ import { useState } from 'react';
 import ConfirmDialog from './components/ConfirmDialog.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import Tabs from './components/Tabs.jsx';
+import { useDataRefresh } from './context/DataRefreshContext.jsx';
 import HistoryView from './sessions/HistoryView.jsx';
 import SessionForm from './sessions/SessionForm.jsx';
 import { sessionsApi } from './sessions/sessions.api.js';
@@ -16,14 +17,14 @@ const TABS = [
 
 function App() {
   const [tab, setTab] = useState('home');
-  const [version, setVersion] = useState(0);
+  const { refreshAll } = useDataRefresh();
   const [formState, setFormState] = useState({ open: false, session: null });
   const [toDelete, setToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
   function refresh() {
-    setVersion((current) => current + 1);
+    refreshAll();
   }
 
   function openCreate() {
@@ -85,9 +86,9 @@ function App() {
       <main className="app__content" tabIndex={-1}>
         {/* key={tab} reinicia el límite de error al cambiar de pestaña */}
         <ErrorBoundary key={tab}>
-          {tab === 'home' && <StatsDashboard version={version} />}
-          {tab === 'history' && <HistoryView version={version} onEdit={openEdit} onDelete={setToDelete} />}
-          {tab === 'stats' && <StatsPanel version={version} onEdit={openEdit} onDelete={setToDelete} />}
+          {tab === 'home' && <StatsDashboard />}
+          {tab === 'history' && <HistoryView onEdit={openEdit} onDelete={setToDelete} />}
+          {tab === 'stats' && <StatsPanel onEdit={openEdit} onDelete={setToDelete} />}
         </ErrorBoundary>
       </main>
 

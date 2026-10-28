@@ -12,20 +12,18 @@ import WeeklyHoursCard from './WeeklyHoursCard.jsx';
 const HEATMAP_OPTIONS = PERIOD_OPTIONS.filter((option) => option.key !== 'day');
 
 /** Pestaña Inicio: resumen y calendario. Al elegir un día, las tarjetas se enfocan en él. */
-function StatsDashboard({ version }) {
+function StatsDashboard() {
   const [heatmapRange, setHeatmapRange] = useState('week');
   const [selectedDate, setSelectedDate] = useState(null);
 
   const referenceDate = selectedDate || todayString();
-  const { stats, loading, error } = useStats(
-    {
-      period: 'week',
-      date: referenceDate,
-      heatmap: heatmapRange,
-      heatmapDate: todayString(),
-    },
-    version,
-  );
+  const { stats, loading, error } = useStats({
+    period: 'week',
+    date: referenceDate,
+    heatmap: heatmapRange,
+    heatmapDate: todayString(),
+  });
+
 
   if (error) return <p className="error">{error}</p>;
   if (!stats) return <p className="muted">{loading ? 'Cargando resumen…' : 'Sin datos.'}</p>;

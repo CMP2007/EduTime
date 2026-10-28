@@ -38,7 +38,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | B0-2 | Sin tests ni linter configurado | Alta | resuelto |
 | B0-3 | Persistencia acoplada al proceso (condiciones de carrera) | Media-Alta | resuelto |
 | B0-4 | `README.md` desincronizado con la regla real de racha | Baja | resuelto |
-| B0-5 | Patrón `version` / refresh por props (invalidación gruesa) | Media | pendiente |
+| B0-5 | Patrón `version` / refresh por props (invalidación gruesa) | Media | resuelto |
 | B0-6 | Sin TypeScript ni validación del contrato de datos | Media-Alta | pendiente |
 | B0-7 | Sin tests de frontend ni E2E (requisito de culminación) | Alta | en curso |
 
@@ -204,9 +204,12 @@ Si hoy aún no se llega a la meta, la racha sigue viva hasta fin del día y se g
 
 ### B0-5 · Patrón `version` / refresh por props (invalidación gruesa)
 
-`App.jsx:18` guarda un contador `version` que se incrementa en `refresh()` (`App.jsx:23-25`)
-y se pasa a las vistas (`App.jsx:76-78`). Los hooks lo incluyen en las dependencias
-(`useStats.js:21`, `useSessions.js:25`), de modo que cambiar `version` provoca refetch.
+**Resuelto (28/10/2026):** se sustituye el contador global por `DataRefreshContext`
+(`frontend/src/context/DataRefreshContext.jsx`) con versiones por recurso (`sessions`, `stats`).
+`App.jsx` llama a `refreshAll()` al crear/editar/eliminar; las vistas ya no reciben `version` por
+props (*prop drilling* eliminado). `useSessions` y `useStats` dependen solo de la clave de su
+recurso y descartan respuestas obsoletas con `requestId`, evitando carreras entre peticiones.
+Los `react-hooks/exhaustive-deps` intencionales desaparecen. Validado con `npm test` y `npm run lint`.
 
 #### Lo bueno
 

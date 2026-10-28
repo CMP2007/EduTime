@@ -21,7 +21,8 @@ describe('StatsPanel', () => {
     statsApiMock.get.mockResolvedValue(stats);
     sessionsApiMock.list.mockRejectedValue(new Error('Fallo cargando las clases'));
 
-    render(<StatsPanel version={0} onEdit={vi.fn()} onDelete={vi.fn()} />);
+    render(<StatsPanel onEdit={vi.fn()} onDelete={vi.fn()} />);
+
 
     expect(await screen.findByText('Fallo cargando las clases')).toBeTruthy();
     expect(screen.queryByText(/No hay clases/)).toBeNull();
@@ -41,7 +42,8 @@ describe('StatsPanel', () => {
       },
     ]);
 
-    render(<StatsPanel version={0} onEdit={vi.fn()} onDelete={vi.fn()} />);
+    render(<StatsPanel onEdit={vi.fn()} onDelete={vi.fn()} />);
+
 
     expect(await screen.findByText('Matemáticas')).toBeTruthy();
   });

@@ -10,13 +10,14 @@ import SubjectBreakdown from './SubjectBreakdown.jsx';
 import { useStats } from './useStats.js';
 
 /** Pestaña Estadísticas: métricas por periodo y registros anteriores. */
-function StatsPanel({ version, onEdit, onDelete }) {
+function StatsPanel({ onEdit, onDelete }) {
   const [filter, setFilter] = useState({ period: 'week', date: todayString() });
-  const { stats, loading, error } = useStats(
-    { period: filter.period, date: filter.date, heatmap: 'week' },
-    version,
-  );
-  const { sessions, loading: sessionsLoading, error: sessionsError } = useSessions({}, version);
+  const { stats, loading, error } = useStats({
+    period: filter.period,
+    date: filter.date,
+    heatmap: 'week',
+  });
+  const { sessions, loading: sessionsLoading, error: sessionsError } = useSessions({});
 
   const periodSessions = stats
     ? sessions.filter((session) => session.date >= stats.period.from && session.date <= stats.period.to)
