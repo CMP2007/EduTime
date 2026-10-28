@@ -161,21 +161,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 
 ### B0-1 · Constantes de dominio duplicadas entre backend y frontend
 
-La misma regla vive en dos (o más) sitios, sin fuente única de verdad. Si cambia una, hay
-que recordar tocar la otra o se desincronizan silenciosamente.
-
-| Constante | Backend | Frontend |
-|-----------|---------|----------|
-| `GOAL_MINUTES = 180` | `backend/src/stats/stats.service.js:4` | `frontend/src/utils/time.js:2` |
-| `TITLE_MAX = 80` | `backend/src/sessions/sessions.service.js:4` | `frontend/src/sessions/SessionForm.jsx:6` |
-| `NOTES_MAX = 500` | `backend/src/sessions/sessions.service.js:5` | `frontend/src/sessions/SessionForm.jsx:7` |
-| `DURATION_MIN = 15` (`MIN_DURATION`) | `backend/src/sessions/sessions.service.js:8` | `frontend/src/sessions/SessionForm.jsx:8` |
-| `HOURS_MAX = 23`, `MINUTES_MAX = 59` | `backend/src/sessions/sessions.service.js:6-7` | valores `max="23"` / `max="59"` en `SessionForm.jsx:110,120` |
-| Lista de periodos y etiquetas | `PERIODS` (`backend/src/utils/date.js:72`) | `PERIOD_OPTIONS` (`frontend/src/stats/PeriodFilter.jsx:1-9`) |
-
-**Impacto:** divergencia de reglas entre validación del cliente y del servidor.
-**Mitigación sugerida:** módulo de constantes compartido (o, al menos, un único sitio por
-lado referenciado desde el resto) y usarlo en ambos extremos.
+**Resuelto:** se crea el paquete compartido `packages/domain-constants` (`GOAL_MINUTES`, `TITLE_MAX`, `NOTES_MAX`, `DURATION_MIN`, `HOURS_MAX`, `MINUTES_MAX`, `DURATION_MAX`, `PERIODS`, `PERIOD_OPTIONS`) y se usa desde backend (`sessions.service.js`, `stats.service.js`, `date.js`) y frontend (`SessionForm.jsx`, `time.js`, `PeriodFilter.jsx`). La fuente única evita divergencias entre validación cliente/servidor.
 
 ### B0-2 · Sin tests ni linter configurado
 
@@ -210,32 +196,6 @@ Si hoy aún no se llega a la meta, la racha sigue viva hasta fin del día y se g
 props (*prop drilling* eliminado). `useSessions` y `useStats` dependen solo de la clave de su
 recurso y descartan respuestas obsoletas con `requestId`, evitando carreras entre peticiones.
 Los `react-hooks/exhaustive-deps` intencionales desaparecen. Validado con `npm test` y `npm run lint`.
-
-#### Lo bueno
-
-- Cero dependencias e infraestructura.
-- El render condicional de pestañas (`App.jsx:76-78`) desmonta/remonta y ya refresca al
-  cambiar de pestaña; el `version` cubre sobre todo la pestaña activa.
-
-#### Lo malo
-
-- **Invalidación global y gruesa:** un solo número no indica **qué** cambió. `StatsPanel`
-  dispara 2 peticiones en cada `refresh()` (`/api/stats` + `/api/sessions`).
-- **Prop drilling:** toda vista que quiera refrescar debe aceptar y reenviar `version`.
-- **Sin cancelación de peticiones obsoletas:** no hay `AbortController`; si dos refreshes se
-  solapan, gana el último en responder (riesgo de pisar datos nuevos con viejos).
-- **Sin updates optimistas:** siempre hay round-trip de red.
-- **Frágil ante olvidos:** un hook nuevo que no reciba `version` no se refresca y no avisa.
-
-#### Mitigación sugerida
-
-- Context con claves por recurso (`sessions`, `stats`, `heatmap`) y que cada hook dependa
-  solo de su clave.
-- Cancelar peticiones con `AbortController`.
-- Alternativa con dependencia: React Query / SWR (requiere justificar la dep).
-
-**Estado actual (22/10/2026):** ESLint emite **2 avisos** `react-hooks/exhaustive-deps`
-intencionados (`useSessions.js`, `useStats.js`) que desaparecen al resolver este hallazgo.
 
 ### B0-6 · Sin TypeScript ni validación del contrato de datos
 
