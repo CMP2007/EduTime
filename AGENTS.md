@@ -57,7 +57,7 @@ npm run dev          # levanta frontend (5173) y backend (3001) juntos
 npm run frontend     # solo frontend (vite --host 0.0.0.0)
 npm run backend      # solo backend (node --watch src/server.js)
 npm run build        # build de producción del frontend (vite build)
-npm test             # tests de todos los workspaces (backend: node --test; frontend: Vitest)
+npm test             # tests de todos los workspaces (backend, frontend y contrato)
 npm run lint         # ESLint sobre todo el monorepo
 ```
 
@@ -67,6 +67,8 @@ npm run lint         # ESLint sobre todo el monorepo
   `backend/test/` (espejo de `src/`). Convención: `*.test.js`.
 - **Tests frontend**: Vitest + jsdom + Testing Library. Viven en `frontend/test/` (espejo de
   `src/`); config en `frontend/vitest.config.js`. Convención: `*.test.js` / `*.test.jsx`.
+- **Tests del contrato**: paquete `packages/domain-contracts` con el runner nativo de Node
+  (`node --test`). `npm test` los incluye por workspace. Convención: `*.test.js`.
 - **Linter**: ESLint (flat config en la raíz, `eslint.config.js`).
 - **`~/.npmrc`**: fija `save-exact=true` e `ignore-scripts=true` (config global del usuario);
   por eso las dependencias se instalan con versión exacta.
@@ -90,6 +92,9 @@ specs/
 packages/
   domain-constants/           # constantes de dominio compartidas entre backend y frontend
     index.js                  # fuente única de verdad para reglas de dominio
+  domain-contracts/           # contrato de las respuestas de la API (tipos + validación runtime)
+    index.js                  # typedefs JSDoc, ContractError y validadores assert/validate
+    test/contracts.test.js    # casos del contrato (válidos, campos ausentes, listas)
 
 backend/src/
   server.js                    # arranque del servidor (puerto 3001, variable PORT)
@@ -111,12 +116,14 @@ backend/test/                  # tests (espejo de backend/src/)
   date.test.js                 # utilidades de fecha y periodos
   fileStore.test.js            # lectura/escritura del JSON (ficheros reales temporales)
   sessions.repository.test.js  # carreras/concurrencia con el almacenamiento simulado
+  sessions.service.test.js     # contrato de creación/listado con el repositorio simulado
   stats.service.test.js        # estadísticas con el repositorio simulado
 
 frontend/
   vitest.config.js             # configuración de los tests (Vitest + jsdom)
   test/                        # tests (espejo de frontend/src/)
     setup.js                   # registro global: cleanup de Testing Library
+    fixtures/contracts.js      # datos válidos de Stats/Session para los tests
 
 frontend/src/
   main.jsx                     # punto de entrada de React
@@ -194,6 +201,12 @@ calendario (por defecto, `date`).
   `*.repository.js` (principio 3).
 - **Repositorios**: cualquier repositorio nuevo sigue el patrón fábrica (`createXRepository(store)`) con el almacenamiento inyectable, para poder simularlo en tests.
 - **Frontend**: un componente por archivo. La lógica de datos en hooks (`use*.js`) y las llamadas HTTP en `*.api.js`.
+- **Contrato de datos**: `packages/domain-contracts` es la fuente única de la forma de
+  `/api/stats` y `/api/sessions`. El frontend valida la respuesta en `*.api.js` con `assertStats`,
+  `assertSession` o `assertSessionList`; el backend comprueba su salida en los tests con las
+  mismas funciones. Se valida presencia, tipo y obligatoriedad (no formatos de fecha ni reglas de
+  negocio) y se toleran campos adicionales. Un fallo lanza `ContractError` con la ruta del primer
+  campo inválido (`summary.totalMinutes`, `[1].durationMinutes`).
 - **Estilo**: punto y coma al final, comillas simples, indentación de 2 espacios, funciones flecha, sin clases (excepción: `ErrorBoundary`, que React exige como clase para `componentDidCatch`).
 - Los repositorios y servicios devuelven copias (`{ ...item }`) para no exponer el estado interno.
 - El frontend usa `VITE_API_URL` (por defecto `http://localhost:3001/api`); el proxy de Vite ya reenvía `/api`.

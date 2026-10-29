@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../src/App.jsx';
+import { DataRefreshProvider } from '../src/context/DataRefreshContext.jsx';
 
 const { sessionsApiMock, statsApiMock } = vi.hoisted(() => ({
   sessionsApiMock: { list: vi.fn(), remove: vi.fn() },
@@ -32,7 +33,11 @@ describe('App · borrado de clases', () => {
     sessionsApiMock.list.mockResolvedValue([session]);
     sessionsApiMock.remove.mockRejectedValue(new Error('No se pudo eliminar la clase.'));
 
-    render(<App />);
+    render(
+      <DataRefreshProvider>
+        <App />
+      </DataRefreshProvider>,
+    );
 
     fireEvent.click(screen.getByRole('tab', { name: 'Historial' }));
 
@@ -57,7 +62,11 @@ describe('App · borrado de clases', () => {
       .mockResolvedValueOnce([]);
     sessionsApiMock.remove.mockResolvedValue(null);
 
-    render(<App />);
+    render(
+      <DataRefreshProvider>
+        <App />
+      </DataRefreshProvider>,
+    );
 
     fireEvent.click(screen.getByRole('tab', { name: 'Historial' }));
 

@@ -4,6 +4,7 @@ import { sessionsRepository } from './sessions.repository.js';
 import { DURATION_MAX, DURATION_MIN, HOURS_MAX, MINUTES_MAX, NOTES_MAX, TITLE_MAX } from 'domain-constants';
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+/** Valida y convierte los campos hours/minutes en minutos totales. */
 function parseDuration(payload) {
   const hours = Number(payload.hours);
   const minutes = Number(payload.minutes);

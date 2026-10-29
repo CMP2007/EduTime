@@ -1,3 +1,4 @@
+// @ts-check
 import { GOAL_MINUTES } from 'domain-constants';
 
 export { GOAL_MINUTES };

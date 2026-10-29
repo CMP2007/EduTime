@@ -39,7 +39,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | B0-3 | Persistencia acoplada al proceso (condiciones de carrera) | Media-Alta | resuelto |
 | B0-4 | `README.md` desincronizado con la regla real de racha | Baja | resuelto |
 | B0-5 | Patrón `version` / refresh por props (invalidación gruesa) | Media | resuelto |
-| B0-6 | Sin TypeScript ni validación del contrato de datos | Media-Alta | pendiente |
+| B0-6 | Sin TypeScript ni validación del contrato de datos | Media-Alta | resuelto |
 | B0-7 | Sin tests de frontend ni E2E (requisito de culminación) | Alta | en curso |
 
 ### Bloque 1 — Cimientos y configuración
@@ -141,7 +141,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | B10-2 | `PERIOD_OPTIONS` duplica `PERIODS` del backend (refuerza B0-1) | Baja | pendiente |
 | B10-3 | Umbrales del heatmap (`level`) hardcodeados sin documentar | Baja | pendiente |
 | B10-4 | `buildColumns` asume serie contigua y no rellena la última semana | Baja | pendiente |
-| B10-5 | Tarjetas con `?? 0` silencian cambios de forma del contrato | Baja | pendiente |
+| B10-5 | Tarjetas con `?? 0` silencian cambios de forma del contrato | Baja | resuelto |
 | B10-6 | El error/estado de `useSessions` en `StatsPanel` no se muestra | Baja-Media | resuelto |
 
 ### Bloque 11 — Frontend: estilos
@@ -227,6 +227,25 @@ un error visible.
 - JSDoc + `// @ts-check` (chequeo de tipos **sin** dependencias).
 - Módulo de constantes/contratos compartido (enlaza con B0-1).
 - Schemas en runtime (zod/joi) o TypeScript si se justifica la dependencia.
+
+#### Resolución (2026-10-29)
+
+Se resolvió **sin TypeScript ni dependencias nuevas**, con JSDoc + `// @ts-check` y validación en
+runtime:
+
+- Nuevo workspace `packages/domain-contracts`: typedefs JSDoc (`Stats`, `Session`, …),
+  `ContractError` y validadores `validateStats` / `assertStats`, `validateSession` /
+  `assertSession` y `validateSessionList` / `assertSessionList`. Tolera campos adicionales y el
+  primer fallo incluye la ruta (`summary.totalMinutes`, `heatmap.days[1].minutes`,
+  `[1].durationMinutes`).
+- `frontend/src/stats/stats.api.js` y `frontend/src/sessions/sessions.api.js` validan la respuesta
+  **en el borde** antes de devolverla. Si falla, `StatsPanel` muestra el error y oculta las
+  tarjetas y la lista filtrada, sin valores por defecto plausibles.
+- El backend comprueba su propia salida en tests con las mismas funciones
+  (`assertStats` en `stats.service.test.js`; `assertSession` / `assertSessionList` en
+  `sessions.service.test.js`), reutilizando los casos existentes.
+- Suite: **119 tests** — 62 backend + 40 frontend + 17 del paquete de contrato — con `npm test` y
+  `npm run lint` en verde.
 
 ### B0-7 · Sin tests de frontend ni E2E (requisito de culminación)
 
@@ -872,6 +891,10 @@ parámetros por defecto, todo sobre los datos del backend. Si el contrato cambia
 
 **Mitigación:** validar el contrato en el borde.
 
+**Resolución (2026-10-29):** la validación de B0-6 impide que las tarjetas reciban respuestas con
+campos ausentes o renombrados; la vista muestra el error en vez de `0`. Los `?? 0` quedan como
+defensa local, ya no como red que oculte una deriva del contrato.
+
 ### B10-6 · El error/estado de `useSessions` en `StatsPanel` no se muestra
 
 `StatsPanel.jsx:19` desestructura solo `sessions` de `useSessions` (ignora su `error`/`loading`)
@@ -979,7 +1002,9 @@ ataque en una sesión futura:
 4. ✅ **B1-9** — subir los majors pendientes (`react` 19, `express` 5, `concurrently` 10) con la suite
    como red de seguridad. *(hecho: `concurrently` 10.0.6, `express` 5.3.0, `react`/`react-dom` 19.3.1;
    verificación tras cada salto y `npm outdated` vacío)*.
-5. **B0-6** — contratos (JSDoc + `@ts-check`, constantes compartidas).
+5. ✅ **B0-6** — contratos (JSDoc + `@ts-check`, constantes compartidas). *(hecho: paquete
+   `domain-contracts` con typedefs y validadores en runtime; validación en el borde del frontend
+   y aserciones en tests del backend; sin TypeScript ni dependencias nuevas)*.
 6. **B0-5 / B7-2** — invalidación de datos (Context por recurso + `AbortController`) y orden de
    respuestas en los hooks.
 7. **B0-1 / B5-4 / B9-1 / B10-1 / B10-2** — fuente única de constantes y reglas de dominio

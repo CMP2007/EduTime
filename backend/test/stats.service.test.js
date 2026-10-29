@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it, mock } from 'node:test';
 
+import { assertStats } from 'domain-contracts';
 import { sessionsRepository } from '../src/sessions/sessions.repository.js';
 import { GOAL_MINUTES, statsService } from '../src/stats/stats.service.js';
 import { addDays, todayString } from '../src/utils/date.js';
@@ -181,6 +182,16 @@ describe('statsService.getStats · heatmap', () => {
     const sinMeta = stats.heatmap.days.find((day) => day.date === '2026-10-15');
     assert.equal(sinMeta.minutes, 30);
     assert.equal(sinMeta.goalMet, false);
+  });
+});
+
+describe('statsService.getStats · contrato de la respuesta (B0-6)', () => {
+  it('la respuesta real cumple el contrato compartido', async () => {
+    seed([buildSession('2026-10-13', 200)]);
+
+    const stats = await statsService.getStats({ date: '2026-10-17' });
+
+    assertStats(stats);
   });
 });
 

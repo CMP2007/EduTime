@@ -46,6 +46,12 @@ export default defineConfig([
     languageOptions: { globals: { ...globals.node } },
   },
 
+  // Los tests del paquete de contrato corren en Node; el paquete es isomorfo.
+  {
+    files: ['packages/*/test/**/*.js'],
+    languageOptions: { globals: { ...globals.node } },
+  },
+
   // Frontend: entorno navegador + reglas de hooks de React.
   {
     files: ['frontend/**/*.{js,jsx}'],

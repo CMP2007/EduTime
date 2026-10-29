@@ -1,8 +1,10 @@
+// @ts-check
 import { ValidationError } from '../errors.js';
 import { sessionsRepository } from '../sessions/sessions.repository.js';
 import { addDays, enumerateDays, getRange, isValidPeriod, todayString } from '../utils/date.js';
 import { GOAL_MINUTES, PERIODS } from 'domain-constants';
 
+/** Constante de meta diaria (3 h). */
 export { GOAL_MINUTES };
 
 function sumByDate(sessions) {
@@ -59,6 +61,7 @@ function computeStreaks(goalDates, reference) {
   return { current, best };
 }
 
+/** Crea un día del heatmap con el minutos de la fecha y el umbral. */
 function buildHeatmap(totalsByDate, from, to) {
   return enumerateDays(from, to).map((date) => {
     const minutes = totalsByDate.get(date) ?? 0;
@@ -67,6 +70,7 @@ function buildHeatmap(totalsByDate, from, to) {
 }
 
 export const statsService = {
+  /** @returns {Promise<import('domain-contracts').Stats>} */
   async getStats({ period, date, heatmap, heatmapDate } = {}) {
     if (period !== undefined && !isValidPeriod(period)) {
       throw new ValidationError(`Periodo inválido. Valores permitidos: ${PERIODS.join(', ')}.`);

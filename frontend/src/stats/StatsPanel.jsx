@@ -28,9 +28,11 @@ function StatsPanel({ onEdit, onDelete }) {
       <PeriodFilter period={filter.period} date={filter.date} onChange={setFilter} />
 
       {error && <p className="error">{error}</p>}
-      {!stats && <p className="muted">{loading ? 'Cargando estadísticas…' : 'Sin datos.'}</p>}
+      {!error && !stats && (
+        <p className="muted">{loading ? 'Cargando estadísticas…' : 'Sin datos.'}</p>
+      )}
 
-      {stats && (
+      {!error && stats && (
         <>
           <div className="cards">
             <Card title="Horas del periodo" description={stats.period.label}>

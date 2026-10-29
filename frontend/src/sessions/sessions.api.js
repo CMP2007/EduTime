@@ -1,21 +1,28 @@
+import { assertSession, assertSessionList } from 'domain-contracts';
 import { request } from '../api/client.js';
 
 export const sessionsApi = {
-  list({ from, to, q } = {}) {
+  async list({ from, to, q } = {}) {
     const params = new URLSearchParams();
     if (from) params.set('from', from);
     if (to) params.set('to', to);
     if (q) params.set('q', q);
     const query = params.toString();
-    return request(`/sessions${query ? `?${query}` : ''}`);
+    const data = await request(`/sessions${query ? `?${query}` : ''}`);
+    return assertSessionList(data);
   },
 
-  create(payload) {
-    return request('/sessions', { method: 'POST', body: JSON.stringify(payload) });
+  async create(payload) {
+    const data = await request('/sessions', { method: 'POST', body: JSON.stringify(payload) });
+    return assertSession(data);
   },
 
-  update(id, payload) {
-    return request(`/sessions/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+  async update(id, payload) {
+    const data = await request(`/sessions/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+    return assertSession(data);
   },
 
   remove(id) {
