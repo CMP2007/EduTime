@@ -46,7 +46,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
-| B1-1 | Falta `"engines"` (versión de Node) en los `package.json` | Baja-Media | pendiente |
+| B1-1 | Falta `"engines"` (versión de Node) en los `package.json` | Baja-Media | resuelto |
 | B1-2 | Sin scripts de `test`/`lint` en los paquetes (refuerza B0-2) | Baja | resuelto |
 | B1-3 | Proxy de Vite acoplado al puerto `3001` del backend | Baja | pendiente |
 | B1-4 | `.gitignore` con entradas redundantes de `node_modules` | Trivial | pendiente |
@@ -284,7 +284,15 @@ Node antiguo fallaría en runtime sin aviso previo.
 
 **Impacto:** el proyecto podría no arrancar en otra máquina/CI y el error sería tardío y
 confuso.
-**Mitigación sugerida:** `"engines": { "node": ">=18" }` en la raíz y/o un archivo `.nvmrc`.
+**Mitigación sugerida:** declarar `"engines"` que cubra el mínimo del toolchain real
+(`vite@8.3.4`: `>=22.12.0`; `vitest@5.0.5`: `^22.12.0 || ^24 || >=26`).
+
+**Resuelto (30/10/2026):** añadido `"engines"` en `package.json`, `backend/package.json` y
+`frontend/package.json` con `"node": "^22.12.0 || ^24.0.0 || >=26.0.0"` y `"npm": ">=10.0.0"`.
+No se tocaron dependencias ni `package-lock.json`; verificación con `npm test`
+(119 pasados: 40 frontend + 62 backend + 17 contract) y `npm run lint` limpio.
+El rango es la intersección de Vite 8.3.4 (`^20.19.0 || >=22.12.0`) y Vitest 5.0.5
+(`^22.12.0 || ^24.0.0 || >=26.0.0`). `engine-strict` sigue `false`; `.npmrc` no se añadió.
 
 ### B1-2 · Sin scripts de `test`/`lint` en los paquetes
 
