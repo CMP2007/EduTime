@@ -50,7 +50,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | B1-2 | Sin scripts de `test`/`lint` en los paquetes (refuerza B0-2) | Baja | resuelto |
 | B1-3 | Proxy de Vite acoplado al puerto `3001` del backend | Baja | resuelto |
 | B1-4 | `.gitignore` con entradas redundantes de `node_modules` | Trivial | resuelto |
-| B1-5 | Estructura/funcionalidades duplicadas: `README.md` vs `AGENTS.md` | Baja | pendiente |
+| B1-5 | Estructura/funcionalidades duplicadas: `README.md` vs `AGENTS.md` | Baja | resuelto |
 | B1-6 | Configuración de red permisiva (`cors()` abierto + `--host 0.0.0.0`) | Baja | pendiente |
 | B1-7 | El proxy de Vite no se usa: la URL por defecto de la API es absoluta | Baja | pendiente |
 | B1-8 | Dependencias con vulnerabilidades conocidas (`esbuild`/`vite`) | Media | resuelto |
@@ -322,8 +322,7 @@ Sin impacto funcional; solo limpieza del archivo de configuración.
 fuente de desarrollo. Esa doble fuente ya divergió una vez (ver **B0-4**, la regla de racha).
 
 **Impacto:** documentación que puede contradecirse; coste de mantener dos sitios.
-**Mitigación sugerida:** que `README.md` sea de usuario y remita a `AGENTS.md` para la
-estructura/convenciones, sin repetirlas.
+**Mitigación aplicada:** `README.md` es la fuente oficial (funcionalidades, reglas, modelo, API); `AGENTS.md` conserva lo operativo (capas, convenciones, flujo SDD, comandos) y remite a `README.md`. Se evita duplicación de reglas de negocio.
 
 ### B1-6 · Configuración de red permisiva (`cors()` abierto + `--host 0.0.0.0`)
 
@@ -1027,7 +1026,7 @@ ataque en una sesión futura:
    respuestas en los hooks.
 7. **B0-1 / B5-4 / B9-1 / B10-1 / B10-2** — fuente única de constantes y reglas de dominio
    (meta diaria, periodos, validaciones) y eliminar el filtrado duplicado en cliente.
-8. **B0-4 / B1-5** — sincronizar documentación.
+8. **B0-4** — sincronizar documentación.
 9. **Resto de pendientes de baja severidad** — ajustes de configuración y limpieza suelta,
    atacables por orden de bloque y severidad según las tablas de resumen.
 10. **B4-2** — endurecer/documentar el update parcial de duración.

@@ -4,14 +4,19 @@ Guía para agentes de IA que trabajen en este repositorio. Léela antes de tocar
 
 ## Jerarquía documental
 
+- `README.md` es la **fuente oficial** de funcionalidades, reglas de dominio, modelo y API.
+- `AGENTS.md` es la **guía operativa** para agentes: cómo trabajar con el proyecto, convenciones de código, capas, flujo SDD y comandos.
+- `docs/constitution.md` prevalece sobre todos.
+- `AGENTS.md` no debe duplicar reglas de negocio ni funcionalidad; debe remitir a `README.md` y conservar lo operativo (capas, tests, convenciones, flujo).
+
 La **constitución** ([`docs/constitution.md`](docs/constitution.md)) contiene los principios
 innegociables y prevalece sobre este documento. `AGENTS.md` es la guía operativa: explica cómo
-aplicarlos (comandos, estructura, modelo, API y flujo de trabajo). Ante cualquier conflicto, se
+aplicarlos (comandos, estructura, convenciones y flujo de trabajo). Ante cualquier conflicto, se
 sigue la constitución y se corrige este documento.
 
 ## Descripción del proyecto
 
-**StudyTrack**: aplicación para el control de horas de estudio.
+**StudyTrack**: aplicación para el control de horas de estudio. Ver [`README.md`](README.md) para funcionalidades, reglas y modelo; esta guía (`AGENTS.md`) explica cómo trabajar con el repositorio.
 
 - **Frontend**: React 19 + Vite (JavaScript/JSX).
 - **Backend**: Node.js + Express 5.
@@ -137,60 +142,9 @@ frontend/src/
   styles.css                   # estilos globales
 ```
 
-## Modelo de datos (clase/sesión)
+### Modelo, reglas y API (fuente oficial: [`README.md`](README.md))
 
-| Campo             | Tipo    | Reglas                                            |
-|-------------------|---------|---------------------------------------------------|
-| `id`              | string  | `crypto.randomUUID()`, estable entre reinicios    |
-| `title`           | string  | Obligatorio, máx. 80 caracteres (temática)        |
-| `date`            | string  | `YYYY-MM-DD`, obligatorio                          |
-| `durationMinutes` | integer | Mínimo 15 min, máximo 23h                          |
-| `notes`           | string  | Opcional, máx. 500 caracteres                      |
-| `createdAt`       | string  | ISO 8601                                           |
-| `updatedAt`       | string  | ISO 8601                                           |
-
-## Reglas de negocio
-
-- **Meta diaria**: 180 minutos (3h). Un "día con meta cumplida" suma **≥ 180 min**, da igual si es una o varias clases.
-- **Racha**: días consecutivos en los que se **cumplió la meta** (≥ 180 min). Si hoy aún no llega a la meta, la racha sigue viva hasta fin del día. Se guarda la **racha más extensa** (récord). Es un cálculo **global hasta hoy**: no cambia al seleccionar un día en el calendario.
-- **Semana**: lunes a domingo. **Mes**: calendario. **Año**: natural.
-- **Periodos** de estadísticas: `day`, `week`, `month`, `3m`, `6m`, `12m`, `year`.
-- **Heatmap**: días coloreados según horas; los días con meta cumplida se marcan con un borde; cada celda es un botón. Se agrupa por **semana** (etiqueta de rango, p. ej. `5–11 oct`) o por **mes** (nombre, con año si el rango cruza años) según el periodo. En Inicio, pulsar un día enfoca las tarjetas **Meta** y **Horas** en esa fecha (con botón para deshacer); **Racha** y **Días con actividad** son globales y no cambian. El calendario se ancla a hoy (`heatmapDate`) para no moverse al seleccionar.
-
-## API
-
-| Método | Ruta                     | Descripción                                   |
-|--------|--------------------------|-----------------------------------------------|
-| GET    | `/api/health`            | Healthcheck.                                  |
-| GET    | `/api/sessions`          | Lista clases. Filtros: `from`, `to`, `q`.     |
-| POST   | `/api/sessions`          | Crea una clase (valida).                      |
-| PUT    | `/api/sessions/:id`      | Edita una clase.                              |
-| DELETE | `/api/sessions/:id`      | Elimina una clase (204).                      |
-| GET    | `/api/stats`             | Métricas. Params: `period`, `date`, `heatmap`, `heatmapDate`.|
-
-Los errores de validación responden `400` (incluidos `period` y `heatmap` inválidos en
-`/api/stats`); los recursos inexistentes, `404`.
-
-### Respuesta de `/api/stats`
-
-`date` es el **día de referencia** (define el periodo y el campo `today`); `heatmapDate` ancla el
-calendario (por defecto, `date`).
-
-```jsonc
-{
-  "period":  { "key": "week", "label": "…", "from": "YYYY-MM-DD", "to": "YYYY-MM-DD" },
-  "summary": { "totalMinutes", "totalSessions",
-               "activeDays",   // días con clases en el periodo
-               "goalDays",     // días con meta cumplida en el periodo
-               "longestClass", "subjects" },
-  "global":  { "totalMinutes", "totalSessions",
-               "activeDays", "goalDays",              // históricos (todos los días)
-               "streak": { "current", "best" } },      // global hasta hoy
-  "today":   { "date", "minutes", "goalMinutes", "goalMet" },  // día de referencia
-  "heatmap": { "range", "label", "from", "to", "goalMinutes",
-               "days": [ { "date", "minutes", "goalMet" } ] }
-}
-```
+Reglas de negocio, modelo (`id`/`title`/`date`/`durationMinutes`/`notes`) y endpoints (`/api/sessions`, `/api/stats`) se mantienen en `README.md`. Esta guía conserva lo operativo: capas, convenciones y flujo SDD.
 
 ## Convenciones de código
 
@@ -231,8 +185,9 @@ prevalece la constitución.
 4. **Validación**: valida toda entrada del usuario en el backend antes de usarla.
 5. **Persistencia**: datos en `backend/data/sessions.json` (ignorado por git), nunca solo en
    memoria; IDs estables; escritura atómica y fallo ante JSON corrupto. Seguridad: principio 5.
-6. **Documentación**: al añadir una funcionalidad, actualiza este `AGENTS.md` (si cambia la
-   estructura, el modelo o los comandos) y `MEMORY.md`.
+6. **Documentación**: al añadir una funcionalidad, actualiza `README.md` (funcionalidades,
+   reglas, modelo o API) y `AGENTS.md` solo si cambia la estructura, las convenciones o los
+   comandos. Actualiza `MEMORY.md` si aporta valor.
 7. **Spec**: para funcionalidad o cambio de comportamiento, usa `/feature`, parte de
    `specs/_templates/` y deja la spec aprobada en `specs/<feature>/spec.md` antes de codificar.
    Bugs, docs y refactors sin cambio observable no requieren spec (principio 2). `/task` no
