@@ -48,13 +48,14 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 |----|-----------|-----------|--------|
 | B1-1 | Falta `"engines"` (versión de Node) en los `package.json` | Baja-Media | resuelto |
 | B1-2 | Sin scripts de `test`/`lint` en los paquetes (refuerza B0-2) | Baja | resuelto |
-| B1-3 | Proxy de Vite acoplado al puerto `3001` del backend | Baja | pendiente |
+| B1-3 | Proxy de Vite acoplado al puerto `3001` del backend | Baja | resuelto |
 | B1-4 | `.gitignore` con entradas redundantes de `node_modules` | Trivial | pendiente |
 | B1-5 | Estructura/funcionalidades duplicadas: `README.md` vs `AGENTS.md` | Baja | pendiente |
 | B1-6 | Configuración de red permisiva (`cors()` abierto + `--host 0.0.0.0`) | Baja | pendiente |
 | B1-7 | El proxy de Vite no se usa: la URL por defecto de la API es absoluta | Baja | pendiente |
 | B1-8 | Dependencias con vulnerabilidades conocidas (`esbuild`/`vite`) | Media | resuelto |
 | B1-9 | Mayores de dependencias pendientes (`react` 19, `express` 5, `concurrently` 10) | Media | resuelto |
+| B1-10 | El proxy de Vite no lee `.env` (solo shell); falta `loadEnv` para configurar el destino desde archivo | Baja | pendiente |
 
 ### Bloque 2 — Backend: arranque y composición
 
@@ -301,14 +302,13 @@ El rango es la intersección de Vite 8.3.4 (`^20.19.0 || >=22.12.0`) y Vitest 5.
 
 ### B1-3 · Proxy de Vite acoplado al puerto `3001` del backend
 
-`frontend/vite.config.js:9` fija `proxy: { '/api': 'http://localhost:3001' }` con el puerto
-*hardcodeado*, pero el backend lo toma de `PORT` (`backend/src/server.js:3`). Si se cambia el
-puerto del backend, el frontend deja de encontrar la API **sin error de build** (falla en
+`frontend/vite.config.js:9` fijaba `proxy: { '/api': 'http://localhost:3001' }` con el puerto
+*hardcodeado*, pero el backend lo toma de `PORT` (`backend/src/server.js:3`). Si se cambiaba el
+puerto del backend, el frontend dejaba de encontrar la API **sin error de build** (fallaba en
 runtime con 404/proxy error).
 
 **Impacto:** acoplamiento oculto entre dos archivos de configuración.
-**Mitigación sugerida:** leer el destino del proxy de una variable de entorno
-(`process.env.VITE_BACKEND_URL || 'http://localhost:3001'`) o documentar el acoplamiento.
+**Resuelto:** `frontend/vite.config.js:9` ahora usa `globalThis.process?.env?.VITE_PROXY_TARGET || 'http://localhost:3001'`; el puerto no está hardcodeado y se puede configurar por entorno. No se tocó `client.js` (ese es `B1-7`). Solo lee variables del shell; leer `.env` requiere `loadEnv` (ver `B1-10`).
 
 ### B1-4 · `.gitignore` con entradas redundantes de `node_modules`
 
@@ -408,6 +408,19 @@ verificación tras cada uno (commits `cded6f2`, `b6a9e51`, `eaa9b69`):
 ambas a una única 19.3.1 (`npm ls react react-dom --all` lo confirma).
 **De paso:** los tres `package.json` pasan de rangos `^` a **versiones exactas** (coherente con
 `save-exact=true`). Cierre: `npm outdated` vacío, 68 tests y lint en verde, `npm audit` → 0.
+
+### B1-10 · El proxy de Vite no lee `.env` (solo variables del shell)
+
+`frontend/vite.config.js:9` usa `globalThis.process?.env?.VITE_PROXY_TARGET`. Vite **no inyecta**
+`.env`, `.env.local`, `.env.[mode]` ni `.env.[mode].local` en `process.env` durante la evaluación
+de `vite.config.*`; solo están las variables que ya existen en el entorno del proceso (shell).
+Para leer `.env` en la config hay que usar `loadEnv(mode, process.cwd(), '')` y consumir el
+objeto que devuelve.
+
+**Impacto:** si alguien define `VITE_PROXY_TARGET` en un `.env`, el proxy lo ignora y sigue
+apuntando al `3001` por defecto, sin error visible.
+**Mitigación:** envolver la config en `defineConfig(({ mode }) => { const env = loadEnv(mode, process.cwd(), ''); ... })`
+y usar `env.VITE_PROXY_TARGET`. No cambia el contrato ni requiere dependencias nuevas.
 
 ---
 
