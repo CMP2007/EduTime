@@ -49,7 +49,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | B1-1 | Falta `"engines"` (versión de Node) en los `package.json` | Baja-Media | resuelto |
 | B1-2 | Sin scripts de `test`/`lint` en los paquetes (refuerza B0-2) | Baja | resuelto |
 | B1-3 | Proxy de Vite acoplado al puerto `3001` del backend | Baja | resuelto |
-| B1-4 | `.gitignore` con entradas redundantes de `node_modules` | Trivial | pendiente |
+| B1-4 | `.gitignore` con entradas redundantes de `node_modules` | Trivial | resuelto |
 | B1-5 | Estructura/funcionalidades duplicadas: `README.md` vs `AGENTS.md` | Baja | pendiente |
 | B1-6 | Configuración de red permisiva (`cors()` abierto + `--host 0.0.0.0`) | Baja | pendiente |
 | B1-7 | El proxy de Vite no se usa: la URL por defecto de la API es absoluta | Baja | pendiente |
@@ -312,12 +312,9 @@ runtime con 404/proxy error).
 
 ### B1-4 · `.gitignore` con entradas redundantes de `node_modules`
 
-`.gitignore` lista `node_modules/`, `frontend/node_modules/` y `backend/node_modules/`. Por
-el *hoisting* de workspaces, las dos últimas no existen normalmente (las deps van al
-`node_modules/` de la raíz), así que son redundantes.
-
-**Impacto:** nulo funcional; solo ruido.
-**Mitigación sugerida:** dejar únicamente `node_modules/`.
+**Resuelto:** `.gitignore` ajustado para dejar únicamente `node_modules/`; se retiraron
+`frontend/node_modules/` y `backend/node_modules/` (redundantes por hoisting de workspaces).
+Sin impacto funcional; solo limpieza del archivo de configuración.
 
 ### B1-5 · Estructura/funcionalidades duplicadas: `README.md` vs `AGENTS.md`
 
