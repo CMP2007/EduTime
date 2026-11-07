@@ -51,11 +51,12 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | B1-3 | Proxy de Vite acoplado al puerto `3001` del backend | Baja | resuelto |
 | B1-4 | `.gitignore` con entradas redundantes de `node_modules` | Trivial | resuelto |
 | B1-5 | Estructura/funcionalidades duplicadas: `README.md` vs `AGENTS.md` | Baja | resuelto |
-| B1-6 | Configuración de red permisiva (`cors()` abierto + `--host 0.0.0.0`) | Baja | pendiente |
-| B1-7 | El proxy de Vite no se usa: la URL por defecto de la API es absoluta | Baja | pendiente |
+| B1-6 | Configuración de red permisiva (`cors()` abierto + `--host 0.0.0.0`) | Baja | **resuelto (003)** |
+| B1-7 | El proxy de Vite no se usa: la URL por defecto de la API es absoluta | Baja | **resuelto (003)** |
 | B1-8 | Dependencias con vulnerabilidades conocidas (`esbuild`/`vite`) | Media | resuelto |
 | B1-9 | Mayores de dependencias pendientes (`react` 19, `express` 5, `concurrently` 10) | Media | resuelto |
-| B1-10 | El proxy de Vite no lee `.env` (solo shell); falta `loadEnv` para configurar el destino desde archivo | Baja | pendiente |
+| B1-10 | El proxy de Vite no lee `.env` (solo shell); falta `loadEnv` para configurar el destino desde archivo | Baja | **resuelto (003)** |
+| B1-11 | Bind del backend a todas las interfaces (`*:3001`) | Baja | **resuelto (003)** |
 
 ### Bloque 2 — Backend: arranque y composición
 
@@ -155,6 +156,7 @@ mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ve
 | B11-4 | Sin `:focus-visible` ni `prefers-reduced-motion` | Baja | pendiente |
 | B11-5 | Valores mágicos de layout (`z-index`, anchos fijos) sin tokens | Baja | pendiente |
 | B11-6 | `textarea { resize: none }` quita el control de redimensionado | Muy baja | pendiente |
+| B11-7 | Barra de pestañas con overflow horizontal a 375 px | Baja | pendiente |
 
 ---
 
@@ -308,7 +310,7 @@ puerto del backend, el frontend dejaba de encontrar la API **sin error de build*
 runtime con 404/proxy error).
 
 **Impacto:** acoplamiento oculto entre dos archivos de configuración.
-**Resuelto:** `frontend/vite.config.js:9` ahora usa `globalThis.process?.env?.VITE_PROXY_TARGET || 'http://localhost:3001'`; el puerto no está hardcodeado y se puede configurar por entorno. No se tocó `client.js` (ese es `B1-7`). Solo lee variables del shell; leer `.env` requiere `loadEnv` (ver `B1-10`).
+**Resuelto:** `frontend/vite.config.js:9` ahora usa `globalThis.process?.env?.VITE_PROXY_TARGET || 'http://localhost:3001'`; el puerto no está hardcodeado y se puede configurar por entorno. No se tocó `client.js` (ese es `B1-7`). Solo lee variables del shell; leer `.env` requiere `loadEnv` (ver `B1-10`, **resuelto**).
 
 ### B1-4 · `.gitignore` con entradas redundantes de `node_modules`
 
@@ -334,6 +336,8 @@ expone en una red no confiable.
 **Mitigación sugerida:** restringir `origin` al frontend esperado y no usar `0.0.0.0` por
 defecto (o dejarlo tras un flag/script aparte).
 
+**Resuelto (2026-11-06):** `specs/003-red-proxy-cors/` cubre B1-6, B1-7, B1-10 y B1-11. El middleware CORS se elimina (`backend/src/app.js` + `package.json`): el backend ya no emite `Access-Control-Allow-Origin` ni rechaza por `Origin`; el proxy activo con `/api` relativa (`frontend/src/api/client.js`) es la vía de desarrollo. `loadEnv` en `frontend/vite.config.js` lee el `.env` de la raíz y `host` queda restringido a `localhost` (`frontend/vite.config.js`). Ver `spec.md`, `plan.md`, `tasks.md`.
+
 ### B1-7 · El proxy de Vite no se usa: la URL por defecto de la API es absoluta
 
 `frontend/src/api/client.js:1` define `API_URL` como
@@ -342,13 +346,14 @@ dominio y puerto), las peticiones del navegador van **directas** al `:3001` y **
 servidor de Vite**, de modo que el proxy de `frontend/vite.config.js:8-10` **no se usa** en la
 práctica. Para colmo, `AGENTS.md` afirma que "el proxy de Vite ya reenvía `/api`", lo que
 induce a creer que sí actúa. Como consecuencia inevitable, en desarrollo el navegador habla con
-un origen distinto (`:5173` → `:3001`) y **CORS sí es necesario** (de ahí el `cors()` abierto,
-ver **B1-6**).
+un origen distinto (`:5173` → `:3001`).
 
 **Impacto:** configuración muerta y engañosa; se cree tener proxy cuando no lo hay.
 **Mitigación sugerida:** usar una ruta relativa por defecto (`VITE_API_URL || '/api'`) para que
 el proxy haga su trabajo (y CORS deje de ser necesario en desarrollo), **o** eliminar el proxy
 y documentar explícitamente que las peticiones van directas al backend.
+
+**Resuelto (2026-11-06):** `frontend/src/api/client.js` usa `/api` relativa (`specs/003-red-proxy-cors/spec.md` RF-1); proxy de Vite (`frontend/vite.config.js`) lee `.env` (`loadEnv`) y reenvía `/api`.
 
 ### B1-8 · Dependencias con vulnerabilidades conocidas (`npm audit`)
 
@@ -417,6 +422,24 @@ objeto que devuelve.
 apuntando al `3001` por defecto, sin error visible.
 **Mitigación:** envolver la config en `defineConfig(({ mode }) => { const env = loadEnv(mode, process.cwd(), ''); ... })`
 y usar `env.VITE_PROXY_TARGET`. No cambia el contrato ni requiere dependencias nuevas.
+
+**Resuelto (2026-11-06):** `frontend/vite.config.js` usa `loadEnv(mode, rootDir, 'VITE_')`, donde
+`rootDir` es la raíz del repositorio calculada desde la ubicación del archivo de configuración
+(no `process.cwd()`, que en el workspace es `frontend`); el `.env` de la raíz se lee y
+`VITE_PROXY_TARGET` cambia el destino del proxy con precedencia del entorno del proceso
+(`specs/003-red-proxy-cors/plan.md`).
+
+### B1-11 · Bind del backend a todas las interfaces (`*:3001`)
+
+`backend/src/server.js` arranca con `app.listen(PORT)` sin host, por lo que Express escucha en
+todas las interfaces de red. En una red no confiable, cualquiera puede alcanzar la API
+directamente; el proxy y la ausencia de CORS solo protegen al navegador, no el acceso HTTP.
+
+**Impacto:** exposición de la API fuera de localhost en desarrollo.
+**Resuelto (2026-11-06):** `backend/src/serverConfig.js` devuelve `127.0.0.1` como host por
+defecto y `backend/src/server.js` escucha en ese host. `HOST` sigue disponible como override
+explícito (`HOST=0.0.0.0 npm run backend`) para quien necesite exponerlo a propósito. Ver
+`specs/003-red-proxy-cors/` y `backend/test/serverConfig.test.js`.
 
 ---
 
@@ -976,6 +999,16 @@ que además hacen poco responsive el panel del heatmap.
 pero elimina una capacidad nativa del control.
 
 **Mitigación:** valorar `resize: vertical` si el auto-crecimiento fallara.
+
+### B11-7 · Barra de pestañas con overflow horizontal a 375 px
+
+La barra `.tabs` usa `width: fit-content` y, en pantallas estrechas (375 px), puede desbordar la
+página y provocar scroll horizontal. Se detectó durante la validación de `003`, pero es un
+problema de layout preexistente y ajeno a la feature de red/proxy/CORS.
+
+**Mitigación:** limitar la barra al ancho del contenedor (`max-width: 100%`) y desplazar solo
+dentro de ella (`overflow-x: auto`), o permitir `flex-wrap: wrap`. Debe abordarse en una feature
+de estilos/UI.
 
 ---
 

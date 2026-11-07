@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ContractError } from 'domain-contracts';
+import { ApiError } from '../../src/api/ApiError.js';
 import { DataRefreshProvider, useDataRefresh } from '../../src/context/DataRefreshContext.jsx';
 import StatsPanel from '../../src/stats/StatsPanel.jsx';
 import { buildSession, buildStats } from '../fixtures/contracts.js';
@@ -74,6 +75,22 @@ describe('StatsPanel', () => {
     renderPanel();
 
     expect(await screen.findByText(/summary\.totalMinutes/)).toBeTruthy();
+    expect(screen.queryByText('0m')).toBeNull();
+    expect(screen.queryByText('Horas del periodo')).toBeNull();
+  });
+
+  it('muestra el error de red en español y no datos falsos', async () => {
+    statsApiMock.get.mockRejectedValue(
+      new ApiError(
+        'No se pudo conectar con el servicio. Comprueba tu conexión e inténtalo de nuevo.',
+        0,
+      ),
+    );
+    sessionsApiMock.list.mockResolvedValue([]);
+
+    renderPanel();
+
+    expect(await screen.findByText(/No se pudo conectar con el servicio/)).toBeTruthy();
     expect(screen.queryByText('0m')).toBeNull();
     expect(screen.queryByText('Horas del periodo')).toBeNull();
   });

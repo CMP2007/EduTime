@@ -59,15 +59,15 @@ Todos se ejecutan desde la raíz.
 ```bash
 npm install          # instala dependencias de todos los workspaces (usa las versiones fijadas en package.json)
 npm run dev          # levanta frontend (5173) y backend (3001) juntos
-npm run frontend     # solo frontend (vite --host 0.0.0.0)
+npm run frontend     # solo frontend (vite)
 npm run backend      # solo backend (node --watch src/server.js)
 npm run build        # build de producción del frontend (vite build)
 npm test             # tests de todos los workspaces (backend, frontend y contrato)
 npm run lint         # ESLint sobre todo el monorepo
 ```
 
-- Frontend: http://localhost:5173
-- Backend: http://localhost:3001
+- Frontend: http://localhost:5173 (solo interfaz local)
+- Backend: http://localhost:3001 (solo `127.0.0.1` por defecto; `HOST=0.0.0.0` lo expone de forma explícita)
 - **Tests backend**: runner nativo de Node (`node --test`), sin dependencias. Viven en
   `backend/test/` (espejo de `src/`). Convención: `*.test.js`.
 - **Tests frontend**: Vitest + jsdom + Testing Library. Viven en `frontend/test/` (espejo de
@@ -102,7 +102,8 @@ packages/
     test/contracts.test.js    # casos del contrato (válidos, campos ausentes, listas)
 
 backend/src/
-  server.js                    # arranque del servidor (puerto 3001, variable PORT)
+  server.js                    # arranque del servidor (usa serverConfig)
+  serverConfig.js              # puerto y host por defecto, con override por PORT/HOST
   app.js                       # monta las rutas /api y maneja errores
   errors.js                    # errores compartidos (AppError, ValidationError)
   storage/fileStore.js         # lectura/escritura del JSON en disco
@@ -120,6 +121,7 @@ backend/test/                  # tests (espejo de backend/src/)
   app.test.js                  # respuestas HTTP y manejo de errores de la app
   date.test.js                 # utilidades de fecha y periodos
   fileStore.test.js            # lectura/escritura del JSON (ficheros reales temporales)
+  serverConfig.test.js         # puerto, host y valores por defecto del arranque
   sessions.repository.test.js  # carreras/concurrencia con el almacenamiento simulado
   sessions.service.test.js     # contrato de creación/listado con el repositorio simulado
   stats.service.test.js        # estadísticas con el repositorio simulado
@@ -163,7 +165,11 @@ Reglas de negocio, modelo (`id`/`title`/`date`/`durationMinutes`/`notes`) y endp
   campo inválido (`summary.totalMinutes`, `[1].durationMinutes`).
 - **Estilo**: punto y coma al final, comillas simples, indentación de 2 espacios, funciones flecha, sin clases (excepción: `ErrorBoundary`, que React exige como clase para `componentDidCatch`).
 - Los repositorios y servicios devuelven copias (`{ ...item }`) para no exponer el estado interno.
-- El frontend usa `VITE_API_URL` (por defecto `http://localhost:3001/api`); el proxy de Vite ya reenvía `/api`.
+- El frontend usa siempre `/api` relativo (sin `VITE_API_URL`) y el proxy de Vite lo reenvía al
+  backend. El destino se configura con `VITE_PROXY_TARGET` en el entorno del proceso o en el `.env`
+  de la raíz (el proceso tiene prioridad; por defecto `http://localhost:3001`).
+- El backend no usa CORS ni emite cabeceras `Access-Control-Allow-Origin`; escucha en
+  `127.0.0.1` por defecto y solo se expone con `HOST` explícito.
 - **Tests backend**: runner nativo de Node (`node:test` + `node --test`), sin dependencias. Un archivo `*.test.js` por módulo bajo prueba, en `backend/test/`. La capa de datos se **simula** con `mock.method` (no se toca el disco); la excepción es `fileStore`, cuyo comportamiento **es** el disco y se prueba con ficheros reales en un directorio temporal. El repositorio es una fábrica con punto de inyección del almacenamiento para poder simularlo.
 - **Tests frontend**: Vitest en modo run (`vitest run`) con entorno jsdom. **Sin `globals`**: los tests importan `describe`/`it`/`expect` de `vitest` explícitamente; el cleanup de Testing Library está registrado en `frontend/test/setup.js`. Se mockean los módulos `*.api.js` con `vi.mock` (no hay red) y `fetch` con `vi.stubGlobal` cuando se prueba el cliente. Antes de cerrar un fix, comprobar que su test **falla si se revierte el cambio** (mutación).
 - **Pruebas de mutación**: antes de romper el código a propósito, copiar los archivos a

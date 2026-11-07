@@ -11,7 +11,7 @@ let server;
 let baseUrl;
 
 before(async () => {
-  server = app.listen(0);
+  server = app.listen(0, '127.0.0.1');
   await new Promise((resolve) => server.once('listening', resolve));
   baseUrl = `http://127.0.0.1:${server.address().port}`;
 });
@@ -99,5 +99,29 @@ describe('app · validación de periodos (B3-4)', () => {
     assert.equal(response.status, 400);
     const body = await response.json();
     assert.match(body.error, /Periodo del heatmap inválido/);
+  });
+});
+
+describe('app · sin cabeceras CORS (RF-2)', () => {
+  it('no emite Access-Control-Allow-Origin con un Origin externo', async () => {
+    const response = await fetch(`${baseUrl}/api/health`, {
+      headers: { Origin: 'http://evil.example' },
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('access-control-allow-origin'), null);
+  });
+
+  it('no responde a un preflight con cabeceras CORS', async () => {
+    const response = await fetch(`${baseUrl}/api/health`, {
+      method: 'OPTIONS',
+      headers: {
+        Origin: 'http://evil.example',
+        'Access-Control-Request-Method': 'GET',
+      },
+    });
+
+    assert.equal(response.headers.get('access-control-allow-origin'), null);
+    assert.equal(response.headers.get('access-control-allow-methods'), null);
   });
 });

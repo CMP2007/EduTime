@@ -52,6 +52,12 @@ export default defineConfig([
     languageOptions: { globals: { ...globals.node } },
   },
 
+  // Configuración de Vite: corre en Node (loadEnv, process, etc.).
+  {
+    files: ['frontend/vite.config.js'],
+    languageOptions: { globals: { ...globals.node } },
+  },
+
   // Frontend: entorno navegador + reglas de hooks de React.
   {
     files: ['frontend/**/*.{js,jsx}'],

@@ -6,9 +6,10 @@ Memoria del proyecto entre sesiones. Máximo ~50 líneas: resume o elimina lo qu
 
 - v1 de StudyTrack funcionando: monorepo con frontend (React 19 + **Vite 8**) y backend (Node + Express 5). Pestañas: Inicio (tarjetas + heatmap), Historial (filtros, editar, eliminar) y Estadísticas (periodos, temáticas, clase más larga).
 - Persistencia en `backend/data/sessions.json` (ignorado por git): lectura única (single-flight), cola de escrituras, tmp único y fallo explícito si el fichero está corrupto.
-- **Calidad**: 119 tests — 62 backend (`node --test`) + 40 frontend (Vitest + jsdom + Testing Library) + 17 del paquete de contrato (`node --test`) — y ESLint en verde.
+- **Calidad**: 136 tests — 68 backend (`node --test`) + 51 frontend (Vitest + jsdom + Testing Library) + 17 del paquete de contrato (`node --test`) — y ESLint en verde.
 - **Feature 001 (modal accesible)** resuelta; patrones aplicados (accesibilidad, foco, scroll, ErrorBoundary, ApiError).
 - **Feature 002 (contrato de datos)** implementada; B0-6 resuelto sin TypeScript.
+- **Feature 003 (red/proxy/CORS)** implementada y validada (corrección 2026-11-06): sin CORS en el backend, proxy con `/api` relativa y `.env` de la raíz, host local del frontend y del backend, errores de red en español. El layout a 375 px queda fuera de alcance. `DEUDA_TECNICA.md`: B1-6, B1-7, B1-10 y B1-11 resueltos; B11-7 registrado.
 
 ## Decisiones (y por qué)
 

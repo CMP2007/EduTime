@@ -1,11 +1,9 @@
-import cors from 'cors';
 import express from 'express';
 import sessionsRoutes from './sessions/sessions.routes.js';
 import statsRoutes from './stats/stats.routes.js';
 
 const app = express();
 
-app.use(cors());
 app.use(express.json());
 
 app.get('/api/health', (_request, response) => {
