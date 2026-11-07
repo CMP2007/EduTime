@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { after, afterEach, before, describe, it, mock } from 'node:test';
+import { after, afterEach, before, describe, it, mock, beforeEach } from 'node:test';
 
 import app from '../src/app.js';
 import { statsService } from '../src/stats/stats.service.js';
@@ -32,6 +32,12 @@ function post(body, contentType = 'application/json') {
   });
 }
 
+let infoLog;
+
+beforeEach(() => {
+  infoLog = mock.method(console, 'info', () => {});
+});
+
 describe('app · respuestas básicas', () => {
   it('GET /api/health responde 200', async () => {
     const response = await fetch(`${baseUrl}/api/health`);
@@ -42,6 +48,17 @@ describe('app · respuestas básicas', () => {
   it('una ruta desconocida responde 404', async () => {
     const response = await fetch(`${baseUrl}/api/nope`);
     assert.equal(response.status, 404);
+  });
+});
+
+describe('app · logging de peticiones (B2-4)', () => {
+  it('registra método, ruta, estado y duración', async () => {
+    const response = await fetch(`${baseUrl}/api/health?probe=1`);
+
+    assert.equal(response.status, 200);
+    assert.equal(infoLog.mock.callCount(), 1);
+    const [line] = infoLog.mock.calls[0].arguments;
+    assert.match(line, /^\[http\] GET \/api\/health 200 \d+ms$/);
   });
 });
 
@@ -123,5 +140,25 @@ describe('app · sin cabeceras CORS (RF-2)', () => {
 
     assert.equal(response.headers.get('access-control-allow-origin'), null);
     assert.equal(response.headers.get('access-control-allow-methods'), null);
+  });
+});
+
+describe('app · saneamiento de logs de error (B2-4)', () => {
+  it('el log de un 500 incluye método, ruta y estado, sin el body', async () => {
+    const errorLog = mock.method(console, 'error', () => {});
+    mock.method(statsService, 'getStats', async () => {
+      const error = new Error('fallo interno simulado');
+      error.body = { title: 'dato privado' };
+      throw error;
+    });
+
+    const response = await fetch(`${baseUrl}/api/stats?period=week`);
+
+    assert.equal(response.status, 500);
+    assert.equal(errorLog.mock.callCount(), 1);
+    const [line, stack] = errorLog.mock.calls[0].arguments;
+    assert.match(line, /^\[error\] GET \/api\/stats 500 fallo interno simulado$/);
+    assert.doesNotMatch(String(line), /dato privado/);
+    assert.equal(typeof stack, 'string');
   });
 });

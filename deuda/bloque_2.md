@@ -63,6 +63,13 @@ body problemático del `SyntaxError`). No se registra método, ruta, estado ni d
 **Mitigación:** middleware de logging simple (o `morgan`, si se justifica) y no volcar el
 body en los logs.
 
+**Resuelto (2026-11-07):** se implementó un middleware propio `createRequestLogger` que registra
+método, ruta (`request.path`), estado y duración en `console.info`. El manejador de errores
+se saneó para registrar una línea resumida `[error] <método> <ruta> 500 <mensaje>` y el
+stack, evitando volcar el cuerpo de la petición.
+Tests: `backend/test/requestLogger.test.js` (unitario) y `backend/test/app.test.js` (integración
+y saneamiento de errores). Verificado por mutación.
+
 ---
 
 ## Bloque 3 — Backend: persistencia y tiempo

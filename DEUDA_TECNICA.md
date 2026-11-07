@@ -62,7 +62,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 | B2-1 | JSON malformado responde 500 en lugar de 400 | Media | resuelto |
 | B2-2 | `app.js` acoplado a `ValidationError` de sessions | Baja-Media | resuelto |
 | B2-3 | Boilerplate de `try/catch` en cada ruta | Baja | resuelto |
-| B2-4 | Sin logging de peticiones/errores | Baja | pendiente |
+| B2-4 | Sin logging de peticiones/errores | Baja | resuelto |
 
 ### Bloque 3 — Backend: persistencia y tiempo
 
@@ -167,10 +167,6 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 
 **Prioridad:** *Alta* (la Red proxy/cors está ya en `specs/003-red-proxy-cors/`).
 
-### B2-4 · Logging de peticiones/errores
-
-**Prioridad:** *Alta* (capa transversal).
-
 ### B3-2, B3-3 · Validación y límites de fecha/tiempo
 
 **Prioridad:** *Media-Alta* (riesgo de datos corruptos o incompletos).
@@ -211,6 +207,6 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 
 ### Resumen
 
-**Ciento tres** debilidades técnicas (B0-1 … B11-7), con 37 resueltas, 66 pendientes/alta prioridad, 0 en curso. El principal impedimento para la culminación es **B0-7** (sin tests de frontend/E2E). Las siguientes prioridades altas son B2-4 (logging), B3-2/B3-3 (validación de fechas) y B4-5 (validación del seed). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
+**Ciento tres** debilidades técnicas (B0-1 … B11-7), con 38 resueltas, 65 pendientes/alta prioridad, 0 en curso. El principal impedimento para la culminación es **B0-7** (sin tests de frontend/E2E). Las siguientes prioridades altas son B3-2/B3-3 (validación de fechas) y B4-5 (validación del seed). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
 
 La estructura propuesta (resumen + 13 bloques) mantiene el alcance de cada archivo y la tabla de contenidos original.

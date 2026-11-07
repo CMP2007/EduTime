@@ -6,7 +6,7 @@ Memoria del proyecto entre sesiones. Máximo ~50 líneas: resume o elimina lo qu
 
 - v1 de StudyTrack funcionando: monorepo con frontend (React 19 + **Vite 8**) y backend (Node + Express 5). Pestañas: Inicio (tarjetas + heatmap), Historial (filtros, editar, eliminar) y Estadísticas (periodos, temáticas, clase más larga).
 - Persistencia en `backend/data/sessions.json` (ignorado por git): lectura única (single-flight), cola de escrituras, tmp único y fallo explícito si el fichero está corrupto.
-- **Calidad**: 136 tests — 68 backend (`node --test`) + 51 frontend (Vitest + jsdom + Testing Library) + 17 del paquete de contrato (`node --test`) — y ESLint en verde.
+- **Calidad**: 141 tests — 73 backend (`node --test`) + 51 frontend (Vitest + jsdom + Testing Library) + 17 del paquete de contrato (`node --test`) — y ESLint en verde.
 - **Feature 001 (modal accesible)** resuelta; patrones aplicados (accesibilidad, foco, scroll, ErrorBoundary, ApiError).
 - **Feature 002 (contrato de datos)** implementada; B0-6 resuelto sin TypeScript.
 - **Feature 003 (red/proxy/CORS)** implementada y validada (corrección 2026-11-06): sin CORS en el backend, proxy con `/api` relativa y `.env` de la raíz, host local del frontend y del backend, errores de red en español. El layout a 375 px queda fuera de alcance. `DEUDA_TECNICA.md`: B1-6, B1-7, B1-10 y B1-11 resueltos; B11-7 registrado.
@@ -17,6 +17,7 @@ Memoria del proyecto entre sesiones. Máximo ~50 líneas: resume o elimina lo qu
 - Un archivo por funcionalidad; backend calcula las métricas (`/api/stats`); meta diaria 180 min; racha = días consecutivos con meta cumplida (global hasta hoy).
 - Tests: backend runner **nativo de Node** con `mock.method`; frontend **Vitest 5 + jsdom + Testing Library** (exactas por `save-exact`).
 - **Contrato compartido** en `packages/domain-contracts` (JSDoc + validadores runtime, sin TypeScript ni dependencias): el frontend valida `/api/stats` y `/api/sessions` en `*.api.js`; el backend comprueba su salida en tests. Un fallo lanza `ContractError` con la ruta del campo y la UI oculta los datos dependientes.
+- **Logging**: middleware propio (`createRequestLogger`), sin `morgan`, registra método, ruta, estado y duración en `console.info`; los errores 500 se registran saneados en `console.error`, sin volcar el body.
 - `ErrorBoundary` como **clase** (React lo exige); excepción documentada en `AGENTS.md`. Sin `react-error-boundary` ni jest-dom.
 - **Skills de agente versionadas**: `.agents/skills/` y `skills-lock.json` se commitean.
 - **SDD operativo**: constitución en `docs/constitution.md`, guía operativa en `AGENTS.md`. Comandos SDD en `.opencode/commands/` con protocolos en `.opencode/commands/protocols/`. `/feature` es orquestador, con `/clarify`, `/validate`, `/statusSDD`, `/task` y `/change`.

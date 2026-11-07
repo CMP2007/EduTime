@@ -1,9 +1,11 @@
 import express from 'express';
+import { createRequestLogger } from './middleware/requestLogger.js';
 import sessionsRoutes from './sessions/sessions.routes.js';
 import statsRoutes from './stats/stats.routes.js';
 
 const app = express();
 
+app.use(createRequestLogger());
 app.use(express.json());
 
 app.get('/api/health', (_request, response) => {
@@ -17,7 +19,7 @@ app.use((_request, response) => {
   response.status(404).json({ error: 'Ruta no encontrada' });
 });
 
-app.use((error, _request, response, _next) => {
+app.use((error, request, response, _next) => {
   // Los errores con estado 4xx (p. ej. el SyntaxError de express.json con
   // body malformado) son fallos del cliente, no del servidor: se respetan y
   // no se registran con stacktrace.
@@ -29,7 +31,8 @@ app.use((error, _request, response, _next) => {
     return response.status(status).json({ error: message });
   }
 
-  console.error(error);
+  const message = error?.message || 'Error desconocido';
+  console.error(`[error] ${request.method} ${request.path} 500 ${message}`, error?.stack);
   return response.status(500).json({ error: 'Error interno del servidor' });
 });
 

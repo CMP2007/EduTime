@@ -108,6 +108,8 @@ backend/src/
   errors.js                    # errores compartidos (AppError, ValidationError)
   storage/fileStore.js         # lectura/escritura del JSON en disco
   utils/date.js                # utilidades de fecha y periodos
+  middleware/
+    requestLogger.js            # logging de peticiones (método, ruta, estado, duración)
   sessions/
     sessions.repository.js     # CRUD sobre el almacenamiento (fábrica: createSessionsRepository)
     sessions.service.js        # validación + reglas de negocio
