@@ -29,7 +29,7 @@ parsear el body, lanza un `SyntaxError` de `body-parser` con `status: 400` y
 ("JSON inválido en el cuerpo de la petición") en vez del mensaje crudo del parser, y los 4xx ya
 **no** se registran con `console.error` (el log solo ve fallos reales del servidor). Sin nuevas
 dependencias y **sin adelantar el punto 8**: en esa sesión la rama `instanceof ValidationError`
-quedó intacta. Se retiró después al resolver **B2-2** (25/10/2026); B2-3/B2-4 siguen pendientes.
+quedó intacta. Se retiró después al resolver **B2-2** (25/10/2026); B2-4 sigue pendiente.
 Tests: `backend/test/app.test.js` (app real en puerto efímero; ningún caso escribe en disco),
 verificado por mutación.
 
@@ -48,12 +48,12 @@ en un módulo propio, que cada dominio extienda; el handler decide por `error.st
 
 ### B2-3 · Boilerplate de `try/catch` en cada ruta
 
-Cada handler de `sessions.routes.js`/`stats.routes.js` repite el mismo
-`try { ... } catch (error) { next(error) }`. Es propenso a olvidos: una ruta nueva sin
-`try/catch` no reporta errores.
-
-**Mitigación:** un wrapper `asyncHandler(fn)` que capture el rechazo y llame a `next(error)`,
-sin dependencias.
+**Resuelto (07/11/2026):** se eliminaron los `try/catch` de `sessions.routes.js` y
+`stats.routes.js`. En Express 5 los rechazos de handlers `async` (y los `throw` síncronos) se
+reenvían solos al middleware de errores, así que un wrapper `asyncHandler` sería redundante:
+no se añadió archivo ni dependencia. Tests: `backend/test/app.test.js` (validación → 400 y
+fallo real de servicio → 500). Verificado por mutación retirando el manejador de errores de
+`app.js`.
 
 ### B2-4 · Sin logging de peticiones/errores
 
