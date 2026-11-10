@@ -48,7 +48,7 @@ ataque en una sesión futura:
 8. **B0-4** — sincronizar documentación.
 9. **Resto de pendientes de baja severidad** — ajustes de configuración y limpieza suelta,
    atacables por orden de bloque y severidad según las tablas de resumen.
-10. **B4-2** — endurecer/documentar el update parcial de duración.
+10. ✅ **B4-2** — endurecer/documentar el update parcial de duración. *(hecho: feature 005)*
 11. **B8-2 / B9-4 / B11-4** — accesibilidad: `Modal` (focus trap, restaurar foco, bloquear
     scroll), mensajes de error accesibles y `:focus-visible`/`prefers-reduced-motion`.
 12. **B9-2** — `debounce` en la búsqueda por temática.

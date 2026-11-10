@@ -22,8 +22,10 @@ queda `undefined`; `parseDuration` hace `Number(undefined)` → `NaN` y lanza un
 ("Los minutos deben ser un número entre 0 y 59"). El frontend siempre manda ambos, pero la API
 lo permite y falla de forma poco clara.
 
-**Mitigación:** documentar que la duración va en pareja o derivar el campo que falte desde el
-valor existente (como ya se hace cuando no viene ninguno).
+**Resuelto (2026-11-10) en `specs/005-duracion-parcial-sesiones/`:** la parte ausente vale 0,
+`update` detecta `undefined`, `null` y cadena vacía, conserva y ajusta la duración cuando no llega
+ninguna parte, y `durationMinutes` directo se ignora. Evidencia: `backend/test/sessions.service.test.js`
+y `backend/test/app.test.js`.
 
 ### B4-3 · `clone` superficial en el repositorio
 

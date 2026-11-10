@@ -4,7 +4,7 @@ import { after, afterEach, before, describe, it, mock, beforeEach } from 'node:t
 import app from '../src/app.js';
 import { statsService } from '../src/stats/stats.service.js';
 import { sessionsRepository } from '../src/sessions/sessions.repository.js';
-import { assertStats } from 'domain-contracts';
+import { assertSession, assertStats } from 'domain-contracts';
 
 // La app real en un puerto efímero: cubre el flujo completo petición →
 // middlewares → rutas → manejador de errores. Ningún caso escribe en disco:
@@ -264,5 +264,194 @@ describe('app · validación de fechas y avisos (T5)', () => {
     assert.equal(typeof stats.notice, 'string');
     assert.match(stats.notice, /recortado/);
     assert.doesNotThrow(() => assertStats(stats));
+  });
+});
+
+describe('app · duración parcial en /api/sessions (RF-1 a RF-13)', () => {
+  function postSession(duration) {
+    return post(
+      JSON.stringify({ title: 'JavaScript', date: '2026-10-15', notes: '', ...duration }),
+    );
+  }
+
+  function putSession(id, body) {
+    return fetch(`${baseUrl}/api/sessions/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  }
+
+  function makeSession(overrides = {}) {
+    return {
+      id: 'session-1',
+      title: 'JavaScript',
+      date: '2026-10-15',
+      durationMinutes: 120,
+      notes: '',
+      createdAt: '2026-10-15T10:00:00.000Z',
+      updatedAt: '2026-10-15T10:00:00.000Z',
+      ...overrides,
+    };
+  }
+
+  function mockExisting(initial = makeSession()) {
+    let current = initial;
+    mock.method(sessionsRepository, 'findById', async () => ({ ...current }));
+    const update = mock.method(sessionsRepository, 'update', async (id, data) => ({
+      ...current,
+      ...data,
+      id,
+    }));
+    return {
+      update,
+      setCurrent(next) {
+        current = next;
+      },
+    };
+  }
+
+  it('POST con ambos, solo horas y solo minutos responde 201 con la duración', async () => {
+    mock.method(sessionsRepository, 'insert', async (session) => ({ ...session }));
+    const cases = [
+      [{ hours: 1, minutes: 30 }, 90],
+      [{ hours: 2 }, 120],
+      [{ minutes: 45 }, 45],
+      [{ minutes: 15 }, 15],
+      [{ hours: 23, minutes: 59 }, 1439],
+    ];
+
+    for (const [duration, expected] of cases) {
+      const response = await postSession(duration);
+      assert.equal(response.status, 201);
+      const body = await response.json();
+      assert.equal(body.durationMinutes, expected);
+      assert.doesNotThrow(() => assertSession(body));
+    }
+  });
+
+  it('POST sin duración, con null/vacío o con durationMinutes directo responde 400 de mínimo', async () => {
+    const insert = mock.method(sessionsRepository, 'insert', async (session) => ({ ...session }));
+    const payloads = [
+      {},
+      { hours: null, minutes: null },
+      { hours: '', minutes: '' },
+      { durationMinutes: 60 },
+      { hours: 0, minutes: 0 },
+    ];
+
+    for (const duration of payloads) {
+      const response = await postSession(duration);
+      assert.equal(response.status, 400);
+      const body = await response.json();
+      assert.match(body.error, /al menos 15 minutos/);
+    }
+
+    assert.equal(insert.mock.callCount(), 0);
+  });
+
+  it('POST con total superior a 1439 responde 400 con el máximo 23:59', async () => {
+    const insert = mock.method(sessionsRepository, 'insert', async (session) => ({ ...session }));
+
+    for (const duration of [{ hours: 24 }, { hours: 23, minutes: 60 }, { hours: 24, minutes: 60 }]) {
+      const response = await postSession(duration);
+      assert.equal(response.status, 400);
+      const body = await response.json();
+      assert.match(body.error, /23:59/);
+    }
+
+    assert.equal(insert.mock.callCount(), 0);
+  });
+
+  it('POST con horas o minutos inválidos responde 400 sobre el campo correspondiente', async () => {
+    const insert = mock.method(sessionsRepository, 'insert', async (session) => ({ ...session }));
+    const cases = [
+      [{ hours: -1, minutes: 0 }, /Las horas/],
+      [{ hours: 1.5, minutes: 0 }, /Las horas/],
+      [{ hours: 'abc', minutes: 0 }, /Las horas/],
+      [{ hours: 'abc', minutes: 'abc' }, /Las horas/],
+      [{ hours: 0, minutes: -1 }, /Los minutos/],
+      [{ hours: 0, minutes: 1.5 }, /Los minutos/],
+      [{ hours: 0, minutes: 'abc' }, /Los minutos/],
+      [{ hours: 0, minutes: 60 }, /entre 0 y 59/],
+    ];
+
+    for (const [duration, expected] of cases) {
+      const response = await postSession(duration);
+      assert.equal(response.status, 400);
+      const body = await response.json();
+      assert.match(body.error, expected);
+    }
+
+    assert.equal(insert.mock.callCount(), 0);
+  });
+
+  it('PUT con ambos, solo horas y solo minutos actualiza la duración', async () => {
+    mockExisting();
+    const cases = [
+      [{ hours: 1, minutes: 30 }, 90],
+      [{ hours: 1 }, 60],
+      [{ minutes: 45 }, 45],
+    ];
+
+    for (const [duration, expected] of cases) {
+      const response = await putSession('session-1', duration);
+      assert.equal(response.status, 200);
+      const body = await response.json();
+      assert.equal(body.durationMinutes, expected);
+      assert.doesNotThrow(() => assertSession(body));
+    }
+  });
+
+  it('PUT sin duración conserva y ajusta la duración existente', async () => {
+    const { setCurrent } = mockExisting();
+    const cases = [
+      [120, 120],
+      [15, 15],
+      [1439, 1439],
+      [10, 15],
+      [0, 15],
+      [1440, 1439],
+      [2000, 1439],
+    ];
+
+    for (const [duration, expected] of cases) {
+      setCurrent(makeSession({ durationMinutes: duration }));
+      const response = await putSession('session-1', {});
+      assert.equal(response.status, 200);
+      const body = await response.json();
+      assert.equal(body.durationMinutes, expected);
+      assert.doesNotThrow(() => assertSession(body));
+    }
+  });
+
+  it('PUT con total superior a 1439 responde 400 con el máximo 23:59', async () => {
+    const { update } = mockExisting();
+
+    for (const duration of [{ hours: 24 }, { hours: 23, minutes: 60 }]) {
+      const response = await putSession('session-1', duration);
+      assert.equal(response.status, 400);
+      const body = await response.json();
+      assert.match(body.error, /23:59/);
+    }
+
+    assert.equal(update.mock.callCount(), 0);
+  });
+
+  it('PUT trata null y cadena vacía como partes ausentes', async () => {
+    const { setCurrent } = mockExisting();
+    const cases = [
+      [{ hours: null, minutes: '' }, 120],
+      [{ hours: null, minutes: 30 }, 30],
+      [{ hours: 2, minutes: '' }, 120],
+    ];
+
+    for (const [duration, expected] of cases) {
+      setCurrent(makeSession());
+      const response = await putSession('session-1', duration);
+      assert.equal(response.status, 200);
+      const body = await response.json();
+      assert.equal(body.durationMinutes, expected);
+    }
   });
 });

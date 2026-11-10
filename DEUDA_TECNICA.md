@@ -78,7 +78,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
 | B4-1 | `sessionsService.getById` sin usar (código muerto) | Baja | resuelto |
-| B4-2 | Update parcial de duración exige horas y minutos juntos | Baja-Media | pendiente |
+| B4-2 | Update parcial de duración exige horas y minutos juntos | Baja-Media | **resuelto (005)** |
 | B4-3 | `clone` superficial en el repositorio | Baja | pendiente |
 | B4-4 | Filtros `from`/`to` sin validar | Baja | resuelto |
 | B4-5 | El seed se persiste sin pasar por la validación del servicio | Baja | pendiente |
@@ -175,6 +175,13 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 `enumerateDays` rechaza más de 4000 días. Evidencia: `domain-dates` (12 tests),
 `backend/test/date.test.js` y `backend/test/app.test.js`.
 
+### B4-2 · Update parcial de duración
+
+**Resuelto (2026-11-10)** en `specs/005-duracion-parcial-sesiones/`: `POST`/`PUT` aceptan horas y
+minutos juntos o por separado (la parte ausente vale 0); `PUT` sin duración conserva y ajusta a
+15–1439; `durationMinutes` directo se ignora. Evidencia: `backend/test/sessions.service.test.js`
+y `backend/test/app.test.js`.
+
 ### B4-5 · Validación del seed
 
 **B4-1 resuelto (2026-11-10):** se eliminó `sessionsService.getById`, que no tenía consumidor
@@ -227,6 +234,6 @@ B9-6.
 
 ### Resumen
 
-**Sesenta y ocho** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 36 resueltas, 31 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). La siguiente prioridad alta es B4-5 (validación del seed). Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
+**Sesenta y ocho** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 37 resueltas, 30 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). La siguiente prioridad alta es B4-5 (validación del seed). Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
 
 La estructura propuesta (resumen + 13 bloques) mantiene el alcance de cada archivo y la tabla de contenidos original.

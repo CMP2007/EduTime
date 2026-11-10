@@ -1,27 +1,52 @@
 import { ValidationError } from '../errors.js';
 import { createId } from '../utils/date.js';
 import { sessionsRepository } from './sessions.repository.js';
-import { DURATION_MAX, DURATION_MIN, HOURS_MAX, MINUTES_MAX, NOTES_MAX, TITLE_MAX } from 'domain-constants';
+import { DURATION_MAX, DURATION_MIN, MINUTES_MAX, NOTES_MAX, TITLE_MAX } from 'domain-constants';
 import { isValidDateString, compareDateStrings } from 'domain-dates';
+
+const HOURS_ERROR = 'Las horas deben ser un número entero mayor o igual que 0.';
+const MINUTES_ERROR = 'Los minutos deben ser un número entero mayor o igual que 0.';
+const MINUTES_RANGE_ERROR = 'Los minutos deben ser un número entero entre 0 y 59.';
+const DURATION_MAX_ERROR = 'La clase no puede superar las 23:59.';
+
+/** Indica si una parte de la duración no viene en la petición. */
+function isDurationPartAbsent(value) {
+  return value == null || value === '';
+}
+
+/** Lee una parte de la duración: ausente → 0; el resto conserva la coerción numérica. */
+function readDurationPart(value) {
+  return isDurationPartAbsent(value) ? 0 : Number(value);
+}
+
+/** Ajusta una duración guardada al límite válido más cercano. */
+function clampDuration(value) {
+  if (value < DURATION_MIN) return DURATION_MIN;
+  if (value > DURATION_MAX) return DURATION_MAX;
+  return value;
+}
 
 /** Valida y convierte los campos hours/minutes en minutos totales. */
 function parseDuration(payload) {
-  const hours = Number(payload.hours);
-  const minutes = Number(payload.minutes);
+  const hours = readDurationPart(payload.hours);
+  const minutes = readDurationPart(payload.minutes);
 
-  if (!Number.isInteger(hours) || hours < 0 || hours > HOURS_MAX) {
-    throw new ValidationError('Las horas deben ser un número entre 0 y 23.');
+  if (!Number.isInteger(hours) || hours < 0) {
+    throw new ValidationError(HOURS_ERROR);
   }
-  if (!Number.isInteger(minutes) || minutes < 0 || minutes > MINUTES_MAX) {
-    throw new ValidationError('Los minutos deben ser un número entre 0 y 59.');
+  if (!Number.isInteger(minutes) || minutes < 0) {
+    throw new ValidationError(MINUTES_ERROR);
   }
 
   const durationMinutes = hours * 60 + minutes;
+  if (durationMinutes > DURATION_MAX) {
+    throw new ValidationError(DURATION_MAX_ERROR);
+  }
+  if (minutes > MINUTES_MAX) {
+    throw new ValidationError(MINUTES_RANGE_ERROR);
+  }
   if (durationMinutes < DURATION_MIN) {
     throw new ValidationError(`La clase debe durar al menos ${DURATION_MIN} minutos.`);
-  }
-  if (durationMinutes > DURATION_MAX) {
-    throw new ValidationError('La clase no puede superar las 23 horas.');
   }
   return durationMinutes;
 }
@@ -101,17 +126,21 @@ export const sessionsService = {
     const existing = await sessionsRepository.findById(id);
     if (!existing) return null;
 
+    const hoursAbsent = isDurationPartAbsent(payload.hours);
+    const minutesAbsent = isDurationPartAbsent(payload.minutes);
+
     const input = {
       title: payload.title ?? existing.title,
       date: payload.date !== undefined ? payload.date : existing.date,
       notes: payload.notes ?? existing.notes,
-      hours: payload.hours,
-      minutes: payload.minutes,
+      hours: hoursAbsent ? undefined : payload.hours,
+      minutes: minutesAbsent ? undefined : payload.minutes,
     };
 
-    if (input.hours === undefined && input.minutes === undefined) {
-      input.hours = Math.floor(existing.durationMinutes / 60);
-      input.minutes = existing.durationMinutes % 60;
+    if (hoursAbsent && minutesAbsent) {
+      const duration = clampDuration(existing.durationMinutes);
+      input.hours = Math.floor(duration / 60);
+      input.minutes = duration % 60;
     }
 
     const data = validate(input);
