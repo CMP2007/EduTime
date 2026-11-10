@@ -81,7 +81,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 | B4-2 | Update parcial de duración exige horas y minutos juntos | Baja-Media | **resuelto (005)** |
 | B4-3 | `clone` superficial en el repositorio | Baja | resuelto |
 | B4-4 | Filtros `from`/`to` sin validar | Baja | resuelto |
-| B4-5 | El seed se persiste sin pasar por la validación del servicio | Baja | pendiente |
+| B4-5 | El seed se persiste sin pasar por la validación del servicio | Baja | resuelto |
 
 ### Bloque 5 — Backend: dominio de estadísticas
 
@@ -195,6 +195,13 @@ sin cambio observable (el modelo actual solo tiene campos primitivos): no requie
 Es un refactor sin cambio observable, por lo que no requiere spec ni test nuevo; la suite
 existente lo verifica.
 
+**B4-5 resuelto (2026-11-10):** la validación de campos se extrajo a
+`sessions.validation.js` (`validateSessionInput`), que usan tanto el servicio como
+`buildSeed`. La semilla se valida entrada por entrada antes de que el repositorio la escriba:
+si una entrada deja de cumplir las reglas, el arranque falla en vez de persistir datos
+inválidos. Evidencia: `backend/test/seed.test.js` (tres tests, verificados con mutación).
+Refactor defensivo sin cambio observable: no requiere spec.
+
 **Prioridad:** *Media* (invariante).
 
 ### B5-2, B5-3, B5-4 · Normalización, caché y fuente única de períodos/constantes
@@ -240,6 +247,6 @@ B9-6.
 
 ### Resumen
 
-**Sesenta y ocho** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 38 resueltas, 29 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). La siguiente prioridad alta es B4-5 (validación del seed). Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 quedó resuelto como refactor defensivo (2026-11-10). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
+**Sesenta y ocho** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 39 resueltas, 28 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B4-5 resuelto, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
 
 La estructura propuesta (resumen + 13 bloques) mantiene el alcance de cada archivo y la tabla de contenidos original.

@@ -70,6 +70,13 @@ garantizado.
 **Mitigación sugerida:** validar el seed antes de escribirlo, o documentar explícitamente que
 el seed es de confianza y se construye conforme al modelo.
 
+**Resuelto (2026-11-10):** la validación de campos se extrajo de `sessions.service.js` a
+`sessions.validation.js` (`validateSessionInput`), que ahora usan el servicio y `buildSeed`.
+La semilla se valida entrada por entrada antes de que el repositorio la escriba; si una
+entrada deja de cumplir las reglas, el arranque falla en vez de persistir datos inválidos.
+Evidencia: `backend/test/seed.test.js` (tres tests, verificados con mutación). Refactor
+defensivo sin cambio observable: no requiere spec.
+
 ---
 
 ## Bloque 5 — Backend: dominio de estadísticas

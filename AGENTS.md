@@ -115,9 +115,10 @@ backend/src/
     requestLogger.js            # logging de peticiones (método, ruta, estado, duración)
   sessions/
     sessions.repository.js     # CRUD sobre el almacenamiento (fábrica: createSessionsRepository)
-    sessions.service.js        # validación + reglas de negocio
+    sessions.validation.js     # validación de campos (fuente única: API y semilla)
+    sessions.service.js        # reglas de negocio (usa sessions.validation)
     sessions.routes.js         # endpoints /api/sessions
-    seed.js                    # datos de ejemplo iniciales
+    seed.js                    # datos de ejemplo iniciales (validados antes de persistirse)
   stats/
     stats.service.js           # racha, periodos, temáticas, heatmap
     stats.routes.js            # endpoint /api/stats
@@ -127,6 +128,7 @@ backend/test/                  # tests (espejo de backend/src/)
   date.test.js                 # utilidades de fecha y periodos
   fileStore.test.js            # lectura/escritura del JSON (ficheros reales temporales)
   serverConfig.test.js         # puerto, host y valores por defecto del arranque
+  seed.test.js                 # semilla inicial válida y rechazo de entradas inválidas
   sessions.repository.test.js  # carreras/concurrencia con el almacenamiento simulado
   sessions.service.test.js     # contrato de creación/listado con el repositorio simulado
   stats.service.test.js        # estadísticas con el repositorio simulado

@@ -1,4 +1,5 @@
 import { addDays, createId, todayString } from '../utils/date.js';
+import { validateSessionInput } from './sessions.validation.js';
 
 /**
  * Datos de ejemplo que se crean solo la primera vez (si no existe el archivo).
@@ -18,16 +19,29 @@ const SEED_ENTRIES = [
   { daysAgo: 12, title: 'Cálculo', hours: 2, minutes: 30, notes: '' },
 ];
 
-export function buildSeed() {
+/**
+ * Construye la semilla validando cada entrada con las mismas reglas que la API.
+ * `entries` es un punto de inyección para los tests; el repositorio usa el
+ * listado por defecto.
+ */
+export function buildSeed(entries = SEED_ENTRIES) {
   const now = new Date().toISOString();
+  const today = todayString();
 
-  return SEED_ENTRIES.map((entry) => ({
-    id: createId(),
-    title: entry.title,
-    date: addDays(todayString(), -entry.daysAgo),
-    durationMinutes: entry.hours * 60 + entry.minutes,
-    notes: entry.notes,
-    createdAt: now,
-    updatedAt: now,
-  }));
+  return entries.map((entry) => {
+    const data = validateSessionInput({
+      title: entry.title,
+      date: addDays(today, -entry.daysAgo),
+      hours: entry.hours,
+      minutes: entry.minutes,
+      notes: entry.notes,
+    });
+
+    return {
+      id: createId(),
+      ...data,
+      createdAt: now,
+      updatedAt: now,
+    };
+  });
 }
