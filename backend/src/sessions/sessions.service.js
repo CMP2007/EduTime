@@ -85,10 +85,6 @@ export const sessionsService = {
       .sort((a, b) => (a.date === b.date ? b.createdAt.localeCompare(a.createdAt) : b.date.localeCompare(a.date)));
   },
 
-  async getById(id) {
-    return sessionsRepository.findById(id);
-  },
-
   async create(payload) {
     const data = validate(payload);
     const now = new Date().toISOString();

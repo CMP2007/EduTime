@@ -5,11 +5,15 @@ y `sessions.routes.js` (capas datos / reglas / HTTP).
 
 ### B4-1 · `sessionsService.getById` sin usar (código muerto)
 
-`sessions.service.js:76-78` exporta `getById`, pero ninguna ruta lo usa (no hay
-`GET /api/sessions/:id`); `update` llama directamente a `repository.findById`. Es código sin
-consumidor.
+`sessionsService.getById` (`sessions.service.js`) no tenía consumidor: no hay
+`GET /api/sessions/:id`; `update` llama directamente a `repository.findById`.
 
 **Mitigación:** eliminarlo o exponer la ruta que lo justifique.
+
+**Resuelto (2026-11-10):** se eliminó `getById` de `sessions.service.js`. No había consumidor
+(no existe `GET /api/sessions/:id`; `update` usa `repository.findById` directamente) y crear la
+ruta habría sido un cambio de contrato con spec propia. Refactor sin cambio observable: no
+requiere test nuevo.
 
 ### B4-2 · Update parcial de duración exige horas y minutos juntos
 

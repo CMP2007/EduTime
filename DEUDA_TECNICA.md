@@ -77,7 +77,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
-| B4-1 | `sessionsService.getById` sin usar (código muerto) | Baja | pendiente |
+| B4-1 | `sessionsService.getById` sin usar (código muerto) | Baja | resuelto |
 | B4-2 | Update parcial de duración exige horas y minutos juntos | Baja-Media | pendiente |
 | B4-3 | `clone` superficial en el repositorio | Baja | pendiente |
 | B4-4 | Filtros `from`/`to` sin validar | Baja | resuelto |
@@ -175,7 +175,12 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 `enumerateDays` rechaza más de 4000 días. Evidencia: `domain-dates` (12 tests),
 `backend/test/date.test.js` y `backend/test/app.test.js`.
 
-### B4-1, B4-5 · Validación del seed y `getById` sin usar
+### B4-5 · Validación del seed
+
+**B4-1 resuelto (2026-11-10):** se eliminó `sessionsService.getById`, que no tenía consumidor
+(no existe `GET /api/sessions/:id` y `update` usa `sessionsRepository.findById` directamente).
+Es un refactor sin cambio observable, por lo que no requiere spec ni test nuevo; la suite
+existente lo verifica.
 
 **Prioridad:** *Media* (invariante).
 
@@ -222,6 +227,6 @@ B9-6.
 
 ### Resumen
 
-**Sesenta y ocho** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 35 resueltas, 32 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). La siguiente prioridad alta es B4-5 (validación del seed). Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
+**Sesenta y ocho** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 36 resueltas, 31 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). La siguiente prioridad alta es B4-5 (validación del seed). Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
 
 La estructura propuesta (resumen + 13 bloques) mantiene el alcance de cada archivo y la tabla de contenidos original.
