@@ -97,6 +97,9 @@ specs/
 packages/
   domain-constants/           # constantes de dominio compartidas entre backend y frontend
     index.js                  # fuente única de verdad para reglas de dominio
+  domain-dates/               # fechas compartidas: validación, comparación y recorte
+    index.js                  # límites 1990–9999, isValidDateString, compareDateStrings, clampDateRange
+    test/dates.test.js        # validez, comparación por tupla y recorte de rangos
   domain-contracts/           # contrato de las respuestas de la API (tipos + validación runtime)
     index.js                  # typedefs JSDoc, ContractError y validadores assert/validate
     test/contracts.test.js    # casos del contrato (válidos, campos ausentes, listas)
@@ -165,6 +168,11 @@ Reglas de negocio, modelo (`id`/`title`/`date`/`durationMinutes`/`notes`) y endp
   mismas funciones. Se valida presencia, tipo y obligatoriedad (no formatos de fecha ni reglas de
   negocio) y se toleran campos adicionales. Un fallo lanza `ContractError` con la ruta del primer
   campo inválido (`summary.totalMinutes`, `[1].durationMinutes`).
+- **Fechas**: `packages/domain-dates` es la fuente única para validar (`isValidDateString`),
+  comparar por tupla numérica (`compareDateStrings`) y recortar rangos derivados
+  (`clampDateRange`). Las entradas de usuario se validan, nunca se recortan; solo los rangos
+  calculados por el sistema se recortan a `1990-01-01`–`9999-12-31` y, si cambian, la API lo
+  comunica en `notice`.
 - **Estilo**: punto y coma al final, comillas simples, indentación de 2 espacios, funciones flecha, sin clases (excepción: `ErrorBoundary`, que React exige como clase para `componentDidCatch`).
 - Los repositorios y servicios devuelven copias (`{ ...item }`) para no exponer el estado interno.
 - El frontend usa siempre `/api` relativo (sin `VITE_API_URL`) y el proxy de Vite lo reenvía al

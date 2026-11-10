@@ -2,7 +2,7 @@ import { ValidationError } from '../errors.js';
 import { createId } from '../utils/date.js';
 import { sessionsRepository } from './sessions.repository.js';
 import { DURATION_MAX, DURATION_MIN, HOURS_MAX, MINUTES_MAX, NOTES_MAX, TITLE_MAX } from 'domain-constants';
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+import { isValidDateString, compareDateStrings } from 'domain-dates';
 
 /** Valida y convierte los campos hours/minutes en minutos totales. */
 function parseDuration(payload) {
@@ -33,8 +33,8 @@ function validate(payload) {
     throw new ValidationError(`La temática no puede superar ${TITLE_MAX} caracteres.`);
   }
 
-  const date = typeof payload.date === 'string' ? payload.date.trim() : '';
-  if (!DATE_PATTERN.test(date) || Number.isNaN(Date.parse(`${date}T00:00:00`))) {
+  const date = typeof payload.date === 'string' ? payload.date : '';
+  if (!isValidDateString(date)) {
     throw new ValidationError('La fecha no es válida.');
   }
 
@@ -48,9 +48,20 @@ function validate(payload) {
   return { title, date, durationMinutes, notes };
 }
 
+function normalizeFilter(value, fieldName) {
+  if (value === undefined || value === '') return undefined;
+  if (typeof value !== 'string') {
+    throw new ValidationError(`El filtro «${fieldName}» no es una fecha válida.`);
+  }
+  if (!isValidDateString(value)) {
+    throw new ValidationError(`El filtro «${fieldName}» no es una fecha válida.`);
+  }
+  return value;
+}
+
 function matchesFilters(session, { from, to, q }) {
-  if (from && session.date < from) return false;
-  if (to && session.date > to) return false;
+  if (from && compareDateStrings(session.date, from) < 0) return false;
+  if (to && compareDateStrings(session.date, to) > 0) return false;
   if (q) {
     const needle = q.toLowerCase();
     const haystack = `${session.title} ${session.notes}`.toLowerCase();
@@ -61,9 +72,16 @@ function matchesFilters(session, { from, to, q }) {
 
 export const sessionsService = {
   async list(filters = {}) {
+    const { from, to, q } = filters;
+    const normalizedFrom = normalizeFilter(from, 'desde');
+    const normalizedTo = normalizeFilter(to, 'hasta');
+    if (normalizedFrom && normalizedTo && compareDateStrings(normalizedFrom, normalizedTo) > 0) {
+      throw new ValidationError('El rango de fechas está invertido: «desde» es posterior a «hasta».');
+    }
+
     const sessions = await sessionsRepository.findAll();
     return sessions
-      .filter((session) => matchesFilters(session, filters))
+      .filter((session) => matchesFilters(session, { from: normalizedFrom, to: normalizedTo, q }))
       .sort((a, b) => (a.date === b.date ? b.createdAt.localeCompare(a.createdAt) : b.date.localeCompare(a.date)));
   },
 
@@ -89,7 +107,7 @@ export const sessionsService = {
 
     const input = {
       title: payload.title ?? existing.title,
-      date: payload.date ?? existing.date,
+      date: payload.date !== undefined ? payload.date : existing.date,
       notes: payload.notes ?? existing.notes,
       hours: payload.hours,
       minutes: payload.minutes,

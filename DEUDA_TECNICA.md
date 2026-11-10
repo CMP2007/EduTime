@@ -69,8 +69,8 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
 | B3-1 | Fichero JSON corrupto se trata como vacío (riesgo de pérdida de datos) | Media-Alta | resuelto |
-| B3-2 | `fromDateString` no valida la entrada (fechas `NaN` silenciosas) | Baja | pendiente |
-| B3-3 | `enumerateDays` trunca en silencio a 4000 días (número mágico) | Baja | pendiente |
+| B3-2 | `fromDateString` no valida la entrada (fechas `NaN` silenciosas) | Baja | resuelto |
+| B3-3 | `enumerateDays` trunca en silencio a 4000 días (número mágico) | Baja | resuelto |
 | B3-4 | Periodos inválidos degradan en silencio a `week` | Baja | resuelto |
 
 ### Bloque 4 — Backend: dominio de sesiones
@@ -80,7 +80,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 | B4-1 | `sessionsService.getById` sin usar (código muerto) | Baja | pendiente |
 | B4-2 | Update parcial de duración exige horas y minutos juntos | Baja-Media | pendiente |
 | B4-3 | `clone` superficial en el repositorio | Baja | pendiente |
-| B4-4 | Filtros `from`/`to` sin validar | Baja | pendiente |
+| B4-4 | Filtros `from`/`to` sin validar | Baja | resuelto |
 | B4-5 | El seed se persiste sin pasar por la validación del servicio | Baja | pendiente |
 
 ### Bloque 5 — Backend: dominio de estadísticas
@@ -115,7 +115,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
-| B8-1 | Formateadores de fecha sin validar (producen `Invalid Date`) | Baja-Media | pendiente |
+| B8-1 | Formateadores de fecha sin validar (producen `Invalid Date`) | Baja-Media | resuelto |
 | B8-2 | `Modal` sin focus trap, sin restaurar foco ni bloquear scroll | Media | resuelto |
 | B8-3 | `goalProgress` sin límite inferior (acepta negativos) | Baja | pendiente |
 | B8-4 | Lógica "lunes = 0" duplicada (`formatDateLong` vs `weekdayIndex`) | Baja | pendiente |
@@ -129,7 +129,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 | B9-2 | Búsqueda sin `debounce` (una petición por pulsación) | Media | pendiente |
 | B9-3 | Límite de duración: el mensaje del backend dice "23 h" pero admite 23h59; el cliente solo valida el mínimo en JS | Baja | pendiente |
 | B9-4 | Mensajes de error del formulario sin rol accesible | Baja | pendiente |
-| B9-5 | Filtros `from`/`to` sin comprobar rango invertido | Baja | pendiente |
+| B9-5 | Filtros `from`/`to` sin comprobar rango invertido | Baja | resuelto |
 | B9-6 | `Number(...) || 0` enmascara entradas inválidas del formulario | Muy baja | pendiente |
 
 ### Bloque 10 — Frontend: feature Inicio/Estadísticas
@@ -169,7 +169,11 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 
 ### B3-2, B3-3 · Validación y límites de fecha/tiempo
 
-**Prioridad:** *Media-Alta* (riesgo de datos corruptos o incompletos).
+**Resueltos (2026-11-10)** en `specs/004-validacion-fechas/`: paquete compartido
+`packages/domain-dates` (`isValidDateString` con fecha real y rango 1990–9999,
+`compareDateStrings` por tupla, `MAX_RANGE_DAYS`), `fromDateString` lanza `RangeError` y
+`enumerateDays` rechaza más de 4000 días. Evidencia: `domain-dates` (12 tests),
+`backend/test/date.test.js` y `backend/test/app.test.js`.
 
 ### B4-1, B4-5 · Validación del seed y `getById` sin usar
 
@@ -189,9 +193,20 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 
 ### B8-1, B8-3, B8-4, B8-5 · Validación de formateadores, límites inferiores, lógica duplicada y silenciamiento de inválidos
 
+**B8-1 resuelto (2026-11-10)** en `specs/004-validacion-fechas/`: `fromDateString` del frontend
+devuelve `null`, los formateadores devuelven `''` y `weekdayIndex` devuelve `null` con fechas
+inválidas; `ActivityHeatmap` omite los días inválidos. Evidencia: `frontend/test/utils/date.test.js`
+y `frontend/test/stats/ActivityHeatmap.test.jsx`. Pendientes B8-3, B8-4 y B8-5.
+
 **Prioridad:** *Media* (defensa de datos).
 
 ### B9-1, B9-2, B9-3, B9-4, B9-5, B9-6 · Validación de dominio duplicada, búsqueda sin debounce, ajuste de mensajes, accesibilidad, validación de filtros y silenciamiento de inválidos
+
+**B9-5 resuelto (2026-11-10)** en `specs/004-validacion-fechas/`: `useSessions` detecta el rango
+invertido solo con fechas válidas, invalida la petición en vuelo, no consulta y conserva listado
+y error; `HistoryView` muestra un `StatusNotice` con `role="status"` y oculta el error anterior.
+Evidencia: `frontend/test/sessions/HistoryView.test.jsx`. Pendientes B9-1, B9-2, B9-3, B9-4 y
+B9-6.
 
 **Prioridad:** *Media* (datos sincronizados y UX accesible).
 
@@ -207,6 +222,6 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 
 ### Resumen
 
-**Ciento tres** debilidades técnicas (B0-1 … B11-7), con 38 resueltas, 65 pendientes/alta prioridad, 0 en curso. El principal impedimento para la culminación es **B0-7** (sin tests de frontend/E2E). Las siguientes prioridades altas son B3-2/B3-3 (validación de fechas) y B4-5 (validación del seed). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
+**Sesenta y ocho** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 35 resueltas, 32 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). La siguiente prioridad alta es B4-5 (validación del seed). Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
 
 La estructura propuesta (resumen + 13 bloques) mantiene el alcance de cada archivo y la tabla de contenidos original.

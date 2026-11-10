@@ -1,3 +1,4 @@
+import { isValidDateString } from 'domain-dates';
 import { formatDateLong, formatDateRange, monthNameFromKey, weekdayIndex } from '../utils/date.js';
 import { formatMinutes, GOAL_MINUTES } from '../utils/time.js';
 
@@ -100,7 +101,10 @@ function ActivityHeatmap({
 }) {
   if (!days.length) return <p className="muted">Sin datos para este rango.</p>;
 
-  const columns = buildColumns(days);
+  const validDays = days.filter((day) => isValidDateString(day.date));
+  if (!validDays.length) return <p className="muted">Sin datos para este rango.</p>;
+
+  const columns = buildColumns(validDays);
   const mode = rangeKey === 'week' ? 'weeks' : 'months';
   const fromYear = from.slice(0, 4);
   const toYear = to.slice(0, 4);

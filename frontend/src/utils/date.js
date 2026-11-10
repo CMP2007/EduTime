@@ -1,4 +1,6 @@
 // @ts-check
+import { isValidDateString } from 'domain-dates';
+
 const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 const MONTHS_LONG = [
   'enero',
@@ -17,6 +19,8 @@ const MONTHS_LONG = [
 const WEEKDAYS = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
 
 export function fromDateString(value) {
+  if (!isValidDateString(value)) return null;
+
   const [year, month, day] = value.split('-').map(Number);
   return new Date(year, month - 1, day);
 }
@@ -30,23 +34,23 @@ export function todayString() {
 }
 
 export function formatDateLong(value) {
-  if (!value) return '';
   const date = fromDateString(value);
+  if (!date) return '';
   const weekday = WEEKDAYS[(date.getDay() + 6) % 7];
   return `${weekday} ${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 export function formatDateShort(value) {
-  if (!value) return '';
   const date = fromDateString(value);
+  if (!date) return '';
   return `${date.getDate()} ${MONTHS[date.getMonth()]}`;
 }
 
 /** Rango de fechas legible: "5–11 oct" o "29 sep – 4 oct". */
 export function formatDateRange(fromValue, toValue) {
-  if (!fromValue || !toValue) return '';
   const from = fromDateString(fromValue);
   const to = fromDateString(toValue);
+  if (!from || !to) return '';
   const sameYear = from.getFullYear() === to.getFullYear();
   const sameMonth = sameYear && from.getMonth() === to.getMonth();
 
@@ -69,5 +73,7 @@ export function monthNameFromKey(key) {
 
 /** Índice del día de la semana con lunes = 0. */
 export function weekdayIndex(value) {
-  return (fromDateString(value).getDay() + 6) % 7;
+  const date = fromDateString(value);
+  if (!date) return null;
+  return (date.getDay() + 6) % 7;
 }

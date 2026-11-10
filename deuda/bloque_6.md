@@ -10,7 +10,11 @@ formato. Con un valor mal formado, el `Date` queda inválido y `formatDateLong` 
 con `NaN` ("NaN undefined NaN") **sin lanzar error**. Es el mismo patrón de validación de fechas
 ausente que en **B3-2** y **B4-4**.
 
-**Mitigación:** validar el formato `YYYY-MM-DD` centralizadamente y devolver `''` o lanzar.
+**Resuelto (2026-11-10, `specs/004-validacion-fechas/`):** `fromDateString` devuelve `null` con
+valores inválidos; `formatDateLong`, `formatDateShort` y `formatDateRange` devuelven `''` (si
+falla cualquiera de los extremos, todo el rango queda vacío) y `weekdayIndex` devuelve `null`.
+`ActivityHeatmap` filtra los días inválidos antes de `buildColumns`, sin inventar el lunes.
+Tests: `frontend/test/utils/date.test.js` y `frontend/test/stats/ActivityHeatmap.test.jsx`.
 
 ### B8-2 · `Modal` sin focus trap, sin restaurar foco ni bloquear scroll
 

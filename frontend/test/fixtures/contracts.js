@@ -48,6 +48,7 @@ export function buildStats(overrides = {}) {
         { date: '2026-10-15', minutes: 120, goalMet: false },
       ],
     },
+    notice: null,
     ...overrides,
   };
 }

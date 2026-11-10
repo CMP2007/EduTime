@@ -208,3 +208,102 @@ describe('statsService.getStats · sin datos', () => {
     assert.deepEqual(stats.summary.subjects, []);
   });
 });
+
+// === Tests de validación y recorte de fechas (T4) ===
+describe('statsService.getStats · validación y recorte de fechas (T4)', () => {
+  it('date inválido lanza ValidationError antes de findAll', async () => {
+    await assert.rejects(
+      () => statsService.getStats({ date: '2026-02-31' }),
+      { name: 'ValidationError', message: 'La fecha de referencia no es válida.' },
+    );
+  });
+
+  it('heatmapDate inválido lanza ValidationError antes de findAll', async () => {
+    await assert.rejects(
+      () => statsService.getStats({ heatmapDate: '2026-13-01' }),
+      { name: 'ValidationError', message: 'La fecha del calendario no es válida.' },
+    );
+  });
+
+  it('1990-01-01 con 12m devuelve period.from === 1990-01-01 y notice con mensaje exacto', async () => {
+    seed([buildSession('1990-01-01', GOAL_MINUTES)]);
+
+    const stats = await statsService.getStats({ period: '12m', date: '1990-01-01' });
+
+    assert.equal(stats.period.from, '1990-01-01');
+    assert.equal(stats.notice, 'El rango solicitado se ha recortado a los límites admitidos (1990-01-01 – 9999-12-31).');
+  });
+
+  it('9999-12-31 con week devuelve heatmap.to === 9999-12-31 y notice', async () => {
+    seed([buildSession('9999-12-31', GOAL_MINUTES)]);
+
+    const stats = await statsService.getStats({ heatmap: 'week', heatmapDate: '9999-12-31' });
+
+    assert.equal(stats.heatmap.to, '9999-12-31');
+    assert.equal(stats.notice, 'El rango solicitado se ha recortado a los límites admitidos (1990-01-01 – 9999-12-31).');
+  });
+
+  it('rango interior devuelve notice: null', async () => {
+    seed([
+      buildSession('2025-01-01', GOAL_MINUTES),
+      buildSession('2025-12-31', GOAL_MINUTES),
+    ]);
+
+    const stats = await statsService.getStats({ period: 'year', date: '2025-06-15' });
+
+    assert.equal(stats.notice, null);
+  });
+
+  it('date/heatmapDate no textuales o repetidos lanzan ValidationError antes de findAll', async () => {
+    const findAll = mock.method(sessionsRepository, 'findAll', async () => []);
+
+    const filters = [
+      { date: 123 },
+      { date: ['2026-10-15', '2026-10-16'] },
+      { heatmapDate: 123 },
+      { heatmapDate: ['2026-10-15', '2026-10-16'] },
+    ];
+
+    for (const input of filters) {
+      await assert.rejects(
+        () => statsService.getStats(input),
+        { name: 'ValidationError' },
+      );
+    }
+
+    assert.equal(findAll.mock.callCount(), 0);
+  });
+
+  it('date vacío usa hoy y heatmapDate vacío usa la fecha de referencia', async () => {
+    seed([]);
+
+    const stats = await statsService.getStats({ date: '', heatmapDate: '', period: 'day', heatmap: 'day' });
+
+    assert.equal(stats.today.date, todayString());
+    assert.equal(stats.heatmap.from, todayString());
+  });
+
+  it('el recorte de periodo y el del calendario se evalúan por separado', async () => {
+    seed([]);
+
+    const onlyPeriod = await statsService.getStats({
+      period: '12m',
+      date: '1990-01-01',
+      heatmap: 'day',
+      heatmapDate: '2025-06-15',
+    });
+    assert.equal(onlyPeriod.period.from, '1990-01-01');
+    assert.equal(onlyPeriod.heatmap.from, '2025-06-15');
+    assert.ok(onlyPeriod.notice);
+
+    const onlyHeatmap = await statsService.getStats({
+      period: 'day',
+      date: '2025-06-15',
+      heatmap: 'week',
+      heatmapDate: '9999-12-31',
+    });
+    assert.equal(onlyHeatmap.period.from, '2025-06-15');
+    assert.equal(onlyHeatmap.heatmap.to, '9999-12-31');
+    assert.ok(onlyHeatmap.notice);
+  });
+});

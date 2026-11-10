@@ -3,6 +3,7 @@ import { ValidationError } from '../errors.js';
 import { sessionsRepository } from '../sessions/sessions.repository.js';
 import { addDays, enumerateDays, getRange, isValidPeriod, todayString } from '../utils/date.js';
 import { GOAL_MINUTES, PERIODS } from 'domain-constants';
+import { isValidDateString, clampDateRange, RANGE_CLAMP_NOTICE } from 'domain-dates';
 
 /** Constante de meta diaria (3 h). */
 export { GOAL_MINUTES };
@@ -79,17 +80,33 @@ export const statsService = {
       throw new ValidationError(`Periodo del heatmap inválido. Valores permitidos: ${PERIODS.join(', ')}.`);
     }
 
-    const reference = date || todayString();
-    const heatmapReference = heatmapDate || reference;
+    // Validación de fecha de referencia
+    const reference = date && isValidDateString(date) ? date : todayString();
+    if (date && !isValidDateString(date)) {
+      throw new ValidationError('La fecha de referencia no es válida.');
+    }
+
+    // Validación de fecha del calendario
+    const heatmapReference = heatmapDate && isValidDateString(heatmapDate) ? heatmapDate : reference;
+    if (heatmapDate && !isValidDateString(heatmapDate)) {
+      throw new ValidationError('La fecha del calendario no es válida.');
+    }
+
     const periodKey = period ?? 'week';
     const heatmapKey = heatmap ?? 'week';
 
     const sessions = await sessionsRepository.findAll();
+
+    // Calcular periodRange y heatmapRange
     const periodRange = getRange(periodKey, reference);
     const heatmapRange = getRange(heatmapKey, heatmapReference);
 
+    // Recortar periodRange y heatmapRange usando clampDateRange
+    const periodClamped = clampDateRange(periodRange.from, periodRange.to);
+    const heatmapClamped = clampDateRange(heatmapRange.from, heatmapRange.to);
+
     const periodSessions = sessions.filter(
-      (session) => session.date >= periodRange.from && session.date <= periodRange.to,
+      (session) => session.date >= periodClamped.from && session.date <= periodClamped.to,
     );
 
     const totalsByDate = sumByDate(sessions);
@@ -107,12 +124,17 @@ export const statsService = {
     const longest = findLongest(periodSessions);
     const todayMinutes = totalsByDate.get(reference) ?? 0;
 
+    // Determinar si hubo recorte
+    const notice = (periodClamped.clamped || heatmapClamped.clamped)
+      ? RANGE_CLAMP_NOTICE
+      : null;
+
     return {
       period: {
         key: periodRange.key,
         label: periodRange.label,
-        from: periodRange.from,
-        to: periodRange.to,
+        from: periodClamped.from,
+        to: periodClamped.to,
       },
       summary: {
         totalMinutes: totalMinutes(periodSessions),
@@ -145,11 +167,12 @@ export const statsService = {
       heatmap: {
         range: heatmapRange.key,
         label: heatmapRange.label,
-        from: heatmapRange.from,
-        to: heatmapRange.to,
+        from: heatmapClamped.from,
+        to: heatmapClamped.to,
         goalMinutes: GOAL_MINUTES,
-        days: buildHeatmap(totalsByDate, heatmapRange.from, heatmapRange.to),
+        days: buildHeatmap(totalsByDate, heatmapClamped.from, heatmapClamped.to),
       },
+      notice,
     };
   },
 };

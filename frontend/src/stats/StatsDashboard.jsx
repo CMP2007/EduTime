@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Card from '../components/Card.jsx';
+import StatusNotice from '../components/StatusNotice.jsx';
 import { formatDateLong, todayString } from '../utils/date.js';
 import { useStats } from './useStats.js';
 import ActivityDaysCard from './ActivityDaysCard.jsx';
@@ -40,6 +41,8 @@ function StatsDashboard() {
           </button>
         </div>
       )}
+
+      {stats.notice && <StatusNotice>{stats.notice}</StatusNotice>}
 
       <div className="cards">
         <GoalTodayCard today={stats.today} selected={Boolean(selectedDate)} />

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Card from '../components/Card.jsx';
+import StatusNotice from '../components/StatusNotice.jsx';
 import SessionList from '../sessions/SessionList.jsx';
 import { useSessions } from '../sessions/useSessions.js';
 import { todayString } from '../utils/date.js';
@@ -34,6 +35,8 @@ function StatsPanel({ onEdit, onDelete }) {
 
       {!error && stats && (
         <>
+          {stats.notice && <StatusNotice>{stats.notice}</StatusNotice>}
+
           <div className="cards">
             <Card title="Horas del periodo" description={stats.period.label}>
               <div className="metric">

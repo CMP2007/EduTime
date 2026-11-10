@@ -48,7 +48,12 @@ asociado al campo. Los lectores de pantalla pueden no anunciar el error.
 `SessionFilters` permite elegir `from > to`; la lista queda vacía sin explicar por qué. Mismo
 vacío de validación de fechas que **B3-2** / **B4-4**, ahora en el cliente.
 
-**Mitigación:** validar el orden y avisar.
+**Resuelto (2026-11-10, `specs/004-validacion-fechas/`):** `useSessions` calcula
+`hasInvertedRange` solo cuando ambos extremos son fechas válidas; en ese caso invalida la
+petición en vuelo, no consulta la API, termina `loading` y conserva listado y error.
+`HistoryView` muestra un `StatusNotice` (`role="status"`, clase `.notice`) y oculta el error
+anterior mientras el rango siga invertido. Un filtro mal formado no activa la guarda: la API lo
+rechaza con 400. Tests: `frontend/test/sessions/HistoryView.test.jsx`.
 
 ### B9-6 · `Number(...) || 0` enmascara entradas inválidas del formulario
 

@@ -7,6 +7,7 @@ import {
   endOfMonth,
   endOfWeek,
   enumerateDays,
+  fromDateString,
   getRange,
   isValidPeriod,
   startOfMonth,
@@ -77,6 +78,36 @@ describe('meses', () => {
   });
 });
 
+describe('fromDateString', () => {
+  it('acepta una fecha válida como 2024-02-29', () => {
+    assert.doesNotThrow(() => fromDateString('2024-02-29'));
+  });
+
+  it('lanza RangeError con fecha inválida (2026-02-31)', () => {
+    assert.throws(() => fromDateString('2026-02-31'), RangeError, 'La fecha 2026-02-31 no es válida');
+  });
+
+  it('lanza RangeError con fecha inválida (2026-13-01)', () => {
+    assert.throws(() => fromDateString('2026-13-01'), RangeError, 'La fecha 2026-13-01 no es válida');
+  });
+
+  it('lanza RangeError con fecha inválida (2026-1-1)', () => {
+    assert.throws(() => fromDateString('2026-1-1'), RangeError, 'La fecha 2026-1-1 no es válida');
+  });
+
+  it('lanza RangeError con fecha inválida ( 2026-10-15 )', () => {
+    assert.throws(() => fromDateString(' 2026-10-15 '), RangeError, 'La fecha  2026-10-15  no es válida');
+  });
+
+  it('lanza RangeError con fecha inválida (1989-12-31)', () => {
+    assert.throws(() => fromDateString('1989-12-31'), RangeError, 'La fecha 1989-12-31 no es válida');
+  });
+
+  it('acepta una fecha válida (2026-10-15)', () => {
+    assert.doesNotThrow(() => fromDateString('2026-10-15'));
+  });
+});
+
 describe('enumerateDays', () => {
   it('incluye ambos extremos y no se repite', () => {
     const dias = enumerateDays('2026-10-12', '2026-10-18');
@@ -87,6 +118,45 @@ describe('enumerateDays', () => {
 
   it('devuelve un solo día cuando from y to coinciden', () => {
     assert.deepEqual(enumerateDays('2026-10-17', '2026-10-17'), ['2026-10-17']);
+  });
+
+  it('devuelve 4000 días para un rango que los produce exactamente', () => {
+    const dias = enumerateDays('1990-01-01', '2000-12-13');
+    assert.equal(dias.length, 4000);
+  });
+
+  it('lanza RangeError si el rango produce 4001 días', () => {
+    assert.throws(() => enumerateDays('1990-01-01', '2000-12-14'), RangeError, 'El rango excede el máximo de 4000 días permitidos');
+  });
+
+  it('devuelve un array vacío para un rango invertido', () => {
+    const dias = enumerateDays('2000-12-14', '1990-01-01');
+    assert.deepEqual(dias, []);
+  });
+
+  it('lanza RangeError si un extremo no es una fecha real', () => {
+    assert.throws(() => enumerateDays('2026-02-31', '2026-03-31'), RangeError);
+    assert.throws(() => enumerateDays('2026-03-01', '2026-13-01'), RangeError);
+  });
+});
+
+describe('enumerateDays · rangos que cruzan el cambio de hora', () => {
+  it('enumera marzo completo y termina en el último día', () => {
+    const days = enumerateDays('2026-03-01', '2026-03-31');
+    assert.equal(days.length, 31);
+    assert.equal(days[0], '2026-03-01');
+    assert.equal(days.at(-1), '2026-03-31');
+  });
+
+  it('enumera tres meses sin perder el último día', () => {
+    const days = enumerateDays('2026-03-16', '2026-06-14');
+    assert.equal(days.length, 91);
+    assert.equal(days.at(-1), '2026-06-14');
+  });
+
+  it('devuelve días consecutivos sin huecos', () => {
+    const days = enumerateDays('2026-10-24', '2026-10-27');
+    assert.deepEqual(days, ['2026-10-24', '2026-10-25', '2026-10-26', '2026-10-27']);
   });
 });
 

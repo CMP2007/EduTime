@@ -59,6 +59,7 @@ function buildStats(overrides = {}) {
         { date: '2026-10-13', minutes: 200, goalMet: true },
       ],
     },
+    notice: null,
     ...overrides,
   };
 }
@@ -111,6 +112,19 @@ describe('domain-contracts · métricas', () => {
 
     assert.equal(issues.length, 1);
     assert.match(issues[0], /today\.goalMet/);
+  });
+
+  it('acepta notice como texto o nulo', () => {
+    assert.deepEqual(validateStats(buildStats({ notice: 'Recortado' })), []);
+    assert.deepEqual(validateStats(buildStats({ notice: null })), []);
+  });
+
+  it('señala un tipo incorrecto en notice', () => {
+    const stats = buildStats({ notice: 123 });
+    const issues = validateStats(stats);
+
+    assert.equal(issues.length, 1);
+    assert.match(issues[0], /notice/);
   });
 
   it('señala el elemento inválido de una lista con índice y campo', () => {

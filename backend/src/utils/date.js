@@ -1,6 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { PERIODS } from 'domain-constants';
 
+import {
+  MAX_RANGE_DAYS,
+  compareDateStrings,
+  isValidDateString,
+} from 'domain-dates';
+
 export { PERIODS };
 
 /** Utilidades de fecha compartidas por el resto del backend. */
@@ -13,6 +19,10 @@ export function toDateString(date) {
 }
 
 export function fromDateString(value) {
+  if (!isValidDateString(value)) {
+    throw new RangeError(`La fecha ${value} no es válida`);
+  }
+
   const [year, month, day] = value.split('-').map(Number);
   return new Date(year, month - 1, day);
 }
@@ -61,14 +71,36 @@ export function endOfMonth(value) {
 }
 
 export function enumerateDays(from, to) {
-  const days = [];
-  let cursor = from;
-  let guard = 0;
-  while (cursor <= to && guard < 4000) {
-    days.push(cursor);
-    cursor = addDays(cursor, 1);
-    guard += 1;
+  if (compareDateStrings(from, to) > 0) {
+    return [];
   }
+
+  // Valida que los extremos sean fechas reales (lanza RangeError si no).
+  fromDateString(from);
+  fromDateString(to);
+
+  const MS_PER_DAY = 1000 * 60 * 60 * 24;
+  const [fromYear, fromMonth, fromDay] = from.split('-').map(Number);
+  const [toYear, toMonth, toDay] = to.split('-').map(Number);
+
+  // Date.UTC no tiene cambio de hora: el día siempre dura 24 h. Restar fechas
+  // locales perdería un día al cruzar primavera en zonas con DST.
+  const startUtc = Date.UTC(fromYear, fromMonth - 1, fromDay);
+  const endUtc = Date.UTC(toYear, toMonth - 1, toDay);
+  const diffDays = (endUtc - startUtc) / MS_PER_DAY + 1;
+
+  if (diffDays > MAX_RANGE_DAYS) {
+    throw new RangeError(`El rango excede el máximo de ${MAX_RANGE_DAYS} días permitidos`);
+  }
+
+  const fromDate = fromDateString(from);
+  const days = [];
+  for (let i = 0; i < diffDays; i++) {
+    const current = new Date(fromDate);
+    current.setDate(fromDate.getDate() + i);
+    days.push(toDateString(current));
+  }
+
   return days;
 }
 

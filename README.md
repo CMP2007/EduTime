@@ -20,6 +20,8 @@ Aplicación para el **control de tus horas de estudio**.
 - La **racha** son días consecutivos en los que se **cumplió la meta diaria (≥ 180 min)**. Si hoy aún no se llega a la meta, la racha sigue viva hasta fin del día. Se guarda la **racha más extensa** (récord).
 - Cada clase dura como **mínimo 15 minutos** y como **máximo 23h** (`durationMinutes`).
 - `title` obligatorio, máx. 80 caracteres; `notes` opcional, máx. 500.
+- La **fecha** debe ser una fecha real en formato `YYYY-MM-DD`, entre `1990-01-01` y
+  `9999-12-31`; se rechaza con `400` si no lo es (no se recorta la entrada del usuario).
 
 ## Modelo (resumen)
 
@@ -27,7 +29,7 @@ Aplicación para el **control de tus horas de estudio**.
 |---|---|---|
 | `id` | string | UUID estable |
 | `title` | string | Obligatorio, max 80 |
-| `date` | string | `YYYY-MM-DD` |
+| `date` | string | `YYYY-MM-DD` real, 1990–9999 |
 | `durationMinutes` | int | 15 – 1380 (23h) |
 | `notes` | string | Opcional, max 500 |
 
@@ -36,7 +38,22 @@ Aplicación para el **control de tus horas de estudio**.
 - `GET /api/health`, `GET /api/sessions` (filtros `from`/`to`/`q`), `POST /api/sessions`, `PUT /api/sessions/:id`, `DELETE /api/sessions/:id`
 - `GET /api/stats` (params `period`, `date`, `heatmap`, `heatmapDate`)
 
-Los errores de validación responden `400` (incluidos `period` y `heatmap` inválidos en `/api/stats`); los recursos inexistentes, `404`.
+Los errores de validación responden `400` (incluidos `period` y `heatmap` inválidos en `/api/stats`,
+fechas inválidas en `POST`/`PUT /api/sessions` y en los filtros `from`/`to`, y rangos invertidos);
+los recursos inexistentes, `404`.
+
+### Fechas y rangos
+
+- Toda fecha de la API (`date`, `from`, `to`, `date` y `heatmapDate` de estadísticas) debe ser una
+  fecha **real** `YYYY-MM-DD` (sin espacios ni ceros omitidos) entre `1990-01-01` y
+  `9999-12-31`; si no, la respuesta es `400`.
+- En `GET /api/sessions`, un `from` posterior a `to` responde `400`; el historial muestra un aviso
+  visible y no llega a consultar.
+- Los rangos **derivados** de un periodo (`week`, `month`, `3m`, `6m`, `12m`, `year`) y del
+  calendario se recortan a `1990-01-01`–`9999-12-31`. Cuando hay recorte, `/api/stats` incluye
+  `notice` con el aviso; un rango interior devuelve `notice: null`.
+- La enumeración de días (`enumerateDays`) rechaza con error los rangos de **más de 4000 días**
+  en lugar de truncarlos en silencio.
 
 ### Respuesta de `/api/stats`
 
@@ -54,7 +71,8 @@ Los errores de validación responden `400` (incluidos `period` y `heatmap` invá
                "streak": { "current", "best" } },      // global hasta hoy
   "today":   { "date", "minutes", "goalMinutes", "goalMet" },  // día de referencia
   "heatmap": { "range", "label", "from", "to", "goalMinutes",
-               "days": [ { "date", "minutes", "goalMet" } ] }
+               "days": [ { "date", "minutes", "goalMet" } ] },
+  "notice":  null  // aviso de recorte del rango, o null si no hubo recorte
 }
 ```
 

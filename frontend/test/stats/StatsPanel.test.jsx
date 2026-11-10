@@ -118,4 +118,27 @@ describe('StatsPanel', () => {
     expect(screen.queryAllByText('4h')).toHaveLength(0);
     expect(screen.queryAllByText('Matemáticas')).toHaveLength(0);
   });
+
+  it('muestra el aviso de recorte antes de las tarjetas sin ocultarlas', async () => {
+    const notice =
+      'El rango solicitado se ha recortado a los límites admitidos (1990-01-01 – 9999-12-31).';
+    statsApiMock.get.mockResolvedValue(buildStats({ notice }));
+    sessionsApiMock.list.mockResolvedValue([]);
+
+    renderPanel();
+
+    expect((await screen.findByRole('status')).textContent).toBe(notice);
+    expect(screen.getByText('Horas del periodo')).toBeTruthy();
+    expect(screen.getByText('Global')).toBeTruthy();
+  });
+
+  it('no muestra aviso cuando notice es null', async () => {
+    statsApiMock.get.mockResolvedValue(buildStats({ notice: null }));
+    sessionsApiMock.list.mockResolvedValue([]);
+
+    renderPanel();
+
+    expect(await screen.findByText('Horas del periodo')).toBeTruthy();
+    expect(screen.queryByRole('status')).toBeNull();
+  });
 });

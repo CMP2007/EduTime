@@ -768,6 +768,15 @@ button.heatmap__cell:hover {
   margin: 0;
 }
 
+.notice {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  background: #fffbeb;
+  color: #7c2d12;
+}
+
 @media (max-width: 560px) {
   .session {
     flex-direction: column;

@@ -95,16 +95,21 @@ Con una cadena basura produce un `Date` inválido y `toDateString` devolvería `
 que se propaga a los cálculos. Está mitigado porque la entrada de usuario se valida en
 `sessions.service.js` (patrón de fecha), pero la función es frágil por sí sola.
 
-**Mitigación:** validar el formato dentro de `fromDateString` o lanzar error si la fecha es
-inválida.
+**Resuelto (2026-11-10, `specs/004-validacion-fechas/`):** `fromDateString` valida con
+`isValidDateString` del paquete `domain-dates` antes de construir el `Date` y lanza
+`RangeError` con fechas imposibles, formato laxo (`2026-1-1`), espacios o años fuera de
+1990–9999. Tests: `backend/test/date.test.js`; el caso HTTP lo cubre
+`backend/test/app.test.js`.
 
 ### B3-3 · `enumerateDays` trunca en silencio a 4000 días
 
 `date.js:60-70` corta el bucle con `guard < 4000` (≈ 11 años) sin avisar. Un rango mayor
 daría un heatmap **incompleto** sin ningún error.
 
-**Mitigación:** extraer el límite a una constante con nombre y, o bien justificarlo (cubre
-12m/año con holgura), o lanzar error si se supera.
+**Resuelto (2026-11-10, `specs/004-validacion-fechas/`):** el límite es la constante
+`MAX_RANGE_DAYS = 4000` de `domain-dates`; `enumerateDays` cuenta con `Date.UTC` y lanza
+`RangeError` si el rango supera 4000 días en vez de truncar. Tests: `backend/test/date.test.js`
+(4000 días → 4000 elementos; 4001 → `RangeError`).
 
 ### B3-4 · Periodos inválidos degradan en silencio a `week`
 

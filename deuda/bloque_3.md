@@ -36,8 +36,11 @@ etiquetas), la copia compartiría esa referencia y el estado interno quedaría e
 texto, sin comprobar el formato. Una fecha mal formada en el query string no da error: filtra
 de forma silenciosa y potencialmente errónea.
 
-**Mitigación:** validar el formato `YYYY-MM-DD` de los filtros y responder 400 si son
-inválidos.
+**Resuelto (2026-11-10, `specs/004-validacion-fechas/`):** `normalizeFilter` valida `from` y
+`to` con `isValidDateString` antes de leer el repositorio (vacío/ausente = sin filtro; no
+textual, repetido o inválido = `ValidationError` → 400) y rechaza el rango invertido con
+`compareDateStrings`. Tests: `backend/test/sessions.service.test.js` y los casos HTTP de
+`backend/test/app.test.js`.
 
 > **Refuerza B0-1:** las reglas de validación (título, notas, 15 min, 23 h) están duplicadas
 > en `frontend/src/sessions/SessionForm.jsx`.

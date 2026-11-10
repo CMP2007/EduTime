@@ -74,6 +74,7 @@
  * @property {Global} global
  * @property {Today} today
  * @property {Heatmap} heatmap
+ * @property {string|null} notice
  */
 
 /** Error de contrato: la respuesta no tiene la forma prometida por la API. */
@@ -271,6 +272,7 @@ const STATS = object({
       }),
     ),
   }),
+  notice: nullable(STRING),
 });
 
 const SESSION_LIST = arrayOf(SESSION);

@@ -4,8 +4,8 @@ Síntesis de la revisión. **No añade IDs nuevos** (los hallazgos son transvers
 registrados arriba). Temas recurrentes, ordenados por impacto:
 
 1. **Ausencia de red de seguridad**: sin tests ni linter — **B0-2 / B1-2 / B5-1**.
-2. **Validación de fechas transversal**: el mismo vacío reaparece en backend y frontend —
-   **B3-2 / B4-4 / B8-1 / B9-5**.
+2. ✅ **Validación de fechas transversal** — **B3-2 / B4-4 / B8-1 / B9-5** resueltos en
+   `specs/004-validacion-fechas/` *(paquete `domain-dates` y avisos de rango; ver `MEMORY.md`)*.
 3. **Duplicación de reglas y constantes entre capas**: meta, periodos, validaciones, filtrado —
    **B0-1 / B5-4 / B9-1 / B10-1 / B10-2**.
 4. **Concurrencia e invalidación**: carga/escritura en disco y recargas en cliente —
