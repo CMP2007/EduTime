@@ -36,6 +36,11 @@ etiquetas), la copia compartiría esa referencia y el estado interno quedaría e
 
 **Mitigación:** usar una copia profunda (`structuredClone`) cuando haya estructuras anidadas.
 
+**Resuelto (2026-11-10):** `clone` usa `structuredClone` y `insert`/`update` guardan también
+copias profundas, de modo que el repositorio no comparte referencias con el exterior en ninguna
+dirección. Evidencia: `backend/test/sessions.repository.test.js` (salida, entrada y `update`,
+verificados con mutación). Refactor sin cambio observable: no requiere spec.
+
 ### B4-4 · Filtros `from`/`to` sin validar
 
 `matchesFilters` (`sessions.service.js:57-66`) compara `session.date` con `from`/`to` como

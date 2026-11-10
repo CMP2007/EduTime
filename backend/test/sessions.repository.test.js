@@ -148,3 +148,39 @@ describe('sessionsRepository · escritura', () => {
     assert.deepEqual(await repository.findAll(), []);
   });
 });
+
+describe('sessionsRepository · aislamiento de referencias', () => {
+  it('devuelve copias profundas: mutar una estructura anidada no altera el estado interno', async () => {
+    const repository = createSessionsRepository(createStore([{ ...buildSession('X'), tags: ['js'] }]));
+
+    const [returned] = await repository.findAll();
+    returned.tags.push('mutada');
+
+    const found = await repository.findById('X');
+    found.tags.push('mutada');
+
+    assert.deepEqual((await repository.findById('X')).tags, ['js']);
+  });
+
+  it('insert aísla la entrada: mutar el objeto original no altera el estado interno', async () => {
+    const repository = createSessionsRepository(createStore([]));
+    const session = { ...buildSession('X'), tags: ['js'] };
+
+    await repository.insert(session);
+    session.tags.push('mutada');
+
+    const [stored] = await repository.findAll();
+    assert.deepEqual(stored.tags, ['js']);
+  });
+
+  it('update aísla los cambios: mutarlos después no altera el estado interno', async () => {
+    const repository = createSessionsRepository(createStore([buildSession('X')]));
+    const changes = { tags: ['js'] };
+
+    await repository.update('X', changes);
+    changes.tags.push('mutada');
+
+    const found = await repository.findById('X');
+    assert.deepEqual(found.tags, ['js']);
+  });
+});

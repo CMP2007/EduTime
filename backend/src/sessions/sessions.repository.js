@@ -45,8 +45,8 @@ export function createSessionsRepository(store = defaultStore) {
     return writeChain;
   };
 
-  /** Devuelve una copia para no exponer el estado interno. */
-  const clone = (session) => ({ ...session });
+  /** Devuelve una copia profunda para no compartir estructuras con el estado interno. */
+  const clone = (session) => structuredClone(session);
 
   return {
     async findAll() {
@@ -62,9 +62,10 @@ export function createSessionsRepository(store = defaultStore) {
 
     async insert(session) {
       const list = await load();
-      list.push({ ...session });
+      const stored = clone(session);
+      list.push(stored);
       await persist();
-      return clone(session);
+      return clone(stored);
     },
 
     async update(id, changes) {
@@ -73,16 +74,16 @@ export function createSessionsRepository(store = defaultStore) {
       if (index === -1) return null;
 
       const current = list[index];
-      const updated = {
+      const stored = clone({
         ...current,
         ...changes,
         id: current.id,
         createdAt: current.createdAt,
         updatedAt: new Date().toISOString(),
-      };
-      list[index] = updated;
+      });
+      list[index] = stored;
       await persist();
-      return clone(updated);
+      return clone(stored);
     },
 
     async remove(id) {
