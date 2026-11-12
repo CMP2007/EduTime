@@ -44,9 +44,9 @@ regla. No se elimina cobertura: los tests de semilla se mueven de `sessions/` a 
 
 ## T4 — Repositorio de sesiones para el borrado
 
-- [ ] Quitar la semilla y su import de `backend/src/sessions/sessions.repository.js`; el repositorio queda como acceso a datos puro. Los tests de semilla se mueven a T5, no se eliminan.
-- [ ] Añadir `countByThemeId(themeId)`, `reassignTheme(fromThemeId, toThemeId)` (solo cambia `themeId`, conserva `updatedAt`, sin resumen) y `removeByThemeId(themeId)` (sin resumen).
-- [ ] Actualizar `backend/test/sessions.repository.test.js`: sin tests de semilla, conteos, reasignación, borrado por temática y concurrencia.
+- [x] Quitar la semilla y su import de `backend/src/sessions/sessions.repository.js`; el repositorio queda como acceso a datos puro. Los tests de semilla se mueven a T5, no se eliminan.
+- [x] Añadir `countByThemeId(themeId)`, `reassignTheme(fromThemeId, toThemeId)` (solo cambia `themeId`, conserva `updatedAt`, sin resumen) y `removeByThemeId(themeId)` (sin resumen).
+- [x] Actualizar `backend/test/sessions.repository.test.js`: sin tests de semilla, conteos, reasignación, borrado por temática y concurrencia.
 - Test: RF-8, RF-9, RF-11 y RF-12; casos límite sin clases, varias clases y escrituras concurrentes.
 - Hecho cuando: `npm test -w backend -- test/sessions.repository.test.js` en verde.
 

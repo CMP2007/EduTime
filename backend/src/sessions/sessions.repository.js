@@ -1,5 +1,4 @@
 import { createFileStore, sessionsFile } from '../storage/fileStore.js';
-import { buildSeed } from './seed.js';
 
 const defaultStore = createFileStore(sessionsFile);
 
@@ -18,14 +17,8 @@ export function createSessionsRepository(store = defaultStore) {
     if (cache) return Promise.resolve(cache);
     if (!loadPromise) {
       loadPromise = store.readData()
-        .then(async (stored) => {
-          if (stored === null) {
-            const seeded = buildSeed();
-            await store.writeData(seeded);
-            cache = seeded;
-          } else {
-            cache = stored;
-          }
+        .then((stored) => {
+          cache = stored ?? [];
           return cache;
         })
         .catch((error) => {
@@ -94,6 +87,34 @@ export function createSessionsRepository(store = defaultStore) {
       list.splice(index, 1);
       await persist();
       return true;
+    },
+
+    async countByThemeId(themeId) {
+      const list = await load();
+      return list.filter((session) => session.themeId === themeId).length;
+    },
+
+    async reassignTheme(fromThemeId, toThemeId) {
+      const list = await load();
+      let changed = false;
+
+      for (const session of list) {
+        if (session.themeId === fromThemeId) {
+          session.themeId = toThemeId;
+          changed = true;
+        }
+      }
+
+      if (changed) await persist();
+    },
+
+    async removeByThemeId(themeId) {
+      const list = await load();
+      const remaining = list.filter((session) => session.themeId !== themeId);
+      if (remaining.length === list.length) return;
+
+      list.splice(0, list.length, ...remaining);
+      await persist();
     },
   };
 }

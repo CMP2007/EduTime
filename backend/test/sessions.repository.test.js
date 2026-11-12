@@ -6,15 +6,16 @@ import { createSessionsRepository } from '../src/sessions/sessions.repository.js
 const wait = (ms = 10) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Construye una sesión con la forma del modelo de datos. */
-function buildSession(id) {
+function buildSession(id, overrides = {}) {
   return {
     id,
-    title: 'JavaScript',
+    themeId: 'theme-1',
     date: '2026-01-05',
     durationMinutes: 60,
     notes: '',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
+    ...overrides,
   };
 }
 
@@ -52,18 +53,13 @@ describe('sessionsRepository · lectura', () => {
     assert.equal(store.readData.mock.callCount(), 1);
   });
 
-  it('solo siembra una vez aunque dos llamadas lleguen en frío', async () => {
+  it('un archivo inexistente se lee como vacío y no siembra', async () => {
     const store = createStore(null);
-    mock.method(store, 'writeData', async () => {
-      await wait();
-    });
+    const writeData = mock.method(store, 'writeData', async () => {});
     const repository = createSessionsRepository(store);
 
-    const [first, second] = await Promise.all([repository.findAll(), repository.findAll()]);
-
-    assert.ok(first.length > 0);
-    assert.equal(first.length, second.length);
-    assert.equal(store.writeData.mock.callCount(), 1);
+    assert.deepEqual(await repository.findAll(), []);
+    assert.equal(writeData.mock.callCount(), 0);
   });
 
   it('un fallo de lectura no envenena el repositorio: el siguiente intento reintenta', async () => {
@@ -80,25 +76,6 @@ describe('sessionsRepository · lectura', () => {
     failing = false;
 
     assert.deepEqual(await repository.findAll(), []);
-  });
-
-  it('si falla la escritura de la semilla, no deja la caché a medias', async () => {
-    const store = createStore(null);
-    let failing = true;
-    mock.method(store, 'writeData', async () => {
-      await wait();
-      if (failing) {
-        failing = false;
-        throw new Error('disco lleno');
-      }
-    });
-    const repository = createSessionsRepository(store);
-
-    await assert.rejects(() => repository.findAll(), /disco lleno/);
-
-    const list = await repository.findAll();
-    assert.ok(list.length > 0);
-    assert.equal(store.writeData.mock.callCount(), 2);
   });
 });
 
@@ -130,10 +107,10 @@ describe('sessionsRepository · escritura', () => {
     const repository = createSessionsRepository(createStore([buildSession('X')]));
 
     const [returned] = await repository.findAll();
-    returned.title = 'cambiada';
+    returned.themeId = 'theme-2';
 
     const [again] = await repository.findAll();
-    assert.equal(again.title, 'JavaScript');
+    assert.equal(again.themeId, 'theme-1');
   });
 
   it('update y remove siguen funcionando sobre la caché', async () => {
@@ -146,6 +123,103 @@ describe('sessionsRepository · escritura', () => {
     assert.equal(await repository.remove('X'), true);
     assert.equal(await repository.remove('X'), false);
     assert.deepEqual(await repository.findAll(), []);
+  });
+});
+
+describe('sessionsRepository · borrado de temáticas', () => {
+  it('countByThemeId cuenta solo las clases de la temática', async () => {
+    const repository = createSessionsRepository(
+      createStore([
+        buildSession('A'),
+        buildSession('B', { themeId: 'theme-2' }),
+        buildSession('C'),
+      ]),
+    );
+
+    assert.equal(await repository.countByThemeId('theme-1'), 2);
+    assert.equal(await repository.countByThemeId('theme-2'), 1);
+    assert.equal(await repository.countByThemeId('no-existe'), 0);
+  });
+
+  it('reassignTheme cambia solo themeId y conserva el resto, incluido updatedAt', async () => {
+    const store = createStore([
+      buildSession('A', { notes: 'nota A', updatedAt: '2025-12-31T00:00:00.000Z' }),
+      buildSession('B', { themeId: 'theme-2', notes: 'nota B' }),
+    ]);
+    const writeData = mock.method(store, 'writeData', async () => {});
+    const repository = createSessionsRepository(store);
+
+    await repository.reassignTheme('theme-1', 'theme-2');
+
+    const sessions = await repository.findAll();
+    const moved = sessions.find((session) => session.id === 'A');
+    assert.equal(moved.themeId, 'theme-2');
+    assert.equal(moved.notes, 'nota A');
+    assert.equal(moved.updatedAt, '2025-12-31T00:00:00.000Z');
+    assert.equal(sessions.find((session) => session.id === 'B').themeId, 'theme-2');
+    assert.equal(writeData.mock.callCount(), 1);
+  });
+
+  it('reassignTheme sin clases no escribe', async () => {
+    const store = createStore([buildSession('A', { themeId: 'theme-2' })]);
+    const writeData = mock.method(store, 'writeData', async () => {});
+    const repository = createSessionsRepository(store);
+
+    await repository.reassignTheme('theme-1', 'theme-2');
+
+    assert.equal(writeData.mock.callCount(), 0);
+  });
+
+  it('removeByThemeId elimina solo las clases de la temática y persiste', async () => {
+    const store = createStore([
+      buildSession('A'),
+      buildSession('B', { themeId: 'theme-2' }),
+      buildSession('C'),
+    ]);
+    const writeData = mock.method(store, 'writeData', async () => {});
+    const repository = createSessionsRepository(store);
+
+    await repository.removeByThemeId('theme-1');
+
+    assert.deepEqual((await repository.findAll()).map((session) => session.id), ['B']);
+    assert.equal(writeData.mock.callCount(), 1);
+  });
+
+  it('removeByThemeId sin coincidencias no escribe', async () => {
+    const store = createStore([buildSession('A', { themeId: 'theme-2' })]);
+    const writeData = mock.method(store, 'writeData', async () => {});
+    const repository = createSessionsRepository(store);
+
+    await repository.removeByThemeId('theme-1');
+
+    assert.equal(writeData.mock.callCount(), 0);
+  });
+
+  it('una reasignación y un borrado simultáneos se aplican sin solapar escrituras', async () => {
+    const store = createStore([
+      buildSession('A'),
+      buildSession('B', { themeId: 'theme-2' }),
+      buildSession('C', { themeId: 'theme-2' }),
+    ]);
+    let active = 0;
+    let maxActive = 0;
+    mock.method(store, 'writeData', async () => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      await wait();
+      active -= 1;
+    });
+    const repository = createSessionsRepository(store);
+
+    await Promise.all([
+      repository.removeByThemeId('theme-1'),
+      repository.reassignTheme('theme-2', 'theme-3'),
+    ]);
+
+    const sessions = await repository.findAll();
+    assert.deepEqual(sessions.map((session) => session.id), ['B', 'C']);
+    assert.ok(sessions.every((session) => session.themeId === 'theme-3'));
+    assert.equal(maxActive, 1);
   });
 });
 
