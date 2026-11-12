@@ -35,10 +35,10 @@ regla. No se elimina cobertura: los tests de semilla se mueven de `sessions/` a 
 
 ## T3 — Persistencia de temáticas
 
-- [ ] Exportar `sessionsFile`, `themesFile` y `createFileStore(file)` desde `backend/src/storage/fileStore.js`; conservar `readData` / `writeData` y generalizar el mensaje a «no contiene un array JSON».
-- [ ] Crear `backend/src/themes/themes.repository.js` con fábrica `createThemesRepository(store)`, single-flight, cola de escrituras y copias profundas; sin semilla.
-- [ ] Implementar `findAll`, `findById`, `insert`, `update` y `remove` sobre `{ id, name }`.
-- [ ] Actualizar `backend/test/fileStore.test.js` (rutas, mensaje genérico, corrupción, no-array, escritura atómica) y crear `backend/test/themes.repository.test.js` (CRUD, copias y concurrencia).
+- [x] Exportar `sessionsFile`, `themesFile` y `createFileStore(file)` desde `backend/src/storage/fileStore.js`; conservar `readData` / `writeData` y generalizar el mensaje a «no contiene un array JSON».
+- [x] Crear `backend/src/themes/themes.repository.js` con fábrica `createThemesRepository(store)`, single-flight, cola de escrituras y copias profundas; sin semilla.
+- [x] Implementar `findAll`, `findById`, `insert`, `update` y `remove` sobre `{ id, name }`.
+- [x] Actualizar `backend/test/fileStore.test.js` (rutas, mensaje genérico, corrupción, no-array, escritura atómica) y crear `backend/test/themes.repository.test.js` (CRUD, copias y concurrencia).
 - Test: RF-1, RF-2, RF-5 y RF-8; casos límite de JSON corrupto y escrituras concurrentes.
 - Hecho cuando: `npm test -w backend -- test/fileStore.test.js test/themes.repository.test.js` en verde.
 

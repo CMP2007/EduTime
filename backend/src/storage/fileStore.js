@@ -5,16 +5,18 @@ import { fileURLToPath } from 'node:url';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const dataDir = join(currentDir, '..', '..', 'data');
-const dataFile = join(dataDir, 'sessions.json');
+
+export const sessionsFile = join(dataDir, 'sessions.json');
+export const themesFile = join(dataDir, 'themes.json');
 
 /**
- * Lee el archivo de datos.
- * - No existe (`ENOENT`): `null` (primer arranque; el semilla decide).
+ * Lee un archivo de datos.
+ * - No existe (`ENOENT`): `null` (primer arranque).
  * - Contiene un array JSON válido: ese array.
  * - Cualquier otra cosa (vacío, JSON inválido, no-array): lanza error.
  *   Un contenido que no entendemos nunca se sobrescribe.
  */
-export async function readData(file = dataFile) {
+export async function readData(file) {
   let raw;
   try {
     raw = await readFile(file, 'utf8');
@@ -31,13 +33,13 @@ export async function readData(file = dataFile) {
   }
 
   if (!Array.isArray(parsed)) {
-    throw new Error(`El archivo de datos no contiene un array de sesiones: ${file}`);
+    throw new Error(`El archivo de datos no contiene un array JSON: ${file}`);
   }
   return parsed;
 }
 
-/** Escribe el archivo de datos de forma atómica (tmp + rename). */
-export async function writeData(data, file = dataFile) {
+/** Escribe un archivo de datos de forma atómica (tmp + rename). */
+export async function writeData(data, file) {
   const temporaryFile = `${file}.${process.pid}.${randomUUID()}.tmp`;
   await mkdir(dirname(file), { recursive: true });
   await writeFile(temporaryFile, JSON.stringify(data, null, 2), 'utf8');
@@ -47,4 +49,12 @@ export async function writeData(data, file = dataFile) {
     await unlink(temporaryFile).catch(() => {});
     throw error;
   }
+}
+
+/** Almacenamiento de un archivo concreto, listo para inyectar en un repositorio. */
+export function createFileStore(file) {
+  return {
+    readData: () => readData(file),
+    writeData: (data) => writeData(data, file),
+  };
 }

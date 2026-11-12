@@ -1,7 +1,7 @@
-import { readData, writeData } from '../storage/fileStore.js';
+import { createFileStore, sessionsFile } from '../storage/fileStore.js';
 import { buildSeed } from './seed.js';
 
-const defaultStore = { readData, writeData };
+const defaultStore = createFileStore(sessionsFile);
 
 /**
  * Crea un repositorio con su propia caché, su lectura única (single-flight)

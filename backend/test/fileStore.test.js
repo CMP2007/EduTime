@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 
-import { readData, writeData } from '../src/storage/fileStore.js';
+import {
+  createFileStore,
+  readData,
+  sessionsFile,
+  themesFile,
+  writeData,
+} from '../src/storage/fileStore.js';
 
 let directory;
 let dataFile;
@@ -24,20 +30,28 @@ async function temporaryFiles() {
   return names.filter((name) => name.endsWith('.tmp'));
 }
 
+describe('fileStore · rutas de datos', () => {
+  it('expone un archivo para las clases y otro para las temáticas', () => {
+    assert.equal(basename(sessionsFile), 'sessions.json');
+    assert.equal(basename(themesFile), 'themes.json');
+    assert.notEqual(sessionsFile, themesFile);
+  });
+});
+
 describe('fileStore.readData', () => {
   it('devuelve null si el archivo no existe (primer arranque)', async () => {
     assert.equal(await readData(dataFile), null);
   });
 
   it('devuelve el array si el contenido es un array JSON válido', async () => {
-    const stored = [{ id: 'a', title: 'JavaScript' }];
+    const stored = [{ id: 'a', themeId: 'theme-1' }];
     await writeFile(dataFile, JSON.stringify(stored), 'utf8');
 
     assert.deepEqual(await readData(dataFile), stored);
   });
 
   it('lanza error si el JSON está corrupto y deja el archivo intacto', async () => {
-    const corrupt = '[{"id": "a", "title": "Java';
+    const corrupt = '[{"id": "a", "themeId": "theme';
     await writeFile(dataFile, corrupt, 'utf8');
 
     await assert.rejects(() => readData(dataFile), /corrupto/);
@@ -50,10 +64,13 @@ describe('fileStore.readData', () => {
     await assert.rejects(() => readData(dataFile), /corrupto/);
   });
 
-  it('lanza error si el contenido no es un array', async () => {
-    await writeFile(dataFile, JSON.stringify({ title: 'no soy un array' }), 'utf8');
+  it('lanza error genérico si el contenido no es un array', async () => {
+    await writeFile(dataFile, JSON.stringify({ name: 'no soy un array' }), 'utf8');
 
-    await assert.rejects(() => readData(dataFile), /no contiene un array/);
+    await assert.rejects(
+      () => readData(dataFile),
+      new RegExp(`no contiene un array JSON: ${dataFile}`),
+    );
   });
 
   it('propaga el error EISDIR al intentar leer un directorio', async () => {
@@ -71,7 +88,7 @@ describe('fileStore.readData', () => {
 
 describe('fileStore.writeData', () => {
   it('escribe el array y lo deja legible para readData', async () => {
-    const sessions = [{ id: 'a', title: 'JavaScript' }];
+    const sessions = [{ id: 'a', themeId: 'theme-1' }];
 
     await writeData(sessions, dataFile);
 
@@ -97,5 +114,29 @@ describe('fileStore.writeData', () => {
 
     await assert.rejects(() => writeData([], dataFile));
     assert.deepEqual(await temporaryFiles(), []);
+  });
+});
+
+describe('fileStore.createFileStore', () => {
+  it('lee y escribe en el archivo que recibe', async () => {
+    const store = createFileStore(dataFile);
+
+    assert.equal(await store.readData(), null);
+
+    await store.writeData([{ id: 'theme-1', name: 'Matemáticas' }]);
+
+    assert.deepEqual(await store.readData(), [{ id: 'theme-1', name: 'Matemáticas' }]);
+  });
+
+  it('cada almacén queda aislado en su propio archivo', async () => {
+    const otherFile = join(directory, 'themes.json');
+    const sessionsStore = createFileStore(dataFile);
+    const themesStore = createFileStore(otherFile);
+
+    await sessionsStore.writeData([{ id: 'session-1' }]);
+    await themesStore.writeData([{ id: 'theme-1' }]);
+
+    assert.deepEqual(await sessionsStore.readData(), [{ id: 'session-1' }]);
+    assert.deepEqual(await themesStore.readData(), [{ id: 'theme-1' }]);
   });
 });
