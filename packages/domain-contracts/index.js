@@ -4,9 +4,15 @@
  * Una sola definición para backend y frontend: los typedefs documentan la forma y los
  * validadores la comprueban en runtime. No valida reglas de negocio ni formatos de fecha.
  *
+ * @typedef {Object} Theme
+ * @property {string} id
+ * @property {string} name
+ * @property {number} sessionCount
+ *
  * @typedef {Object} Session
  * @property {string} id
- * @property {string} title
+ * @property {string} themeId
+ * @property {string} themeName
  * @property {string} date
  * @property {number} durationMinutes
  * @property {string} notes
@@ -20,13 +26,15 @@
  * @property {string} to
  *
  * @typedef {Object} Subject
- * @property {string} title
+ * @property {string} themeId
+ * @property {string} name
  * @property {number} minutes
  * @property {number} sessions
  *
  * @typedef {Object} LongestClass
  * @property {string} id
- * @property {string} title
+ * @property {string} themeId
+ * @property {string} name
  * @property {string} date
  * @property {number} durationMinutes
  *
@@ -204,9 +212,16 @@ function arrayOf(descriptor) {
   };
 }
 
+const THEME = object({
+  id: STRING,
+  name: STRING,
+  sessionCount: NUMBER,
+});
+
 const SESSION = object({
   id: STRING,
-  title: STRING,
+  themeId: STRING,
+  themeName: STRING,
   date: STRING,
   durationMinutes: NUMBER,
   notes: STRING,
@@ -229,14 +244,16 @@ const STATS = object({
     longestClass: nullable(
       object({
         id: STRING,
-        title: STRING,
+        themeId: STRING,
+        name: STRING,
         date: STRING,
         durationMinutes: NUMBER,
       }),
     ),
     subjects: arrayOf(
       object({
-        title: STRING,
+        themeId: STRING,
+        name: STRING,
         minutes: NUMBER,
         sessions: NUMBER,
       }),
@@ -276,6 +293,7 @@ const STATS = object({
 });
 
 const SESSION_LIST = arrayOf(SESSION);
+const THEME_LIST = arrayOf(THEME);
 
 /**
  * @param {Descriptor} descriptor
@@ -296,6 +314,26 @@ function collectIssues(descriptor, value) {
  */
 export function validateStats(value) {
   return collectIssues(STATS, value);
+}
+
+/**
+ * Devuelve los fallos del contrato de una temática; vacío si la respuesta es válida.
+ *
+ * @param {unknown} value
+ * @returns {string[]}
+ */
+export function validateTheme(value) {
+  return collectIssues(THEME, value);
+}
+
+/**
+ * Devuelve los fallos del contrato de un listado de temáticas; vacío si es válido.
+ *
+ * @param {unknown} value
+ * @returns {string[]}
+ */
+export function validateThemeList(value) {
+  return collectIssues(THEME_LIST, value);
 }
 
 /**
@@ -338,6 +376,32 @@ function assertContract(resource, issues) {
  */
 export function assertStats(value, resource = '/api/stats') {
   assertContract(resource, validateStats(value));
+  return value;
+}
+
+/**
+ * Lanza `ContractError` con el primer fallo si la temática no cumple el contrato.
+ *
+ * @template T
+ * @param {T} value
+ * @param {string} [resource]
+ * @returns {T}
+ */
+export function assertTheme(value, resource = '/api/themes') {
+  assertContract(resource, validateTheme(value));
+  return value;
+}
+
+/**
+ * Lanza `ContractError` con el primer fallo si el listado no cumple el contrato.
+ *
+ * @template T
+ * @param {T} value
+ * @param {string} [resource]
+ * @returns {T}
+ */
+export function assertThemeList(value, resource = '/api/themes') {
+  assertContract(resource, validateThemeList(value));
   return value;
 }
 

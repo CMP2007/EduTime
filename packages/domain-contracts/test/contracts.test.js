@@ -6,15 +6,29 @@ import {
   assertSession,
   assertSessionList,
   assertStats,
+  assertTheme,
+  assertThemeList,
   validateSession,
   validateSessionList,
   validateStats,
+  validateTheme,
+  validateThemeList,
 } from '../index.js';
+
+function buildTheme(overrides = {}) {
+  return {
+    id: 'theme-1',
+    name: 'Matemáticas',
+    sessionCount: 2,
+    ...overrides,
+  };
+}
 
 function buildSession(overrides = {}) {
   return {
     id: 'session-1',
-    title: 'Matemáticas',
+    themeId: 'theme-1',
+    themeName: 'Matemáticas',
     date: '2026-10-15',
     durationMinutes: 120,
     notes: '',
@@ -34,11 +48,12 @@ function buildStats(overrides = {}) {
       goalDays: 1,
       longestClass: {
         id: 'session-1',
-        title: 'Matemáticas',
+        themeId: 'theme-1',
+        name: 'Matemáticas',
         date: '2026-10-15',
         durationMinutes: 120,
       },
-      subjects: [{ title: 'Matemáticas', minutes: 240, sessions: 2 }],
+      subjects: [{ themeId: 'theme-1', name: 'Matemáticas', minutes: 240, sessions: 2 }],
     },
     global: {
       totalMinutes: 1440,
@@ -137,6 +152,16 @@ describe('domain-contracts · métricas', () => {
     assert.match(issues[0], /heatmap\.days\[1\]\.minutes/);
   });
 
+  it('señala los campos de temática en la clase más larga y en las materias', () => {
+    const longest = buildStats();
+    delete longest.summary.longestClass.themeId;
+    assert.match(validateStats(longest)[0], /summary\.longestClass\.themeId/);
+
+    const subjects = buildStats();
+    delete subjects.summary.subjects[0].name;
+    assert.match(validateStats(subjects)[0], /summary\.subjects\[0\]\.name/);
+  });
+
   it('rechaza un cuerpo que no es un objeto', () => {
     const issues = validateStats(null);
 
@@ -156,12 +181,22 @@ describe('domain-contracts · sesiones', () => {
 
   it('señala un campo de sesión con su ruta', () => {
     const session = buildSession();
-    delete session.title;
+    delete session.themeId;
 
     const issues = validateSession(session);
 
     assert.equal(issues.length, 1);
-    assert.match(issues[0], /title/);
+    assert.match(issues[0], /themeId/);
+  });
+
+  it('señala el nombre de temática resuelto si falta', () => {
+    const session = buildSession();
+    delete session.themeName;
+
+    const issues = validateSession(session);
+
+    assert.equal(issues.length, 1);
+    assert.match(issues[0], /themeName/);
   });
 
   it('acepta una lista vacía y una lista válida', () => {
@@ -180,6 +215,54 @@ describe('domain-contracts · sesiones', () => {
 
   it('rechaza una lista donde se espera un objeto', () => {
     const issues = validateSessionList({});
+
+    assert.equal(issues.length, 1);
+    assert.match(issues[0], /lista/);
+  });
+});
+
+describe('domain-contracts · temáticas', () => {
+  it('acepta una temática válida', () => {
+    assert.deepEqual(validateTheme(buildTheme()), []);
+  });
+
+  it('tolera campos adicionales en una temática', () => {
+    assert.deepEqual(validateTheme(buildTheme({ extra: true })), []);
+  });
+
+  it('señala un campo de temática con su ruta', () => {
+    const theme = buildTheme();
+    delete theme.sessionCount;
+
+    const issues = validateTheme(theme);
+
+    assert.equal(issues.length, 1);
+    assert.match(issues[0], /sessionCount/);
+  });
+
+  it('señala un tipo incorrecto en sessionCount', () => {
+    const issues = validateTheme(buildTheme({ sessionCount: 'dos' }));
+
+    assert.equal(issues.length, 1);
+    assert.match(issues[0], /sessionCount/);
+  });
+
+  it('acepta una lista vacía y una lista válida', () => {
+    assert.deepEqual(validateThemeList([]), []);
+    assert.deepEqual(validateThemeList([buildTheme()]), []);
+  });
+
+  it('señala el elemento inválido de una lista con índice y campo', () => {
+    const themes = [buildTheme(), buildTheme({ id: 42 })];
+
+    const issues = validateThemeList(themes);
+
+    assert.equal(issues.length, 1);
+    assert.match(issues[0], /\[1\]\.id/);
+  });
+
+  it('rechaza una lista donde se espera un objeto', () => {
+    const issues = validateThemeList({});
 
     assert.equal(issues.length, 1);
     assert.match(issues[0], /lista/);
@@ -209,5 +292,10 @@ describe('domain-contracts · aserciones', () => {
   it('assertSession y assertSessionList lanzan ContractError', () => {
     assert.throws(() => assertSession({}), ContractError);
     assert.throws(() => assertSessionList([{}]), ContractError);
+  });
+
+  it('assertTheme y assertThemeList lanzan ContractError', () => {
+    assert.throws(() => assertTheme({}), ContractError);
+    assert.throws(() => assertThemeList([{}]), ContractError);
   });
 });
