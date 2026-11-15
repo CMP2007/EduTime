@@ -90,7 +90,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 | B5-1 | Sin tests en la lógica crítica de estadísticas | Alta | resuelto |
 | B5-2 | Agrupación por temática por título exacto (sin normalizar) | Baja | resuelto |
 | B5-3 | Racha recalculada en cada petición (sin caché) | Baja | resuelto |
-| B5-4 | Meta diaria fija (180) y duplicada backend/frontend | Baja | pendiente |
+| B5-4 | Meta diaria fija (180) y duplicada backend/frontend | Baja | resuelto |
 
 ### Bloque 6 — Frontend: arranque y orquestación
 
@@ -221,6 +221,14 @@ las estadísticas a la cola de escrituras. Medido con 3650 clases: de ~9 ms a ~1
 petición. Evidencia: `backend/test/stats.service.test.js` (tres tests del memo y uno de
 integración, verificados con mutación).
 
+**B5-4 resuelto (2026-11-15):** `GOAL_MINUTES` tiene una sola definición, en
+`packages/domain-constants/index.js`; el backend (`stats.service.js`) y el frontend
+(`utils/time.js`) la importan de `domain-constants` desde el refactor `46c0d4c` (2026-10-27), el
+mismo que cerró B0-1. No queda ninguna copia en el frontend. Sin cambios de código: lo cubre la
+suite existente (`backend/test/stats.service.test.js` y `frontend/test/utils/time.test.js`). La
+meta sigue siendo fija (180 min); hacerla configurable sería funcionalidad nueva y no forma parte
+de esta deuda.
+
 ### B6-3, B6-4, B6-5 · Router, separación de capas y formato del diálogo de borrado
 
 **Prioridad:** *Media* (experiencia de usuario).
@@ -260,6 +268,6 @@ B9-6.
 
 ### Resumen
 
-**Sesenta y ocho** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 41 resueltas, 26 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B4-5 resuelto, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10); B5-2 quedó resuelto en `specs/006-catalogo-tematicas/` (2026-11-13). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
+**Sesenta y ocho** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 42 resueltas, 25 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B4-5 resuelto, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10); B5-2 quedó resuelto en `specs/006-catalogo-tematicas/` (2026-11-13); B5-4 quedó resuelto con la extracción de constantes a `packages/domain-constants` (commit `46c0d4c`, 2026-10-27). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
 
 La estructura propuesta (resumen + 13 bloques) mantiene el alcance de cada archivo y la tabla de contenidos original.

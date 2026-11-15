@@ -120,5 +120,11 @@ mutación).
 
 **Mitigación:** fuente única de constantes compartida.
 
+**Resuelto (2026-11-15):** `GOAL_MINUTES` tiene una sola definición, en
+`packages/domain-constants/index.js`, y el backend (`stats.service.js`) y el frontend
+(`utils/time.js`) la importan de `domain-constants` desde el refactor `46c0d4c` (2026-10-27), el
+mismo que cerró B0-1. La meta sigue siendo fija (180 min): convertirla en configurable sería
+funcionalidad nueva y no forma parte de esta deuda.
+
 ---
 
