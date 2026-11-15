@@ -1,9 +1,19 @@
 /** Fixtures completas del contrato de la API para los tests de frontend. */
 
+export function buildTheme(overrides = {}) {
+  return {
+    id: 'theme-1',
+    name: 'Matemáticas',
+    sessionCount: 0,
+    ...overrides,
+  };
+}
+
 export function buildSession(overrides = {}) {
   return {
     id: 'abc-123',
-    title: 'Matemáticas',
+    themeId: 'theme-1',
+    themeName: 'Matemáticas',
     date: '2026-10-15',
     durationMinutes: 120,
     notes: '',
@@ -23,11 +33,12 @@ export function buildStats(overrides = {}) {
       goalDays: 1,
       longestClass: {
         id: 'abc-123',
-        title: 'Matemáticas',
+        themeId: 'theme-1',
+        name: 'Matemáticas',
         date: '2026-10-15',
         durationMinutes: 120,
       },
-      subjects: [{ title: 'Matemáticas', minutes: 240, sessions: 2 }],
+      subjects: [{ themeId: 'theme-1', name: 'Matemáticas', minutes: 240, sessions: 2 }],
     },
     global: {
       totalMinutes: 1440,

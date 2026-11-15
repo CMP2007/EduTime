@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import Modal from '../../src/components/Modal.jsx';
 
@@ -254,5 +254,111 @@ describe('Modal', () => {
     unmount();
 
     expect(document.body.style.overflow).toBe('');
+  });
+});
+
+/** Arnés con dos modales: el de confirmación se apila sobre el gestor. */
+function StackedHarness({ onLowerClose = () => {}, onUpperClose = () => {} }) {
+  const [lowerOpen, setLowerOpen] = useState(false);
+  const [upperOpen, setUpperOpen] = useState(false);
+
+  return (
+    <>
+      <button type="button" onClick={() => setLowerOpen(true)}>Abrir gestor</button>
+      <main tabIndex={-1}>Contenido principal</main>
+      {lowerOpen && (
+        <Modal
+          title="Gestor"
+          onClose={() => {
+            onLowerClose();
+            setLowerOpen(false);
+          }}
+        >
+          <button type="button" onClick={() => setUpperOpen(true)}>Abrir confirmación</button>
+        </Modal>
+      )}
+      {upperOpen && (
+        <Modal
+          title="Confirmación"
+          onClose={() => {
+            onUpperClose();
+            setUpperOpen(false);
+          }}
+        >
+          <button type="button">Cancelar</button>
+        </Modal>
+      )}
+    </>
+  );
+}
+
+describe('Modal · pila de diálogos', () => {
+  afterEach(() => {
+    document.body.style.overflow = '';
+  });
+
+  it('Escape cierra solo el modal superior y deja abierto el inferior', () => {
+    const onLowerClose = vi.fn();
+    const onUpperClose = vi.fn();
+    render(<StackedHarness onLowerClose={onLowerClose} onUpperClose={onUpperClose} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir gestor' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir confirmación' }));
+
+    expect(screen.getAllByRole('dialog')).toHaveLength(2);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onUpperClose).toHaveBeenCalledTimes(1);
+    expect(onLowerClose).not.toHaveBeenCalled();
+    expect(screen.getAllByRole('dialog')).toHaveLength(1);
+    expect(screen.getByRole('dialog', { name: 'Gestor' })).toBeTruthy();
+  });
+
+  it('el modal superior recibe el foco y el inferior no lo roba', () => {
+    render(<StackedHarness />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir gestor' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir confirmación' }));
+
+    const upper = screen.getByRole('dialog', { name: 'Confirmación' });
+
+    expect(document.activeElement).toBe(within(upper).getByRole('button', { name: 'Cancelar' }));
+  });
+
+  it('Tab cicla solo dentro del modal superior', () => {
+    render(<StackedHarness />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir gestor' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir confirmación' }));
+
+    const upper = screen.getByRole('dialog', { name: 'Confirmación' });
+    const upperClose = within(upper).getByRole('button', { name: 'Cerrar' });
+    const upperCancel = within(upper).getByRole('button', { name: 'Cancelar' });
+
+    // El foco inicial está en el último enfocable: Tab debe envolver al primero.
+    expect(document.activeElement).toBe(upperCancel);
+    fireEvent.keyDown(upperCancel, { key: 'Tab' });
+
+    expect(document.activeElement).toBe(upperClose);
+    expect(screen.getByRole('dialog', { name: 'Gestor' })).toBeTruthy();
+  });
+
+  it('al cerrar el superior devuelve el foco a su disparador y el inferior sigue vivo', () => {
+    render(<StackedHarness />);
+
+    const pageTrigger = screen.getByRole('button', { name: 'Abrir gestor' });
+    pageTrigger.focus();
+    fireEvent.click(pageTrigger);
+    const lowerTrigger = screen.getByRole('button', { name: 'Abrir confirmación' });
+    fireEvent.click(lowerTrigger);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(document.activeElement).toBe(lowerTrigger);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(document.activeElement).toBe(pageTrigger);
   });
 });

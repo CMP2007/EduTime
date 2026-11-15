@@ -38,21 +38,21 @@ describe('sessionsApi · contrato en el borde', () => {
   });
 
   it('rechaza una sesión creada que no cumple el contrato', async () => {
-    request.mockResolvedValue(buildSession({ title: undefined }));
+    request.mockResolvedValue(buildSession({ themeName: undefined }));
 
     const error = await sessionsApi.create({ hours: 2, minutes: 0 }).catch(
       (requestError) => requestError,
     );
 
     expect(error).toBeInstanceOf(ContractError);
-    expect(error.issue).toMatch(/title/);
+    expect(error.issue).toMatch(/themeName/);
   });
 
   it('valida la sesión editada', async () => {
-    request.mockResolvedValue(buildSession({ title: 'Física' }));
+    request.mockResolvedValue(buildSession({ themeName: 'Física' }));
 
     await expect(sessionsApi.update('abc-123', { hours: 2, minutes: 0 })).resolves.toEqual(
-      buildSession({ title: 'Física' }),
+      buildSession({ themeName: 'Física' }),
     );
     expect(request).toHaveBeenCalledWith('/sessions/abc-123', {
       method: 'PUT',
