@@ -7,7 +7,7 @@ function LongestClassCard({ longest }) {
     <Card title="Clase más larga" description="Del periodo seleccionado">
       {longest ? (
         <div>
-          <p className="longest__title">{longest.title}</p>
+          <p className="longest__title">{longest.name}</p>
           <p className="longest__meta">
             {formatDateLong(longest.date)} · {formatMinutes(longest.durationMinutes)}
           </p>

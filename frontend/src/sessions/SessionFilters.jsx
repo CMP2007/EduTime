@@ -1,4 +1,5 @@
-function SessionFilters({ value, onChange }) {
+/** Filtros del historial: rango de fechas, temática y búsqueda en observaciones. */
+function SessionFilters({ value, onChange, themes = [] }) {
   function update(field, next) {
     onChange({ ...value, [field]: next });
   }
@@ -13,11 +14,20 @@ function SessionFilters({ value, onChange }) {
         <span className="field__label">Hasta</span>
         <input type="date" value={value.to} onChange={(event) => update('to', event.target.value)} />
       </label>
+      <label className="field">
+        <span className="field__label">Temática</span>
+        <select value={value.themeId} onChange={(event) => update('themeId', event.target.value)}>
+          <option value="">Todas</option>
+          {themes.map((theme) => (
+            <option key={theme.id} value={theme.id}>{theme.name}</option>
+          ))}
+        </select>
+      </label>
       <label className="field field--grow">
-        <span className="field__label">Buscar por temática</span>
+        <span className="field__label">Buscar en observaciones</span>
         <input
           type="search"
-          placeholder="Ej. Matemáticas"
+          placeholder="Ej. repaso de integrales"
           value={value.q}
           onChange={(event) => update('q', event.target.value)}
         />
@@ -25,7 +35,7 @@ function SessionFilters({ value, onChange }) {
       <button
         type="button"
         className="button button--ghost"
-        onClick={() => onChange({ from: '', to: '', q: '' })}
+        onClick={() => onChange({ from: '', to: '', q: '', themeId: '' })}
       >
         Limpiar
       </button>

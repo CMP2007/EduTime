@@ -5,7 +5,8 @@ const DataRefreshContext = createContext(null);
 export function DataRefreshProvider({ children }) {
   const [versions, setVersions] = useState({
     sessions: 0,
-    stats: 0
+    stats: 0,
+    themes: 0
   });
 
   const bump = useCallback((key) => {
@@ -23,6 +24,10 @@ export function DataRefreshProvider({ children }) {
     bump('stats');
   }, [bump]);
 
+  const refreshThemes = useCallback(() => {
+    bump('themes');
+  }, [bump]);
+
   const refreshAll = useCallback(() => {
     bump('sessions');
     bump('stats');
@@ -34,9 +39,10 @@ export function DataRefreshProvider({ children }) {
       bump,
       refreshSessions,
       refreshStats,
+      refreshThemes,
       refreshAll
     }),
-    [versions, bump, refreshSessions, refreshStats, refreshAll]
+    [versions, bump, refreshSessions, refreshStats, refreshThemes, refreshAll]
   );
 
   return (

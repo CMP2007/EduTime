@@ -758,6 +758,139 @@ button.heatmap__cell:hover {
   font-size: 0.85rem;
 }
 
+/* ---------- Temáticas ---------- */
+.app__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.theme-select {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.theme-select__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.theme-select__row select {
+  flex: 1;
+  min-width: 0;
+}
+
+.theme-select__add {
+  width: 38px;
+  min-width: 38px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.theme-select__create {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.theme-select__create input {
+  flex: 1;
+  min-width: 0;
+}
+
+.themes__create,
+.themes__edit {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  min-width: 0;
+}
+
+.themes__edit {
+  flex: 1;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.themes__edit input {
+  flex: 1;
+  min-width: 0;
+}
+
+.themes__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.themes__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  min-width: 0;
+}
+
+.themes__item:first-child {
+  border-top: 0;
+}
+
+.themes__name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.themes__load-error,
+.session-form__themes-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.delete-theme__options {
+  border: 0;
+  padding: 0;
+  margin: 12px 0;
+  gap: 10px;
+}
+
+.delete-theme__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.delete-theme__option input {
+  width: auto;
+  margin-top: 3px;
+}
+
+.created-themes__list {
+  margin: 8px 0 16px;
+  padding-left: 20px;
+  overflow-wrap: anywhere;
+}
+
 /* ---------- Utilidades ---------- */
 .muted {
   color: var(--muted);
@@ -778,6 +911,16 @@ button.heatmap__cell:hover {
 }
 
 @media (max-width: 560px) {
+  .tabs {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .tabs__tab {
+    flex: 1;
+    padding: 10px 12px;
+  }
+
   .session {
     flex-direction: column;
   }

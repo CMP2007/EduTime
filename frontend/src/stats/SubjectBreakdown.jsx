@@ -8,9 +8,9 @@ function SubjectBreakdown({ subjects }) {
   return (
     <ul className="subjects">
       {subjects.map((subject) => (
-        <li key={subject.title} className="subject">
+        <li key={subject.themeId} className="subject">
           <div className="subject__top">
-            <span className="subject__name">{subject.title}</span>
+            <span className="subject__name">{subject.name}</span>
             <span className="subject__value">{formatMinutes(subject.minutes)}</span>
           </div>
           <div className="subject__track">

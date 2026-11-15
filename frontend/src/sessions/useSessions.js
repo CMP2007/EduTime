@@ -6,7 +6,7 @@ import { sessionsApi } from './sessions.api.js';
 /** Carga las clases (con filtros opcionales) y las mantiene actualizadas. */
 export function useSessions(filters = {}) {
   const { versions } = useDataRefresh();
-  const { from = '', to = '', q = '' } = filters;
+  const { from = '', to = '', q = '', themeId = '' } = filters;
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,7 +32,7 @@ export function useSessions(filters = {}) {
 
     setLoading(true);
     try {
-      const data = await sessionsApi.list({ from, to, q });
+      const data = await sessionsApi.list({ from, to, q, themeId });
       if (requestId !== requestIdRef.current) {
         return;
       }
@@ -48,7 +48,7 @@ export function useSessions(filters = {}) {
         setLoading(false);
       }
     }
-  }, [from, to, q, hasInvertedRange]);
+  }, [from, to, q, themeId, hasInvertedRange]);
 
   useEffect(() => {
     reload();

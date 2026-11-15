@@ -6,7 +6,7 @@ function SessionRow({ session, onEdit, onDelete }) {
     <li className="session">
       <div className="session__main">
         <div className="session__top">
-          <span className="session__title">{session.title}</span>
+          <span className="session__title">{session.themeName}</span>
           <span className="session__duration">{formatMinutes(session.durationMinutes)}</span>
         </div>
         <time className="session__date" dateTime={session.date}>
