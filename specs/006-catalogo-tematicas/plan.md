@@ -213,7 +213,7 @@ Montar en `app.js` con `app.use('/api/themes', themesRoutes)`.
 ### 11. Integración en las vistas
 
 - `App.jsx`: botón secundario «Temáticas» junto a «+ Nueva clase»; estado del modal; mensaje de borrado de clase con `themeName`; renderiza `SeedPrompt` para que el diálogo de datos de ejemplo aparezca sobre cualquier pestaña; tras crear/renombrar/eliminar temáticas, refrescar lo que corresponda (`refreshThemes` y, si cambian nombres o clases, `refreshSessions`/`refreshStats`).
-- `SessionForm.jsx`: `form.themeId` en lugar de `title`; `ThemeSelect` con alta inline; estados de carga/error/retry; el botón «Guardar» se desactiva mientras `loading` es verdadero, además de cuando hay error o catálogo vacío; preselecciona la temática al editar; si la temática de la clase ya no existe, avisa y exige elegir otra; usa `useThemes.createTheme` y acumula las temáticas creadas. El aviso aparece al cerrar por cualquier vía (Cancelar, «×» o Escape) si se creó al menos una temática y no se guardó la clase; guardar no lo muestra. El campo inline abierto captura Escape y cierra solo el campo.
+- `SessionForm.jsx`: `form.themeId` en lugar de `title`; `ThemeSelect` con alta inline; estados de carga/error/retry; el botón «Guardar» se desactiva mientras no haya catálogo disponible (carga inicial o catálogo vacío), además de cuando hay error; una recarga en segundo plano con el catálogo ya cargado no bloquea el guardado; preselecciona la temática al editar; si la temática de la clase ya no existe, avisa y exige elegir otra; usa `useThemes.createTheme` y acumula las temáticas creadas. El aviso aparece al cerrar por cualquier vía (Cancelar, «×» o Escape) si se creó al menos una temática y no se guardó la clase; guardar no lo muestra. El campo inline abierto captura Escape y cierra solo el campo.
 - `HistoryView.jsx`: carga temáticas, las pasa al filtro y, si la temática elegida desaparece, limpia `from`, `to`, `q` y `themeId` para mostrar el historial completo.
 - `SessionFilters.jsx`: desplegable de temáticas (incluye «Todas») y búsqueda con etiqueta «Buscar en observaciones»; «Limpiar» reinicia `from`, `to`, `q` y `themeId`.
 - `SessionRow.jsx`, `LongestClassCard.jsx` y `SubjectBreakdown.jsx`: usan `themeName` / `name` y `themeId` como clave.
@@ -358,7 +358,7 @@ Actualizar `README.md` (modelo, API, funcionalidades, `POST /api/seed` y el paso
 | RF-11 | Reasignación mueve todas las clases, conserva fecha/duración/observaciones/`updatedAt` y elimina la temática; el test comprueba los repositorios. |
 | RF-12 | Eliminar todo borra la temática y sus clases; el test comprueba los repositorios. |
 | RF-13 | Cancelar el diálogo no modifica nada. |
-| RF-14 | Selector del formulario ordenado, con todas las temáticas y acción de alta; «Guardar» desactivado mientras carga. |
+| RF-14 | Selector del formulario ordenado, con todas las temáticas y acción de alta; «Guardar» desactivado mientras no haya catálogo disponible. |
 | RF-15 | Catálogo vacío muestra indicación y no permite guardar. |
 | RF-16 | «+» despliega el campo y le da el foco. |
 | RF-17 | Alta válida registra, cierra el campo y selecciona la temática nueva. |
@@ -367,7 +367,7 @@ Actualizar `README.md` (modelo, API, funcionalidades, `POST /api/seed` y el paso
 | RF-20 | Guardar sin temática muestra error y no guarda. |
 | RF-21 | Guardar asocia por `themeId`; la respuesta y la fila muestran `themeName` del catálogo. |
 | RF-22 | Editar preselecciona la temática de la clase. |
-| RF-23 | Error de carga muestra «Reintentar»; el formulario no permite guardar; «Guardar» desactivado mientras carga. |
+| RF-23 | Error de carga muestra «Reintentar»; el formulario no permite guardar; «Guardar» desactivado mientras no haya catálogo disponible. |
 | RF-24 | Temática seleccionada eliminada antes de guardar: error y no se guarda. |
 | RF-25 | Cerrar tras crear temáticas muestra el aviso con sus nombres por Cancelar, «×» o Escape; guardar no lo muestra; Escape con el alta inline abierta cierra solo el campo. |
 | RF-26 | La cabecera muestra «Temáticas» y abre el gestor. |
@@ -402,6 +402,13 @@ Actualizar `README.md` (modelo, API, funcionalidades, `POST /api/seed` y el paso
 11. `Modal` con pila y tests; después UI de temáticas (`ThemeSelect`, `ThemesDialog`, `DeleteThemeDialog`, `CreatedThemesNotice`) y `SeedPrompt` con tests.
 12. Integración en `App`, `SessionForm`, historial, filas y estadísticas; tests.
 13. Documentación (`README`, `AGENTS`, `MEMORY`, `DEUDA_TECNICA`), `npm test`, `npm run lint`, mutación y comprobación manual a 375 px.
+
+## Rollback
+
+- La feature se entrega en commits por área; para revertirla, aplicar `git revert` de esos commits en orden inverso. Nunca usar `git checkout -- <carpeta>`: se llevarían por delante cambios buenos.
+- Los datos de `backend/data/` son de muestra y no se migran. Antes de volver al código anterior, parar el servidor, hacer copia de `backend/data/` si hubiera datos reales y borrar `sessions.json` y `themes.json`; el arranque antiguo no entiende el formato nuevo.
+- Revertir frontend y backend juntos: el frontend anterior espera `title` y el backend nuevo devuelve `themeId` y `themeName`, así que mezclar versiones falla al leer las clases.
+- No hay migraciones, servicios externos ni cambios irreversibles: el rollback se limita a código y a los dos JSON locales.
 
 ## Fuera de alcance
 

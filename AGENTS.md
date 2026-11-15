@@ -20,7 +20,7 @@ sigue la constitución y se corrige este documento.
 
 - **Frontend**: React 19 + Vite (JavaScript/JSX).
 - **Backend**: Node.js + Express 5.
-- **Persistencia**: archivo JSON (`backend/data/sessions.json`).
+- **Persistencia**: archivos JSON (`backend/data/sessions.json` y `backend/data/themes.json`), ignorados por git.
 
 Es un monorepo con **npm workspaces** (`frontend` y `backend`).
 
@@ -73,7 +73,8 @@ npm run lint         # ESLint sobre todo el monorepo
 - **Tests frontend**: Vitest + jsdom + Testing Library. Viven en `frontend/test/` (espejo de
   `src/`); config en `frontend/vitest.config.js`. Convención: `*.test.js` / `*.test.jsx`.
 - **Tests del contrato**: paquete `packages/domain-contracts` con el runner nativo de Node
-  (`node --test`). `npm test` los incluye por workspace. Convención: `*.test.js`.
+  (`node --test`). `npm test` los incluye por workspace. Convención: `*.test.js`. Los paquetes de
+  dominio (`domain-constants`, `domain-dates`, `domain-themes`) siguen la misma convención.
 - **Linter**: ESLint (flat config en la raíz, `eslint.config.js`).
 - **`~/.npmrc`**: fija `save-exact=true` e `ignore-scripts=true` (config global del usuario);
   por eso las dependencias se instalan con versión exacta.
@@ -103,24 +104,37 @@ packages/
   domain-contracts/           # contrato de las respuestas de la API (tipos + validación runtime)
     index.js                  # typedefs JSDoc, ContractError y validadores assert/validate
     test/contracts.test.js    # casos del contrato (válidos, campos ausentes, listas)
+  domain-themes/              # nombres de temática compartidos entre backend y frontend
+    index.js                  # normalizeThemeName, isSameThemeName, compareThemeNames
+    test/themes.test.js       # normalización, duplicados y orden español
 
 backend/src/
-  server.js                    # arranque del servidor (usa serverConfig)
+  server.js                    # arranque del servidor (usa serverConfig y valida los datos)
   serverConfig.js              # puerto y host por defecto, con override por PORT/HOST
   app.js                       # monta las rutas /api y maneja errores
-  errors.js                    # errores compartidos (AppError, ValidationError)
-  storage/fileStore.js         # lectura/escritura del JSON en disco
+  errors.js                    # errores compartidos (AppError, ValidationError, ConflictError)
+  storage/fileStore.js         # lectura/escritura de los JSON (sesiones y temáticas)
   utils/date.js                # utilidades de fecha y periodos
+  startup/
+    validateStoredData.js      # valida los datos guardados antes de servir; falla sin sobrescribir
   middleware/
     requestLogger.js            # logging de peticiones (método, ruta, estado, duración)
   sessions/
-    sessions.repository.js     # CRUD sobre el almacenamiento (fábrica: createSessionsRepository)
+    sessions.repository.js     # CRUD de clases (fábrica: createSessionsRepository)
     sessions.validation.js     # validación de campos (fuente única: API y semilla)
-    sessions.service.js        # reglas de negocio (usa sessions.validation)
+    sessions.service.js        # reglas de negocio (usa sessions.validation y el catálogo)
     sessions.routes.js         # endpoints /api/sessions
-    seed.js                    # datos de ejemplo iniciales (validados antes de persistirse)
+  themes/
+    themes.repository.js       # CRUD del catálogo (fábrica: createThemesRepository)
+    themes.validation.js       # nombre obligatorio, longitud y duplicados
+    themes.service.js          # alta, renombrado y borrado con reasignación
+    themes.routes.js           # endpoints /api/themes
+  seed/
+    seed.js                    # datos de ejemplo (temáticas y clases) validados antes de persistirse
+    seed.service.js            # siembra bajo demanda; reutiliza temáticas por nombre normalizado
+    seed.routes.js             # POST /api/seed
   stats/
-    stats.service.js           # racha, periodos, temáticas, heatmap
+    stats.service.js           # racha, periodos, temáticas por themeId, heatmap
     stats.routes.js            # endpoint /api/stats
 
 backend/test/                  # tests (espejo de backend/src/)
@@ -128,16 +142,20 @@ backend/test/                  # tests (espejo de backend/src/)
   date.test.js                 # utilidades de fecha y periodos
   fileStore.test.js            # lectura/escritura del JSON (ficheros reales temporales)
   serverConfig.test.js         # puerto, host y valores por defecto del arranque
-  seed.test.js                 # semilla inicial válida y rechazo de entradas inválidas
   sessions.repository.test.js  # carreras/concurrencia con el almacenamiento simulado
   sessions.service.test.js     # contrato de creación/listado con el repositorio simulado
   stats.service.test.js        # estadísticas con el repositorio simulado
+  themes.repository.test.js    # CRUD del catálogo con el almacenamiento simulado
+  themes.service.test.js       # alta, renombrado y borrado con reasignación
+  seed/seed.test.js            # semilla válida y rechazo de entradas inválidas
+  seed/seed.service.test.js    # siembra bajo demanda, reutilización y conflicto
+  startup/validateStoredData.test.js  # datos coherentes, antiguos y corruptos
 
 frontend/
   vitest.config.js             # configuración de los tests (Vitest + jsdom)
   test/                        # tests (espejo de frontend/src/)
     setup.js                   # registro global: cleanup de Testing Library
-    fixtures/contracts.js      # datos válidos de Stats/Session para los tests
+    fixtures/contracts.js      # datos válidos de Theme/Session/Stats para los tests
 
 frontend/src/
   main.jsx                     # punto de entrada de React
@@ -145,15 +163,18 @@ frontend/src/
   api/ApiError.js              # error de API que conserva el status HTTP
   api/client.js                # fetch genérico a la API (lanza ApiError)
   components/                  # componentes reutilizables (Modal, Tabs, Card, ErrorBoundary…)
+  context/DataRefreshContext.jsx  # versiones de sesiones, estadísticas y temáticas
+  seed/                        # aviso de datos de ejemplo: api + diálogo
   sessions/                    # feature de clases: api, hook, formulario, historial
   stats/                       # feature de métricas: api, hook, tarjetas, heatmap
+  themes/                      # catálogo: api, hook, selector, gestor y borrado
   utils/                       # helpers de tiempo y fecha
   styles.css                   # estilos globales
 ```
 
 ### Modelo, reglas y API (fuente oficial: [`README.md`](README.md))
 
-Reglas de negocio, modelo (`id`/`title`/`date`/`durationMinutes`/`notes`) y endpoints (`/api/sessions`, `/api/stats`) se mantienen en `README.md`. Esta guía conserva lo operativo: capas, convenciones y flujo SDD.
+Reglas de negocio, modelo (`Theme` y `Session` con `themeId`/`themeName`) y endpoints (`/api/sessions`, `/api/themes`, `/api/seed`, `/api/stats`) se mantienen en `README.md`. Esta guía conserva lo operativo: capas, convenciones y flujo SDD.
 
 ## Convenciones de código
 
@@ -165,11 +186,20 @@ Reglas de negocio, modelo (`id`/`title`/`date`/`durationMinutes`/`notes`) y endp
 - **Repositorios**: cualquier repositorio nuevo sigue el patrón fábrica (`createXRepository(store)`) con el almacenamiento inyectable, para poder simularlo en tests.
 - **Frontend**: un componente por archivo. La lógica de datos en hooks (`use*.js`) y las llamadas HTTP en `*.api.js`.
 - **Contrato de datos**: `packages/domain-contracts` es la fuente única de la forma de
-  `/api/stats` y `/api/sessions`. El frontend valida la respuesta en `*.api.js` con `assertStats`,
-  `assertSession` o `assertSessionList`; el backend comprueba su salida en los tests con las
-  mismas funciones. Se valida presencia, tipo y obligatoriedad (no formatos de fecha ni reglas de
-  negocio) y se toleran campos adicionales. Un fallo lanza `ContractError` con la ruta del primer
-  campo inválido (`summary.totalMinutes`, `[1].durationMinutes`).
+  `/api/themes`, `/api/stats` y `/api/sessions`. El frontend valida la respuesta en `*.api.js` con
+  `assertTheme`, `assertThemeList`, `assertStats`, `assertSession` o `assertSessionList`; el backend
+  comprueba su salida en los tests con las mismas funciones. Se valida presencia, tipo y
+  obligatoriedad (no formatos de fecha ni reglas de negocio) y se toleran campos adicionales. Un
+  fallo lanza `ContractError` con la ruta del primer campo inválido (`summary.totalMinutes`,
+  `[1].durationMinutes`).
+- **Temáticas**: `packages/domain-themes` es la fuente única para normalizar
+  (`normalizeThemeName`), comparar duplicados (`isSameThemeName`) y ordenar (`compareThemeNames`)
+  nombres de temática. El nombre visible conserva lo que escribe el usuario; la comparación ignora
+  espacios de los extremos, mayúsculas, minúsculas y tildes.
+- **Arranque**: `backend/src/startup/validateStoredData.js` comprueba los datos guardados antes de
+  servir (clase con `themeId` existente, sin `title` antiguo). Un dato incoherente hace fallar el
+  arranque con un mensaje explícito y no sobrescribe nada. Los datos de ejemplo solo se escriben
+  bajo demanda con `POST /api/seed` y nunca al arrancar.
 - **Fechas**: `packages/domain-dates` es la fuente única para validar (`isValidDateString`),
   comparar por tupla numérica (`compareDateStrings`) y recortar rangos derivados
   (`clampDateRange`). Las entradas de usuario se validan, nunca se recortan; solo los rangos
@@ -201,8 +231,9 @@ prevalece la constitución.
    (HTTP) / `use*.js` (estado) / componente (UI) en frontend (principio 3).
 3. **Un archivo, una responsabilidad**: no mezclar funcionalidades ni roles (principio 3).
 4. **Validación**: valida toda entrada del usuario en el backend antes de usarla.
-5. **Persistencia**: datos en `backend/data/sessions.json` (ignorado por git), nunca solo en
-   memoria; IDs estables; escritura atómica y fallo ante JSON corrupto. Seguridad: principio 5.
+5. **Persistencia**: datos en `backend/data/sessions.json` y `backend/data/themes.json`
+   (ignorados por git), nunca solo en memoria; IDs estables; escritura atómica y fallo ante JSON
+   corrupto o incoherente. Seguridad: principio 5.
 6. **Documentación**: al añadir una funcionalidad, actualiza `README.md` (funcionalidades,
    reglas, modelo o API) y `AGENTS.md` solo si cambia la estructura, las convenciones o los
    comandos. Actualiza `MEMORY.md` si aporta valor.

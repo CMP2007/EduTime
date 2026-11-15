@@ -1,7 +1,7 @@
 # Spec 006 — Catálogo de temáticas con identificador
 
 > Origen: `DEUDA_TECNICA.md` · B5-2 + petición del mantenedor
-> Estado: aprobada (2026-11-10)
+> Estado: implementada (2026-11-14)
 
 ## Contexto y objetivo
 
