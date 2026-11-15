@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import { afterEach, describe, it, mock } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 
 import { assertSession, assertSessionList } from 'domain-contracts';
 import { sessionsRepository } from '../src/sessions/sessions.repository.js';
+import { themesRepository } from '../src/themes/themes.repository.js';
 import { sessionsService } from '../src/sessions/sessions.service.js';
 
 const INVALID_DATES = [
@@ -15,10 +16,15 @@ const INVALID_DATES = [
   20261015,
 ];
 
+const THEMES = [
+  { id: 'theme-1', name: 'Matemáticas' },
+  { id: 'theme-2', name: 'Física' },
+];
+
 function buildSession(overrides = {}) {
   return {
     id: 'session-1',
-    title: 'Matemáticas',
+    themeId: 'theme-1',
     date: '2026-10-15',
     durationMinutes: 120,
     notes: '',
@@ -26,6 +32,27 @@ function buildSession(overrides = {}) {
     updatedAt: '2026-10-15T10:00:00.000Z',
     ...overrides,
   };
+}
+
+/** Simula el catálogo con las mismas temáticas para listar y buscar por id. */
+function mockThemes(themes = THEMES) {
+  mock.method(themesRepository, 'findAll', async () => themes.map((theme) => ({ ...theme })));
+  mock.method(themesRepository, 'findById', async (id) => {
+    const found = themes.find((theme) => theme.id === id);
+    return found ? { ...found } : null;
+  });
+}
+
+/** Simula una clase existente y la actualización sobre ella. */
+function mockExisting(overrides = {}) {
+  const existing = buildSession(overrides);
+  mock.method(sessionsRepository, 'findById', async () => ({ ...existing }));
+  const update = mock.method(sessionsRepository, 'update', async (id, data) => ({
+    ...existing,
+    ...data,
+    id,
+  }));
+  return { existing, update };
 }
 
 afterEach(() => {
@@ -38,7 +65,7 @@ describe('sessionsService · fechas inválidas', () => {
 
     for (const date of INVALID_DATES) {
       await assert.rejects(
-        sessionsService.create({ title: 'Matemáticas', date, hours: 1, minutes: 0, notes: '' }),
+        sessionsService.create({ themeId: 'theme-1', date, hours: 1, minutes: 0, notes: '' }),
         { name: 'ValidationError', message: 'La fecha no es válida.' },
       );
     }
@@ -62,6 +89,10 @@ describe('sessionsService · fechas inválidas', () => {
 });
 
 describe('sessionsService · filtros estrictos (RF-3, RF-4, RF-5)', () => {
+  beforeEach(() => {
+    mockThemes();
+  });
+
   it('list valida antes de leer el repositorio', async () => {
     const findAll = mock.method(sessionsRepository, 'findAll', async () => []);
 
@@ -97,7 +128,9 @@ describe('sessionsService · filtros estrictos (RF-3, RF-4, RF-5)', () => {
       buildSession(),
       buildSession({ id: 'session-2', date: '2026-10-20' }),
     ];
-    mock.method(sessionsRepository, 'findAll', async () => sessions.map((session) => ({ ...session })));
+    mock.method(sessionsRepository, 'findAll', async () =>
+      sessions.map((session) => ({ ...session })),
+    );
 
     const listed = await sessionsService.list({ from: '', to: '' });
 
@@ -106,11 +139,15 @@ describe('sessionsService · filtros estrictos (RF-3, RF-4, RF-5)', () => {
 });
 
 describe('sessionsService · contrato de la respuesta (B0-6)', () => {
-  it('create devuelve una sesión que cumple el contrato', async () => {
+  beforeEach(() => {
+    mockThemes();
+  });
+
+  it('create devuelve una sesión que cumple el contrato con themeName resuelto', async () => {
     mock.method(sessionsRepository, 'insert', async (session) => ({ ...session }));
 
     const created = await sessionsService.create({
-      title: 'Matemáticas',
+      themeId: 'theme-1',
       date: '2026-10-15',
       hours: 2,
       minutes: 0,
@@ -118,14 +155,15 @@ describe('sessionsService · contrato de la respuesta (B0-6)', () => {
     });
 
     assertSession(created);
-    assert.equal(created.title, 'Matemáticas');
+    assert.equal(created.themeId, 'theme-1');
+    assert.equal(created.themeName, 'Matemáticas');
     assert.equal(created.durationMinutes, 120);
   });
 
-  it('list devuelve un listado que cumple el contrato', async () => {
+  it('list devuelve un listado que cumple el contrato con themeName resuelto', async () => {
     const sessions = [
       buildSession(),
-      buildSession({ id: 'session-2', title: 'Física', date: '2026-10-16' }),
+      buildSession({ id: 'session-2', themeId: 'theme-2', date: '2026-10-16' }),
     ];
     mock.method(sessionsRepository, 'findAll', async () =>
       sessions.map((session) => ({ ...session })),
@@ -135,10 +173,136 @@ describe('sessionsService · contrato de la respuesta (B0-6)', () => {
 
     assertSessionList(listed);
     assert.equal(listed.length, 2);
+    assert.deepEqual(
+      listed.map((session) => session.themeName).sort(),
+      ['Física', 'Matemáticas'],
+    );
+  });
+});
+
+describe('sessionsService · temática de la clase (RF-20 a RF-24, RF-30)', () => {
+  beforeEach(() => {
+    mockThemes();
+  });
+
+  it('create exige themeId y rechaza una temática inexistente sin insertar', async () => {
+    const insert = mock.method(sessionsRepository, 'insert', async (session) => ({ ...session }));
+
+    await assert.rejects(
+      sessionsService.create({ date: '2026-10-15', hours: 1, minutes: 0, notes: '' }),
+      { name: 'ValidationError', message: 'La temática es obligatoria.' },
+    );
+    await assert.rejects(
+      sessionsService.create({
+        themeId: 'no-existe',
+        date: '2026-10-15',
+        hours: 1,
+        minutes: 0,
+        notes: '',
+      }),
+      { name: 'ValidationError', message: 'La temática seleccionada no existe.' },
+    );
+
+    assert.equal(insert.mock.callCount(), 0);
+  });
+
+  it('list filtra por themeId y conserva los filtros de fecha', async () => {
+    mock.method(sessionsRepository, 'findAll', async () => [
+      buildSession({ id: 's1', date: '2026-10-15' }),
+      buildSession({ id: 's2', themeId: 'theme-2', date: '2026-10-16' }),
+      buildSession({ id: 's3', date: '2026-10-20' }),
+    ]);
+
+    const listed = await sessionsService.list({ themeId: 'theme-2' });
+    assert.deepEqual(listed.map((session) => session.id), ['s2']);
+
+    const ranged = await sessionsService.list({
+      themeId: 'theme-1',
+      from: '2026-10-16',
+      to: '2026-10-19',
+    });
+    assert.deepEqual(ranged, []);
+  });
+
+  it('list rechaza themeId repetido o de otro tipo antes de leer', async () => {
+    const findAll = mock.method(sessionsRepository, 'findAll', async () => []);
+
+    for (const themeId of [['theme-1', 'theme-2'], 42, '   ']) {
+      await assert.rejects(() => sessionsService.list({ themeId }), {
+        name: 'ValidationError',
+        message: 'El filtro «temática» no es válido.',
+      });
+    }
+
+    assert.equal(findAll.mock.callCount(), 0);
+  });
+
+  it('list busca q solo en las observaciones, no en el nombre de la temática', async () => {
+    mock.method(sessionsRepository, 'findAll', async () => [
+      buildSession({ id: 's1', themeId: 'theme-2', notes: '' }),
+      buildSession({ id: 's2', themeId: 'theme-1', notes: 'Repaso de física cuántica' }),
+    ]);
+
+    const byThemeName = await sessionsService.list({ q: 'física' });
+    assert.deepEqual(byThemeName.map((session) => session.id), ['s2']);
+
+    const byNotes = await sessionsService.list({ q: 'cuántica' });
+    assert.deepEqual(byNotes.map((session) => session.id), ['s2']);
+  });
+
+  it('list falla si una clase referencia una temática inexistente', async () => {
+    mock.method(sessionsRepository, 'findAll', async () => [
+      buildSession({ id: 'rota', themeId: 'no-existe' }),
+    ]);
+
+    await assert.rejects(() => sessionsService.list(), {
+      message: 'La clase rota referencia una temática inexistente.',
+    });
+  });
+
+  it('update conserva la temática actual si no llega themeId', async () => {
+    mockExisting();
+
+    const updated = await sessionsService.update('session-1', { hours: 1, minutes: 30 });
+
+    assert.equal(updated.themeId, 'theme-1');
+    assert.equal(updated.themeName, 'Matemáticas');
+  });
+
+  it('update cambia la temática y resuelve el nombre nuevo', async () => {
+    mockExisting();
+
+    const updated = await sessionsService.update('session-1', {
+      themeId: 'theme-2',
+      hours: 1,
+      minutes: 30,
+    });
+
+    assert.equal(updated.themeId, 'theme-2');
+    assert.equal(updated.themeName, 'Física');
+  });
+
+  it('update rechaza una temática inexistente sin actualizar', async () => {
+    const { update } = mockExisting();
+
+    await assert.rejects(
+      sessionsService.update('session-1', {
+        themeId: 'no-existe',
+        hours: 1,
+        minutes: 30,
+      }),
+      { name: 'ValidationError', message: 'La temática seleccionada no existe.' },
+    );
+
+    assert.equal(update.mock.callCount(), 0);
   });
 });
 
 describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF-13, RF-15)', () => {
+  beforeEach(() => {
+    mockThemes();
+  });
+
   function mockInsert() {
     return mock.method(sessionsRepository, 'insert', async (session) => ({ ...session }));
   }
@@ -147,7 +311,7 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
     mockInsert();
 
     const created = await sessionsService.create({
-      title: 'Matemáticas',
+      themeId: 'theme-1',
       date: '2026-10-15',
       hours: '2',
       minutes: 30,
@@ -161,7 +325,7 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
     mockInsert();
 
     const created = await sessionsService.create({
-      title: 'Matemáticas',
+      themeId: 'theme-1',
       date: '2026-10-15',
       hours: 2,
       notes: '',
@@ -174,7 +338,7 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
     mockInsert();
 
     const created = await sessionsService.create({
-      title: 'Matemáticas',
+      themeId: 'theme-1',
       date: '2026-10-15',
       minutes: 45,
       notes: '',
@@ -187,13 +351,13 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
     mockInsert();
 
     const min = await sessionsService.create({
-      title: 'Matemáticas',
+      themeId: 'theme-1',
       date: '2026-10-15',
       minutes: 15,
       notes: '',
     });
     const max = await sessionsService.create({
-      title: 'Matemáticas',
+      themeId: 'theme-1',
       date: '2026-10-15',
       hours: 23,
       minutes: 59,
@@ -221,7 +385,12 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
 
     for (const duration of payloads) {
       await assert.rejects(
-        sessionsService.create({ title: 'Matemáticas', date: '2026-10-15', notes: '', ...duration }),
+        sessionsService.create({
+          themeId: 'theme-1',
+          date: '2026-10-15',
+          notes: '',
+          ...duration,
+        }),
         { name: 'ValidationError', message: 'La clase debe durar al menos 15 minutos.' },
       );
     }
@@ -239,7 +408,12 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
 
     for (const duration of payloads) {
       await assert.rejects(
-        sessionsService.create({ title: 'Matemáticas', date: '2026-10-15', notes: '', ...duration }),
+        sessionsService.create({
+          themeId: 'theme-1',
+          date: '2026-10-15',
+          notes: '',
+          ...duration,
+        }),
         { name: 'ValidationError', message: 'La clase no puede superar las 23:59.' },
       );
     }
@@ -253,7 +427,7 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
     for (const hours of [-1, 1.5, 'abc']) {
       await assert.rejects(
         sessionsService.create({
-          title: 'Matemáticas',
+          themeId: 'theme-1',
           date: '2026-10-15',
           hours,
           minutes: 0,
@@ -275,7 +449,7 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
     for (const minutes of [-1, 1.5, 'abc']) {
       await assert.rejects(
         sessionsService.create({
-          title: 'Matemáticas',
+          themeId: 'theme-1',
           date: '2026-10-15',
           hours: 0,
           minutes,
@@ -296,7 +470,7 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
 
     await assert.rejects(
       sessionsService.create({
-        title: 'Matemáticas',
+        themeId: 'theme-1',
         date: '2026-10-15',
         hours: 0,
         minutes: 60,
@@ -316,7 +490,7 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
 
     await assert.rejects(
       sessionsService.create({
-        title: 'Matemáticas',
+        themeId: 'theme-1',
         date: '2026-10-15',
         hours: -1,
         minutes: -1,
@@ -329,7 +503,7 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
     );
     await assert.rejects(
       sessionsService.create({
-        title: 'Matemáticas',
+        themeId: 'theme-1',
         date: '2026-10-15',
         hours: 'abc',
         minutes: 'abc',
@@ -342,7 +516,7 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
     );
     await assert.rejects(
       sessionsService.create({
-        title: 'Matemáticas',
+        themeId: 'theme-1',
         date: '2026-10-15',
         hours: 23,
         minutes: 60,
@@ -352,7 +526,7 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
     );
     await assert.rejects(
       sessionsService.create({
-        title: 'Matemáticas',
+        themeId: 'theme-1',
         date: '2026-10-15',
         hours: 0,
         minutes: 0,
@@ -364,16 +538,9 @@ describe('sessionsService · duración parcial en create (RF-1 a RF-4, RF-9 a RF
 });
 
 describe('sessionsService · edición parcial y ajuste (RF-5 a RF-10, RF-14)', () => {
-  function mockExisting(overrides = {}) {
-    const existing = buildSession(overrides);
-    mock.method(sessionsRepository, 'findById', async () => ({ ...existing }));
-    const update = mock.method(sessionsRepository, 'update', async (id, data) => ({
-      ...existing,
-      ...data,
-      id,
-    }));
-    return { existing, update };
-  }
+  beforeEach(() => {
+    mockThemes();
+  });
 
   it('update con ambos actualiza la duración y conserva el resto de campos', async () => {
     mockExisting();
@@ -382,7 +549,8 @@ describe('sessionsService · edición parcial y ajuste (RF-5 a RF-10, RF-14)', (
 
     assertSession(updated);
     assert.equal(updated.durationMinutes, 90);
-    assert.equal(updated.title, 'Matemáticas');
+    assert.equal(updated.themeId, 'theme-1');
+    assert.equal(updated.themeName, 'Matemáticas');
     assert.equal(updated.date, '2026-10-15');
     assert.equal(updated.notes, '');
   });

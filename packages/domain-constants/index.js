@@ -2,7 +2,6 @@
 
 export const GOAL_MINUTES = 180;
 
-export const TITLE_MAX = 80;
 export const THEME_NAME_MAX = 80;
 export const NOTES_MAX = 500;
 export const DURATION_MIN = 15;

@@ -1,7 +1,9 @@
 import express from 'express';
 import { createRequestLogger } from './middleware/requestLogger.js';
+import seedRoutes from './seed/seed.routes.js';
 import sessionsRoutes from './sessions/sessions.routes.js';
 import statsRoutes from './stats/stats.routes.js';
+import themesRoutes from './themes/themes.routes.js';
 
 const app = express();
 
@@ -14,6 +16,8 @@ app.get('/api/health', (_request, response) => {
 
 app.use('/api/sessions', sessionsRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/seed', seedRoutes);
+app.use('/api/themes', themesRoutes);
 
 app.use((_request, response) => {
   response.status(404).json({ error: 'Ruta no encontrada' });

@@ -95,6 +95,36 @@ describe('themesRepository · CRUD', () => {
     assert.equal(writeData.mock.callCount(), 1);
   });
 
+  it('insertMany persiste todas las temáticas en una sola escritura', async () => {
+    const store = createStore([]);
+    const writeData = mock.method(store, 'writeData', async () => {});
+    const repository = createThemesRepository(store);
+
+    const inserted = await repository.insertMany([buildTheme('A'), buildTheme('B', 'Física')]);
+
+    assert.deepEqual(inserted.map((theme) => theme.id), ['A', 'B']);
+    assert.deepEqual(
+      (await repository.findAll()).map((theme) => theme.id),
+      ['A', 'B'],
+    );
+    assert.equal(writeData.mock.callCount(), 1);
+  });
+
+  it('insertMany no actualiza la caché si la escritura falla', async () => {
+    const store = createStore([buildTheme('A')]);
+    mock.method(store, 'writeData', async () => {
+      throw new Error('disco lleno');
+    });
+    const repository = createThemesRepository(store);
+
+    await assert.rejects(() => repository.insertMany([buildTheme('B')]), /disco lleno/);
+
+    assert.deepEqual(
+      (await repository.findAll()).map((theme) => theme.id),
+      ['A'],
+    );
+  });
+
   it('update cambia el nombre, conserva el id y devuelve null si no existe', async () => {
     const repository = createThemesRepository(createStore([buildTheme('A')]));
 

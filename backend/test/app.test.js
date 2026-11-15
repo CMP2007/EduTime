@@ -4,7 +4,8 @@ import { after, afterEach, before, describe, it, mock, beforeEach } from 'node:t
 import app from '../src/app.js';
 import { statsService } from '../src/stats/stats.service.js';
 import { sessionsRepository } from '../src/sessions/sessions.repository.js';
-import { assertSession, assertStats } from 'domain-contracts';
+import { themesRepository } from '../src/themes/themes.repository.js';
+import { assertSession, assertSessionList, assertStats, assertTheme, assertThemeList } from 'domain-contracts';
 
 // La app real en un puerto efímero: cubre el flujo completo petición →
 // middlewares → rutas → manejador de errores. Ningún caso escribe en disco:
@@ -31,6 +32,20 @@ function post(body, contentType = 'application/json') {
     method: 'POST',
     headers: { 'Content-Type': contentType },
     body,
+  });
+}
+
+const THEMES = [
+  { id: 'theme-1', name: 'JavaScript' },
+  { id: 'theme-2', name: 'Matemáticas' },
+];
+
+/** Simula el catálogo con las mismas temáticas para listar y buscar por id. */
+function mockThemes(themes = THEMES) {
+  mock.method(themesRepository, 'findAll', async () => themes.map((theme) => ({ ...theme })));
+  mock.method(themesRepository, 'findById', async (id) => {
+    const found = themes.find((theme) => theme.id === id);
+    return found ? { ...found } : null;
   });
 }
 
@@ -82,7 +97,7 @@ describe('app · manejo de errores (B2-1)', () => {
   });
 
   it('un payload inválido sigue respondiendo 400 (ValidationError)', async () => {
-    const response = await post(JSON.stringify({ title: '', date: '2026-10-15', hours: 1, minutes: 0 }));
+    const response = await post(JSON.stringify({ themeId: '', date: '2026-10-15', hours: 1, minutes: 0 }));
     assert.equal(response.status, 400);
     const body = await response.json();
     assert.match(body.error, /temática/);
@@ -181,7 +196,7 @@ describe('app · validación de fechas y avisos (T5)', () => {
 
     for (const [caso, date] of invalidDates) {
       const response = await post(
-        JSON.stringify({ title: 'JavaScript', date, notes: '', hours: 1, minutes: 0 }),
+        JSON.stringify({ themeId: 'theme-1', date, notes: '', hours: 1, minutes: 0 }),
       );
       assert.equal(response.status, 400, `POST falló para: ${caso}`);
     }
@@ -192,7 +207,7 @@ describe('app · validación de fechas y avisos (T5)', () => {
   it('PUT /api/sessions con fecha inválida responde 400', async () => {
     const existing = {
       id: 'session-1',
-      title: 'JavaScript',
+      themeId: 'theme-1',
       date: '2026-10-15',
       durationMinutes: 60,
       notes: '',
@@ -267,10 +282,242 @@ describe('app · validación de fechas y avisos (T5)', () => {
   });
 });
 
+describe('app · datos de ejemplo (RF-36, RF-39)', () => {
+  it('POST /api/seed responde 204 y carga la semilla si no hay clases', async () => {
+    mock.method(sessionsRepository, 'findAll', async () => []);
+    mock.method(themesRepository, 'findAll', async () => []);
+    mock.method(themesRepository, 'insertMany', async (themes) => themes);
+    mock.method(sessionsRepository, 'insertMany', async (sessions) => sessions);
+
+    const response = await fetch(`${baseUrl}/api/seed`, { method: 'POST' });
+
+    assert.equal(response.status, 204);
+  });
+
+  it('POST /api/seed responde 409 si ya hay al menos una clase', async () => {
+    mock.method(sessionsRepository, 'findAll', async () => [
+      { id: 'session-1', themeId: 'theme-1' },
+    ]);
+    mock.method(themesRepository, 'findAll', async () => [
+      { id: 'theme-1', name: 'Matemáticas' },
+    ]);
+
+    const response = await fetch(`${baseUrl}/api/seed`, { method: 'POST' });
+
+    assert.equal(response.status, 409);
+    const body = await response.json();
+    assert.match(body.error, /Ya hay clases registradas/);
+  });
+});
+
+describe('app · temáticas (RF-2 a RF-13, RF-26 a RF-28)', () => {
+  function themesRequest(method, body, id = '') {
+    return fetch(`${baseUrl}/api/themes${id ? `/${id}` : ''}`, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  }
+
+  it('GET /api/themes devuelve la lista ordenada con sessionCount y cumple el contrato', async () => {
+    mock.method(themesRepository, 'findAll', async () => [
+      { id: 't2', name: 'Física' },
+      { id: 't1', name: 'álgebra' },
+    ]);
+    mock.method(sessionsRepository, 'findAll', async () => [{ id: 's1', themeId: 't1' }]);
+
+    const response = await fetch(`${baseUrl}/api/themes`);
+
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.doesNotThrow(() => assertThemeList(body));
+    assert.deepEqual(body.map((theme) => theme.name), ['álgebra', 'Física']);
+    assert.equal(body[0].sessionCount, 1);
+    assert.equal(body[1].sessionCount, 0);
+  });
+
+  it('POST /api/themes responde 201 con la temática creada y cumple el contrato', async () => {
+    mock.method(themesRepository, 'findAll', async () => []);
+    mock.method(themesRepository, 'insert', async (theme) => theme);
+
+    const response = await themesRequest('POST', { name: '  Matemáticas  ' });
+
+    assert.equal(response.status, 201);
+    const body = await response.json();
+    assert.doesNotThrow(() => assertTheme(body));
+    assert.equal(body.name, 'Matemáticas');
+    assert.equal(body.sessionCount, 0);
+    assert.equal(typeof body.id, 'string');
+  });
+
+  it('POST /api/themes rechaza un duplicado con 400 y mensaje claro', async () => {
+    mock.method(themesRepository, 'findAll', async () => [
+      { id: 't1', name: 'Matemáticas' },
+    ]);
+    const insert = mock.method(themesRepository, 'insert', async (theme) => theme);
+
+    const response = await themesRequest('POST', { name: 'matematicas' });
+
+    assert.equal(response.status, 400);
+    const body = await response.json();
+    assert.match(body.error, /Ya existe una temática con ese nombre/);
+    assert.equal(insert.mock.callCount(), 0);
+  });
+
+  it('POST /api/themes rechaza un nombre vacío con 400', async () => {
+    const response = await themesRequest('POST', { name: '   ' });
+
+    assert.equal(response.status, 400);
+    const body = await response.json();
+    assert.match(body.error, /obligatorio/);
+  });
+
+  it('PUT /api/themes/:id renombra y responde 200', async () => {
+    mock.method(themesRepository, 'findAll', async () => [
+      { id: 't1', name: 'Matemáticas' },
+    ]);
+    mock.method(sessionsRepository, 'countByThemeId', async () => 0);
+    mock.method(themesRepository, 'update', async (id, changes) => ({ id, ...changes }));
+
+    const response = await themesRequest('PUT', { name: 'Álgebra' }, 't1');
+
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.doesNotThrow(() => assertTheme(body));
+    assert.deepEqual(body, { id: 't1', name: 'Álgebra', sessionCount: 0 });
+  });
+
+  it('PUT /api/themes/:id responde 404 si la temática no existe', async () => {
+    mock.method(themesRepository, 'findAll', async () => []);
+
+    const response = await themesRequest('PUT', { name: 'Álgebra' }, 'no-existe');
+
+    assert.equal(response.status, 404);
+  });
+
+  it('DELETE /api/themes/:id sin clases responde 204', async () => {
+    mock.method(themesRepository, 'findAll', async () => [
+      { id: 't1', name: 'Matemáticas' },
+    ]);
+    mock.method(sessionsRepository, 'countByThemeId', async () => 0);
+    const remove = mock.method(themesRepository, 'remove', async () => true);
+
+    const response = await themesRequest('DELETE', undefined, 't1');
+
+    assert.equal(response.status, 204);
+    assert.equal(remove.mock.callCount(), 1);
+  });
+
+  it('DELETE /api/themes/:id responde 404 si la temática no existe', async () => {
+    mock.method(themesRepository, 'findAll', async () => []);
+
+    const response = await themesRequest('DELETE', undefined, 'no-existe');
+
+    assert.equal(response.status, 404);
+  });
+});
+
+describe('app · sesiones con temática (RF-20 a RF-24, RF-29 a RF-31)', () => {
+  beforeEach(() => {
+    mockThemes();
+  });
+
+  function session(overrides = {}) {
+    return {
+      id: 'session-1',
+      themeId: 'theme-1',
+      date: '2026-10-15',
+      durationMinutes: 60,
+      notes: '',
+      createdAt: '2026-10-15T10:00:00.000Z',
+      updatedAt: '2026-10-15T10:00:00.000Z',
+      ...overrides,
+    };
+  }
+
+  it('GET /api/sessions resuelve themeName y cumple el contrato', async () => {
+    mock.method(sessionsRepository, 'findAll', async () => [
+      session(),
+      session({ id: 'session-2', themeId: 'theme-2', date: '2026-10-16' }),
+    ]);
+
+    const response = await fetch(`${baseUrl}/api/sessions`);
+
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.doesNotThrow(() => assertSessionList(body));
+    assert.deepEqual(
+      body.map((item) => item.themeName).sort(),
+      ['JavaScript', 'Matemáticas'],
+    );
+  });
+
+  it('GET /api/sessions filtra por themeId y busca q solo en observaciones', async () => {
+    mock.method(sessionsRepository, 'findAll', async () => [
+      session({ id: 's1' }),
+      session({ id: 's2', themeId: 'theme-2', notes: 'Repaso de física cuántica' }),
+    ]);
+
+    const byTheme = await fetch(`${baseUrl}/api/sessions?themeId=theme-2`);
+    assert.deepEqual((await byTheme.json()).map((item) => item.id), ['s2']);
+
+    const byThemeName = await fetch(`${baseUrl}/api/sessions?q=javascript`);
+    assert.deepEqual(await byThemeName.json(), []);
+
+    const byNotes = await fetch(`${baseUrl}/api/sessions?q=f%C3%ADsica`);
+    assert.deepEqual((await byNotes.json()).map((item) => item.id), ['s2']);
+  });
+
+  it('GET /api/sessions con themeId repetido responde 400', async () => {
+    const response = await fetch(
+      `${baseUrl}/api/sessions?themeId=theme-1&themeId=theme-2`,
+    );
+
+    assert.equal(response.status, 400);
+    const body = await response.json();
+    assert.match(body.error, /temática/);
+  });
+
+  it('POST /api/sessions con una temática inexistente responde 400', async () => {
+    const insert = mock.method(sessionsRepository, 'insert', async (item) => ({ ...item }));
+
+    const response = await post(
+      JSON.stringify({ themeId: 'no-existe', date: '2026-10-15', hours: 1, minutes: 0 }),
+    );
+
+    assert.equal(response.status, 400);
+    const body = await response.json();
+    assert.match(body.error, /no existe/);
+    assert.equal(insert.mock.callCount(), 0);
+  });
+
+  it('PUT /api/sessions cambia la temática y devuelve el nombre nuevo', async () => {
+    const current = session();
+    mock.method(sessionsRepository, 'findById', async () => ({ ...current }));
+    mock.method(sessionsRepository, 'update', async (id, data) => ({ ...current, ...data, id }));
+
+    const response = await fetch(`${baseUrl}/api/sessions/${current.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ themeId: 'theme-2', hours: 1, minutes: 0 }),
+    });
+
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.themeId, 'theme-2');
+    assert.equal(body.themeName, 'Matemáticas');
+    assert.doesNotThrow(() => assertSession(body));
+  });
+});
+
 describe('app · duración parcial en /api/sessions (RF-1 a RF-13)', () => {
+  beforeEach(() => {
+    mockThemes();
+  });
+
   function postSession(duration) {
     return post(
-      JSON.stringify({ title: 'JavaScript', date: '2026-10-15', notes: '', ...duration }),
+      JSON.stringify({ themeId: 'theme-1', date: '2026-10-15', notes: '', ...duration }),
     );
   }
 
@@ -285,7 +532,7 @@ describe('app · duración parcial en /api/sessions (RF-1 a RF-13)', () => {
   function makeSession(overrides = {}) {
     return {
       id: 'session-1',
-      title: 'JavaScript',
+      themeId: 'theme-1',
       date: '2026-10-15',
       durationMinutes: 120,
       notes: '',

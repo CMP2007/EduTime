@@ -1,5 +1,5 @@
 import { ValidationError } from '../errors.js';
-import { DURATION_MAX, DURATION_MIN, MINUTES_MAX, NOTES_MAX, TITLE_MAX } from 'domain-constants';
+import { DURATION_MAX, DURATION_MIN, MINUTES_MAX, NOTES_MAX } from 'domain-constants';
 import { isValidDateString } from 'domain-dates';
 
 const HOURS_ERROR = 'Las horas deben ser un número entero mayor o igual que 0.';
@@ -48,11 +48,8 @@ function parseDuration(payload) {
  * se usa al construir la semilla para que toda sesión persistida las cumpla.
  */
 export function validateSessionInput(payload) {
-  const title = typeof payload.title === 'string' ? payload.title.trim() : '';
-  if (!title) throw new ValidationError('La temática es obligatoria.');
-  if (title.length > TITLE_MAX) {
-    throw new ValidationError(`La temática no puede superar ${TITLE_MAX} caracteres.`);
-  }
+  const themeId = typeof payload.themeId === 'string' ? payload.themeId.trim() : '';
+  if (!themeId) throw new ValidationError('La temática es obligatoria.');
 
   const date = typeof payload.date === 'string' ? payload.date : '';
   if (!isValidDateString(date)) {
@@ -66,5 +63,5 @@ export function validateSessionInput(payload) {
     throw new ValidationError(`Las observaciones no pueden superar ${NOTES_MAX} caracteres.`);
   }
 
-  return { title, date, durationMinutes, notes };
+  return { themeId, date, durationMinutes, notes };
 }

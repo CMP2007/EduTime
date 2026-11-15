@@ -8,6 +8,7 @@ router.get('/', async (request, response) => {
     from: request.query.from,
     to: request.query.to,
     q: request.query.q,
+    themeId: request.query.themeId,
   });
   response.json(sessions);
 });

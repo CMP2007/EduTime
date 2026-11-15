@@ -3,17 +3,23 @@ import { afterEach, describe, it, mock } from 'node:test';
 
 import { assertStats } from 'domain-contracts';
 import { sessionsRepository } from '../src/sessions/sessions.repository.js';
+import { themesRepository } from '../src/themes/themes.repository.js';
 import { GOAL_MINUTES, statsService } from '../src/stats/stats.service.js';
 import { addDays, todayString } from '../src/utils/date.js';
+
+const THEMES = [
+  { id: 'theme-1', name: 'Matemáticas' },
+  { id: 'theme-2', name: 'Física' },
+];
 
 /**
  * Construye una sesión con la forma del modelo de datos.
  * No importa el `id` para estos tests: basta con que sea único.
  */
-function buildSession(date, durationMinutes, title = 'Matemáticas') {
+function buildSession(date, durationMinutes, themeId = 'theme-1') {
   return {
-    id: `${date}-${durationMinutes}-${title}`,
-    title,
+    id: `${date}-${durationMinutes}-${themeId}`,
+    themeId,
     date,
     durationMinutes,
     notes: '',
@@ -22,9 +28,10 @@ function buildSession(date, durationMinutes, title = 'Matemáticas') {
   };
 }
 
-/** Sustituye la lectura del repositorio por una lista en memoria. */
-function seed(sessions) {
+/** Sustituye la lectura de ambos repositorios por listas en memoria. */
+function seed(sessions, themes = THEMES) {
   mock.method(sessionsRepository, 'findAll', async () => sessions.map((session) => ({ ...session })));
+  mock.method(themesRepository, 'findAll', async () => themes.map((theme) => ({ ...theme })));
 }
 
 afterEach(() => {
@@ -123,20 +130,50 @@ describe('statsService.getStats · periodos y resumen', () => {
 
   it('ordena las temáticas por minutos y detecta la clase más larga', async () => {
     seed([
-      buildSession('2026-10-15', 30, 'Física'),
-      buildSession('2026-10-15', 120, 'Matemáticas'),
-      buildSession('2026-10-16', 60, 'Matemáticas'),
+      buildSession('2026-10-15', 30, 'theme-2'),
+      buildSession('2026-10-15', 120, 'theme-1'),
+      buildSession('2026-10-16', 60, 'theme-1'),
     ]);
 
     const stats = await statsService.getStats({ period: 'month', date: '2026-10-15' });
 
-    assert.equal(stats.summary.longestClass.title, 'Matemáticas');
-    assert.equal(stats.summary.longestClass.durationMinutes, 120);
+    assert.deepEqual(stats.summary.longestClass, {
+      id: '2026-10-15-120-theme-1',
+      themeId: 'theme-1',
+      name: 'Matemáticas',
+      date: '2026-10-15',
+      durationMinutes: 120,
+    });
     assert.deepEqual(
-      stats.summary.subjects.map((subject) => subject.title),
+      stats.summary.subjects.map((subject) => subject.name),
       ['Matemáticas', 'Física'],
     );
+    assert.deepEqual(
+      stats.summary.subjects.map((subject) => subject.themeId),
+      ['theme-1', 'theme-2'],
+    );
     assert.equal(stats.summary.subjects[0].minutes, 180);
+    assert.equal(stats.summary.subjects[0].sessions, 2);
+  });
+
+  it('usa el nombre actual del catálogo aunque la temática se haya renombrado', async () => {
+    seed(
+      [buildSession('2026-10-15', 90, 'theme-1')],
+      [{ id: 'theme-1', name: 'Matemáticas avanzadas' }],
+    );
+
+    const stats = await statsService.getStats({ period: 'day', date: '2026-10-15' });
+
+    assert.equal(stats.summary.subjects[0].name, 'Matemáticas avanzadas');
+    assert.equal(stats.summary.longestClass.name, 'Matemáticas avanzadas');
+  });
+
+  it('falla si una clase referencia una temática inexistente', async () => {
+    seed([buildSession('2026-10-15', 90, 'no-existe')]);
+
+    await assert.rejects(() => statsService.getStats({ period: 'day', date: '2026-10-15' }), {
+      message: 'La clase 2026-10-15-90-no-existe referencia una temática inexistente.',
+    });
   });
 
   it('rechaza un periodo inválido en vez de degradarlo a semana', async () => {

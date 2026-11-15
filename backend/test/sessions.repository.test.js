@@ -103,6 +103,36 @@ describe('sessionsRepository · escritura', () => {
     );
   });
 
+  it('insertMany persiste todas las clases en una sola escritura', async () => {
+    const store = createStore([]);
+    const writeData = mock.method(store, 'writeData', async () => {});
+    const repository = createSessionsRepository(store);
+
+    const inserted = await repository.insertMany([buildSession('A'), buildSession('B')]);
+
+    assert.deepEqual(inserted.map((session) => session.id), ['A', 'B']);
+    assert.deepEqual(
+      (await repository.findAll()).map((session) => session.id),
+      ['A', 'B'],
+    );
+    assert.equal(writeData.mock.callCount(), 1);
+  });
+
+  it('insertMany no actualiza la caché si la escritura falla', async () => {
+    const store = createStore([buildSession('A')]);
+    mock.method(store, 'writeData', async () => {
+      throw new Error('disco lleno');
+    });
+    const repository = createSessionsRepository(store);
+
+    await assert.rejects(() => repository.insertMany([buildSession('B')]), /disco lleno/);
+
+    assert.deepEqual(
+      (await repository.findAll()).map((session) => session.id),
+      ['A'],
+    );
+  });
+
   it('devuelve copias: mutar el resultado no toca el estado interno', async () => {
     const repository = createSessionsRepository(createStore([buildSession('X')]));
 

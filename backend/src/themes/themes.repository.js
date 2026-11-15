@@ -31,10 +31,10 @@ export function createThemesRepository(store = defaultStore) {
   };
 
   // Cola de escrituras: nunca dos escrituras solapadas en disco.
-  const persist = () => {
+  const persist = (data) => {
     writeChain = writeChain.then(
-      () => store.writeData(cache),
-      () => store.writeData(cache), // si la anterior falló, esta se lanza igualmente
+      () => store.writeData(data),
+      () => store.writeData(data), // si la anterior falló, esta se lanza igualmente
     );
     return writeChain;
   };
@@ -58,8 +58,18 @@ export function createThemesRepository(store = defaultStore) {
       const list = await load();
       const stored = clone(theme);
       list.push(stored);
-      await persist();
+      await persist(cache);
       return clone(stored);
+    },
+
+    async insertMany(themes) {
+      const list = await load();
+      const stored = themes.map(clone);
+      const next = [...list, ...stored];
+
+      await persist(next);
+      cache = next;
+      return stored.map(clone);
     },
 
     async update(id, changes) {
@@ -74,7 +84,7 @@ export function createThemesRepository(store = defaultStore) {
         id: current.id,
       });
       list[index] = stored;
-      await persist();
+      await persist(cache);
       return clone(stored);
     },
 
@@ -84,7 +94,7 @@ export function createThemesRepository(store = defaultStore) {
       if (index === -1) return false;
 
       list.splice(index, 1);
-      await persist();
+      await persist(cache);
       return true;
     },
   };

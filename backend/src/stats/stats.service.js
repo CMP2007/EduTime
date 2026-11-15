@@ -1,6 +1,7 @@
 // @ts-check
 import { ValidationError } from '../errors.js';
 import { sessionsRepository } from '../sessions/sessions.repository.js';
+import { themesRepository } from '../themes/themes.repository.js';
 import { addDays, enumerateDays, getRange, isValidPeriod, todayString } from '../utils/date.js';
 import { GOAL_MINUTES, PERIODS } from 'domain-constants';
 import { isValidDateString, clampDateRange, RANGE_CLAMP_NOTICE } from 'domain-dates';
@@ -20,15 +21,33 @@ function totalMinutes(sessions) {
   return sessions.reduce((total, session) => total + session.durationMinutes, 0);
 }
 
-function groupBySubject(sessions) {
+function groupBySubject(sessions, themeNames) {
   const map = new Map();
   for (const session of sessions) {
-    const entry = map.get(session.title) ?? { title: session.title, minutes: 0, sessions: 0 };
+    const entry = map.get(session.themeId) ?? {
+      themeId: session.themeId,
+      name: themeNames.get(session.themeId),
+      minutes: 0,
+      sessions: 0,
+    };
     entry.minutes += session.durationMinutes;
     entry.sessions += 1;
-    map.set(session.title, entry);
+    map.set(session.themeId, entry);
   }
   return [...map.values()].sort((a, b) => b.minutes - a.minutes);
+}
+
+/** Mapa `themeId → nombre` actual; falla si una clase referencia una temática inexistente. */
+function buildThemeNames(sessions, themes) {
+  const names = new Map(themes.map((theme) => [theme.id, theme.name]));
+
+  for (const session of sessions) {
+    if (!names.has(session.themeId)) {
+      throw new Error(`La clase ${session.id} referencia una temática inexistente.`);
+    }
+  }
+
+  return names;
 }
 
 function findLongest(sessions) {
@@ -95,7 +114,11 @@ export const statsService = {
     const periodKey = period ?? 'week';
     const heatmapKey = heatmap ?? 'week';
 
-    const sessions = await sessionsRepository.findAll();
+    const [sessions, themes] = await Promise.all([
+      sessionsRepository.findAll(),
+      themesRepository.findAll(),
+    ]);
+    const themeNames = buildThemeNames(sessions, themes);
 
     // Calcular periodRange y heatmapRange
     const periodRange = getRange(periodKey, reference);
@@ -144,12 +167,13 @@ export const statsService = {
         longestClass: longest
           ? {
             id: longest.id,
-            title: longest.title,
+            themeId: longest.themeId,
+            name: themeNames.get(longest.themeId),
             date: longest.date,
             durationMinutes: longest.durationMinutes,
           }
           : null,
-        subjects: groupBySubject(periodSessions),
+        subjects: groupBySubject(periodSessions, themeNames),
       },
       global: {
         totalMinutes: totalMinutes(sessions),

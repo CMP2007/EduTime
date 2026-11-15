@@ -30,10 +30,10 @@ export function createSessionsRepository(store = defaultStore) {
   };
 
   // Cola de escrituras: nunca dos escrituras solapadas en disco.
-  const persist = () => {
+  const persist = (data) => {
     writeChain = writeChain.then(
-      () => store.writeData(cache),
-      () => store.writeData(cache), // si la anterior falló, esta se lanza igualmente
+      () => store.writeData(data),
+      () => store.writeData(data), // si la anterior falló, esta se lanza igualmente
     );
     return writeChain;
   };
@@ -57,8 +57,18 @@ export function createSessionsRepository(store = defaultStore) {
       const list = await load();
       const stored = clone(session);
       list.push(stored);
-      await persist();
+      await persist(cache);
       return clone(stored);
+    },
+
+    async insertMany(sessions) {
+      const list = await load();
+      const stored = sessions.map(clone);
+      const next = [...list, ...stored];
+
+      await persist(next);
+      cache = next;
+      return stored.map(clone);
     },
 
     async update(id, changes) {
@@ -75,7 +85,7 @@ export function createSessionsRepository(store = defaultStore) {
         updatedAt: new Date().toISOString(),
       });
       list[index] = stored;
-      await persist();
+      await persist(cache);
       return clone(stored);
     },
 
@@ -85,7 +95,7 @@ export function createSessionsRepository(store = defaultStore) {
       if (index === -1) return false;
 
       list.splice(index, 1);
-      await persist();
+      await persist(cache);
       return true;
     },
 
@@ -105,7 +115,7 @@ export function createSessionsRepository(store = defaultStore) {
         }
       }
 
-      if (changed) await persist();
+      if (changed) await persist(cache);
     },
 
     async removeByThemeId(themeId) {
@@ -114,7 +124,7 @@ export function createSessionsRepository(store = defaultStore) {
       if (remaining.length === list.length) return;
 
       list.splice(0, list.length, ...remaining);
-      await persist();
+      await persist(cache);
     },
   };
 }
