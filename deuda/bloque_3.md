@@ -106,6 +106,13 @@ con id propio.
 
 **Mitigación:** cachear el resultado invalidando al escribir (o dejarlo, por simplicidad).
 
+**Resuelto (2026-11-15):** `stats.service.js` memoiza el resultado con `createStreakMemo`, que usa
+como clave el día de referencia y las fechas con meta. Si los datos cambian o pasa la medianoche,
+la clave cambia y se recalcula: no hace falta invalidar al escribir ni que el repositorio avise.
+Medido con 3650 clases: de ~9 ms a ~1,5 ms por petición. Evidencia:
+`backend/test/stats.service.test.js` (tres tests del memo y uno de integración, verificados con
+mutación).
+
 ### B5-4 · Meta diaria fija (180) y duplicada backend/frontend
 
 `GOAL_MINUTES = 180` está en `stats.service.js:4` y otra vez en `frontend/src/utils/time.js:2`

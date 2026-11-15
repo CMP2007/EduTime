@@ -81,6 +81,27 @@ function computeStreaks(goalDates, reference) {
   return { current, best };
 }
 
+/**
+ * Memoiza el cálculo de la racha (B5-3). La clave incluye el día de referencia
+ * y las fechas con meta, así que nunca devuelve un resultado obsoleto: si
+ * cambian los datos o pasa la medianoche, se recalcula.
+ */
+export function createStreakMemo(compute = computeStreaks) {
+  let lastKey = null;
+  let lastResult = null;
+
+  return (goalDates, today) => {
+    const key = `${today}|${goalDates.join(',')}`;
+    if (key !== lastKey) {
+      lastResult = compute(goalDates, today);
+      lastKey = key;
+    }
+    return lastResult;
+  };
+}
+
+const streakMemo = createStreakMemo();
+
 /** Crea un día del heatmap con el minutos de la fecha y el umbral. */
 function buildHeatmap(totalsByDate, from, to) {
   return enumerateDays(from, to).map((date) => {
@@ -180,7 +201,7 @@ export const statsService = {
         totalSessions: sessions.length,
         activeDays: totalsByDate.size,
         goalDays,
-        streak: computeStreaks(goalDates, todayString()),
+        streak: streakMemo(goalDates, todayString()),
       },
       today: {
         date: reference,

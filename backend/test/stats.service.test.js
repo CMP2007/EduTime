@@ -4,7 +4,7 @@ import { afterEach, describe, it, mock } from 'node:test';
 import { assertStats } from 'domain-contracts';
 import { sessionsRepository } from '../src/sessions/sessions.repository.js';
 import { themesRepository } from '../src/themes/themes.repository.js';
-import { GOAL_MINUTES, statsService } from '../src/stats/stats.service.js';
+import { createStreakMemo, GOAL_MINUTES, statsService } from '../src/stats/stats.service.js';
 import { addDays, todayString } from '../src/utils/date.js';
 
 const THEMES = [
@@ -342,5 +342,76 @@ describe('statsService.getStats · validación y recorte de fechas (T4)', () => 
     assert.equal(onlyHeatmap.period.from, '2025-06-15');
     assert.equal(onlyHeatmap.heatmap.to, '9999-12-31');
     assert.ok(onlyHeatmap.notice);
+  });
+});
+
+// === Tests de la caché de la racha (B5-3) ===
+describe('createStreakMemo · caché de la racha (B5-3)', () => {
+  const DATES = ['2026-11-14', '2026-11-15'];
+  const TODAY = '2026-11-15';
+
+  it('calcula una sola vez mientras no cambien los datos ni el día', () => {
+    let calls = 0;
+    const memo = createStreakMemo((goalDates, today) => {
+      calls += 1;
+      return { current: goalDates.length, best: goalDates.length, today };
+    });
+
+    const first = memo(DATES, TODAY);
+    const second = memo([...DATES], TODAY);
+
+    assert.equal(second, first);
+    assert.equal(calls, 1);
+  });
+
+  it('recalcula cuando cambian las fechas con meta', () => {
+    let calls = 0;
+    const memo = createStreakMemo((goalDates) => {
+      calls += 1;
+      return { current: goalDates.length, best: goalDates.length };
+    });
+
+    const first = memo(DATES, TODAY);
+    const second = memo([...DATES, '2026-11-13'], TODAY);
+
+    assert.notEqual(second, first);
+    assert.deepEqual(second, { current: 3, best: 3 });
+    assert.equal(calls, 2);
+  });
+
+  it('recalcula cuando cambia el día de referencia aunque los datos sean iguales', () => {
+    let calls = 0;
+    const memo = createStreakMemo(() => {
+      calls += 1;
+      return { current: calls, best: calls };
+    });
+
+    memo(DATES, TODAY);
+    const tomorrow = memo(DATES, '2026-11-16');
+
+    assert.deepEqual(tomorrow, { current: 2, best: 2 });
+    assert.equal(calls, 2);
+  });
+});
+
+describe('statsService.getStats · racha memoizada (B5-3)', () => {
+  it('reutiliza la racha entre peticiones idénticas y la recalcula al cambiar los datos', async () => {
+    const hoy = todayString();
+    const sessions = [buildSession(hoy, GOAL_MINUTES + 20)];
+    mock.method(sessionsRepository, 'findAll', async () => sessions.map((session) => ({ ...session })));
+    mock.method(themesRepository, 'findAll', async () => THEMES.map((theme) => ({ ...theme })));
+
+    const first = await statsService.getStats({ date: hoy });
+    const second = await statsService.getStats({ date: hoy });
+
+    assert.equal(second.global.streak, first.global.streak);
+    assert.deepEqual(first.global.streak, { current: 1, best: 1 });
+
+    sessions.push(buildSession(addDays(hoy, -1), GOAL_MINUTES + 20));
+
+    const third = await statsService.getStats({ date: hoy });
+
+    assert.notEqual(third.global.streak, first.global.streak);
+    assert.deepEqual(third.global.streak, { current: 2, best: 2 });
   });
 });
