@@ -127,6 +127,8 @@ describe('SeedPrompt · aceptar y rechazar (RF-36, RF-37)', () => {
     renderPrompt();
 
     await screen.findByRole('dialog');
+    // Deja que el modal registre su listener de teclado antes de simular Escape.
+    await act(async () => {});
     fireEvent.keyDown(document, { key: 'Escape' });
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
