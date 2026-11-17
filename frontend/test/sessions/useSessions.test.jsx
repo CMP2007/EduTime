@@ -1,3 +1,4 @@
+import { act } from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DataRefreshProvider } from '../../src/context/DataRefreshContext.jsx';
@@ -51,6 +52,35 @@ describe('useSessions · filtros', () => {
       q: '',
       themeId: 'theme-1',
     });
+  });
+
+  it('descarta una respuesta antigua que llega después de una más reciente', async () => {
+    let resolveOld;
+    const oldResponse = new Promise((resolve) => {
+      resolveOld = resolve;
+    });
+    sessionsApiMock.list
+      .mockImplementationOnce(() => oldResponse)
+      .mockResolvedValueOnce([buildSession({ id: 'nueva', themeName: 'Nueva' })]);
+
+    const { result, rerender } = renderHook(
+      ({ themeId }) => useSessions({ themeId }),
+      { wrapper, initialProps: { themeId: 'theme-1' } },
+    );
+
+    await waitFor(() => expect(sessionsApiMock.list).toHaveBeenCalledTimes(1));
+
+    rerender({ themeId: 'theme-2' });
+    await waitFor(() => expect(result.current.sessions[0]?.id).toBe('nueva'));
+
+    // La respuesta de la primera petición llega tarde: no debe pisar la nueva.
+    await act(async () => {
+      resolveOld([buildSession({ id: 'vieja', themeName: 'Vieja' })]);
+      await Promise.resolve();
+    });
+
+    expect(result.current.sessions[0]?.id).toBe('nueva');
+    expect(result.current.error).toBe('');
   });
 
   it('combina temática, fechas y búsqueda en la misma petición', async () => {

@@ -125,7 +125,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
-| B9-1 | Validación de dominio duplicada en `SessionForm` (refuerza B0-1) | Baja-Media | pendiente |
+| B9-1 | Validación de dominio duplicada en `SessionForm` (refuerza B0-1) | Baja-Media | resuelto |
 | B9-2 | Búsqueda sin `debounce` (una petición por pulsación) | Media | pendiente |
 | B9-3 | Límite de duración: el mensaje del backend dice "23 h" pero admite 23h59; el cliente solo valida el mínimo en JS | Baja | pendiente |
 | B9-4 | Mensajes de error del formulario sin rol accesible | Baja | pendiente |
@@ -137,7 +137,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 | ID | Debilidad | Severidad | Estado |
 |----|-----------|-----------|--------|
 | B10-1 | `StatsPanel` refiltra el periodo en cliente y carga todas las clases | Media | pendiente |
-| B10-2 | `PERIOD_OPTIONS` duplica `PERIODS` del backend (refuerza B0-1) | Baja | pendiente |
+| B10-2 | `PERIOD_OPTIONS` duplica `PERIODS` del backend (refuerza B0-1) | Baja | resuelto |
 | B10-3 | Umbrales del heatmap (`level`) hardcodeados sin documentar | Baja | pendiente |
 | B10-4 | `buildColumns` asume serie contigua y no rellena la última semana | Baja | pendiente |
 | B10-5 | Tarjetas con `?? 0` silencian cambios de forma del contrato | Baja | resuelto |
@@ -153,7 +153,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 | B11-4 | Sin `:focus-visible` ni `prefers-reduced-motion` | Baja | pendiente |
 | B11-5 | Valores mágicos de layout (`z-index`, anchos fijos) sin tokens | Baja | pendiente |
 | B11-6 | `textarea { resize: none }` quita el control de redimensionado | Muy baja | pendiente |
-| B11-7 | Barra de pestañas con overflow horizontal a 375 px | Baja | pendiente |
+| B11-7 | Barra de pestañas con overflow horizontal a 375 px | Baja | resuelto |
 
 ---
 
@@ -237,6 +237,12 @@ de esta deuda.
 
 **Prioridad:** *Media* (conexión robusta).
 
+**B7-2 parcialmente resuelto (2026-11-17):** los tres hooks (`useSessions`, `useStats` y
+`useThemes`) descartan las respuestas fuera de orden con `requestIdRef`; la guarda queda cubierta
+por `frontend/test/sessions/useSessions.test.jsx` (verificada por mutación). Sigue pendiente la
+**cancelación** de la petición en vuelo (`AbortController`), que se abordará junto con B7-3 y
+B7-4 en la spec de red.
+
 ### B8-1, B8-3, B8-4, B8-5 · Validación de formateadores, límites inferiores, lógica duplicada y silenciamiento de inválidos
 
 **B8-1 resuelto (2026-11-10)** en `specs/004-validacion-fechas/`: `fromDateString` del frontend
@@ -251,16 +257,37 @@ y `frontend/test/stats/ActivityHeatmap.test.jsx`. Pendientes B8-3, B8-4 y B8-5.
 **B9-5 resuelto (2026-11-10)** en `specs/004-validacion-fechas/`: `useSessions` detecta el rango
 invertido solo con fechas válidas, invalida la petición en vuelo, no consulta y conserva listado
 y error; `HistoryView` muestra un `StatusNotice` con `role="status"` y oculta el error anterior.
-Evidencia: `frontend/test/sessions/HistoryView.test.jsx`. Pendientes B9-1, B9-2, B9-3, B9-4 y
-B9-6.
+Evidencia: `frontend/test/sessions/HistoryView.test.jsx`.
+
+**B9-1 resuelto (2026-11-17):** `SessionForm` ya no redefine reglas de dominio: importa
+`DURATION_MIN` y `NOTES_MAX` de `packages/domain-constants`, la misma fuente que usa
+`sessions.validation.js`; no queda ninguna copia local ni `TITLE_MAX`. Refactor sin cambio
+observable, cubierto por la suite existente. Quedan pendientes B9-2, B9-6, B9-3 (solo validar el
+máximo en JS: el mensaje ya dice «23:59») y B9-4 (solo `aria-describedby`: el error general ya
+lleva `role="alert"`). B9-3, B9-4 y B9-6 se agrupan con B8-3, B8-4 y B8-5 en la spec del
+formulario.
 
 **Prioridad:** *Media* (datos sincronizados y UX accesible).
 
 ### B10-1, B10-2, B10-3, B10-4, B10-5, B10-6 · Filtro de periodo en cliente, listas duplicadas, umbrales del heatmap, calendario, valores por defecto y error/estado visibles
 
+**B10-2 resuelto (2026-11-17):** `PERIODS` y `PERIOD_OPTIONS` viven en
+`packages/domain-constants`; `PeriodFilter.jsx` y `stats.service.js` importan de ahí, así que ya
+no hay listas duplicadas entre capas. Evidencia:
+`packages/domain-constants/test/constants.test.js` (las claves deben coincidir y no repetirse),
+verificado por mutación. Quedan pendientes B10-1, B10-3 y B10-4.
+
 **Prioridad:** *Media* (estática del tablero de inicio).
 
 ### B11-1, B11-2, B11-3, B11-4, B11-5, B11-6, B11-7 · Duplicación de estilos, monoliticidad, missing accesibilidad y layout tokens
+
+**B11-7 resuelto (2026-11-17):** la media query de `styles.css` (`max-width: 560px`) hace que
+`.tabs` ocupe el ancho del contenedor y envuelva los botones. Medido con Chrome DevTools a 375 px
+y 320 px: `scrollWidth === clientWidth` (sin scroll horizontal) y `flex-wrap: wrap`. El arreglo
+llegó con el selector de temáticas (`e7babd3`, 2026-11-14). **B11-4 parcialmente resuelto:**
+`prefers-reduced-motion` ya existe; `:focus-visible` solo cubre `button` y `a` y falta aplicarlo a
+los controles de formulario. Quedan pendientes B11-1, B11-2, B11-3, B11-5, B11-6 y el resto de
+B11-4.
 
 **Prioridad:** *Media* (consistencia visual).
 
@@ -268,6 +295,6 @@ B9-6.
 
 ### Resumen
 
-**Sesenta y ocho** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 42 resueltas, 25 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B4-5 resuelto, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10); B5-2 quedó resuelto en `specs/006-catalogo-tematicas/` (2026-11-13); B5-4 quedó resuelto con la extracción de constantes a `packages/domain-constants` (commit `46c0d4c`, 2026-10-27). Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
+**Sesenta y ocho** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 45 resueltas, 22 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B4-5 resuelto, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10); B5-2 quedó resuelto en `specs/006-catalogo-tematicas/` (2026-11-13); B5-4 quedó resuelto con la extracción de constantes a `packages/domain-constants` (commit `46c0d4c`, 2026-10-27). El 2026-11-17 se cerraron sin cambio de comportamiento B9-1 (reglas compartidas), B10-2 (periodos en una sola fuente, con test) y B11-7 (pestañas sin overflow a 375/320 px); B7-2, B9-3, B9-4 y B11-4 quedaron parcialmente resueltos y su resto entra en las specs de red, formulario y estilos. Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
 
 La estructura propuesta (resumen + 13 bloques) mantiene el alcance de cada archivo y la tabla de contenidos original.

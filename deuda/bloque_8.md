@@ -20,6 +20,11 @@ datos de los necesarios.
 
 **Mitigación:** fuente única de periodos.
 
+**Resuelto (2026-11-17):** `PERIODS` y `PERIOD_OPTIONS` viven en `packages/domain-constants`;
+`PeriodFilter.jsx` y `stats.service.js` importan de ahí y ya no hay listas duplicadas entre
+capas. Evidencia: `packages/domain-constants/test/constants.test.js` (claves alineadas y sin
+duplicados), verificado por mutación.
+
 ### B10-3 · Umbrales del heatmap (`level`) hardcodeados sin documentar
 
 `ActivityHeatmap.jsx:4-10` fija los cortes de color en 60, 120 y `GOAL_MINUTES` (180). La escala

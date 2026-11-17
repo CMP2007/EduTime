@@ -11,6 +11,10 @@ capas pueden divergir sin que nada avise.
 
 **Mitigación:** compartir las reglas desde un módulo común.
 
+**Resuelto (2026-11-17):** `SessionForm` importa `DURATION_MIN` y `NOTES_MAX` de
+`packages/domain-constants`, la misma fuente que usa `sessions.validation.js`; no queda ninguna
+constante local ni `TITLE_MAX`. Refactor sin cambio observable, cubierto por la suite existente.
+
 ### B9-2 · Búsqueda sin `debounce` (una petición por pulsación)
 
 `SessionFilters` → `HistoryView.filters` → `useSessions`: cada tecla en "Buscar" cambia `q`,
@@ -36,12 +40,20 @@ Lo que sí queda como debilidad:
 **Mitigación:** alinear el texto del mensaje con el límite real (o cambiar el límite) y validar
 el máximo también en JavaScript.
 
+**Parcialmente resuelto (2026-11-17):** el mensaje ya dice «La clase no puede superar las 23:59»
+(`sessions.validation.js`). Queda validar el máximo en JS, además del atributo `max` del HTML; se
+hará en la spec del formulario.
+
 ### B9-4 · Mensajes de error del formulario sin rol accesible
 
 `SessionForm.jsx:143` pinta `<p className="error">` sin `role="alert"` ni `aria-describedby`
 asociado al campo. Los lectores de pantalla pueden no anunciar el error.
 
 **Mitigación:** `role="alert"` y asociar el mensaje al campo.
+
+**Parcialmente resuelto (2026-11-17):** el error general ya lleva `role="alert"` y los de temática
+usan `role="alert"`/`role="status"`. Falta `aria-describedby` para asociar el mensaje al campo
+correspondiente; se hará en la spec del formulario.
 
 ### B9-5 · Filtros `from`/`to` sin comprobar rango invertido
 

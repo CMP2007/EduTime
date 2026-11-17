@@ -24,6 +24,12 @@ dos recargas se solapan, una respuesta lenta puede **pisar** a una más nueva; a
 
 **Mitigación:** `AbortController` y/o descartar respuestas fuera de orden.
 
+**Parcialmente resuelto (2026-11-17):** `useSessions`, `useStats` y `useThemes` ya descartan las
+respuestas fuera de orden con `requestIdRef`. Evidencia:
+`frontend/test/sessions/useSessions.test.jsx` (una respuesta antigua que llega tarde no pisa a la
+nueva), verificado por mutación. Queda pendiente la **cancelación** de la petición en vuelo
+(`AbortController`), que se abordará con B7-3 y B7-4.
+
 ### B7-3 · Merge de cabeceras frágil (`Content-Type` se puede borrar)
 
 En `client.js:5-8` el orden `{ headers: {...}, ...options }` hace que, si un llamador pasa su
