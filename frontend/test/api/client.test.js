@@ -113,4 +113,108 @@ describe('request', () => {
     expect(error).toBe(abortError);
     expect(error).not.toBeInstanceOf(ApiError);
   });
+
+  it('conserva Content-Type cuando el llamador aporta cabeceras propias', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await request('/sessions', {
+      method: 'POST',
+      body: JSON.stringify({ date: '2026-11-18' }),
+      headers: { 'X-Cliente': 'demo' },
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/sessions',
+      expect.objectContaining({
+        headers: { 'Content-Type': 'application/json', 'X-Cliente': 'demo' },
+      }),
+    );
+  });
+
+  it('permite al llamador sobrescribir el Content-Type por defecto', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await request('/sessions', {
+      method: 'POST',
+      body: 'texto plano',
+      headers: { 'Content-Type': 'text/plain' },
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/sessions',
+      expect.objectContaining({ headers: { 'Content-Type': 'text/plain' } }),
+    );
+  });
+
+  it('no envía Content-Type en una petición sin cuerpo', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await request('/stats');
+
+    const [, options] = fetchMock.mock.calls[0];
+    expect(options.headers?.['Content-Type']).toBeUndefined();
+  });
+
+  it('envía Content-Type cuando un DELETE lleva cuerpo', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await request('/themes/theme-1', {
+      method: 'DELETE',
+      body: JSON.stringify({ strategy: 'delete' }),
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/themes/theme-1',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+      }),
+    );
+  });
+
+  it('conserva method, body y signal al fusionar las cabeceras', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const controller = new AbortController();
+
+    await request('/sessions/session-1', {
+      method: 'PUT',
+      body: JSON.stringify({ date: '2026-11-18' }),
+      headers: { 'X-Cliente': 'demo' },
+      signal: controller.signal,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/sessions/session-1',
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({ date: '2026-11-18' }),
+        signal: controller.signal,
+        headers: { 'Content-Type': 'application/json', 'X-Cliente': 'demo' },
+      }),
+    );
+  });
 });

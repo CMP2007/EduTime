@@ -109,8 +109,8 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 |----|-----------|-----------|--------|
 | B7-1 | `request` pierde el código de estado HTTP | Media | resuelto |
 | B7-2 | Sin cancelación ni orden de respuestas (race en los hooks) | Baja-Media | resuelto |
-| B7-3 | Merge de cabeceras frágil (`Content-Type` se puede borrar) | Baja | pendiente |
-| B7-4 | `Content-Type` enviado también en peticiones `GET` | Muy baja | pendiente |
+| B7-3 | Merge de cabeceras frágil (`Content-Type` se puede borrar) | Baja | resuelto |
+| B7-4 | `Content-Type` enviado también en peticiones `GET` | Muy baja | resuelto |
 
 ### Bloque 8 — Frontend: utilidades y componentes base
 
@@ -273,8 +273,18 @@ relanza un abort en vez de disfrazarlo de error de red (en `useThemes`, cerrar e
 una petición en vuelo ya no deja el mensaje inglés del abort). Evidencia: 20 tests nuevos en
 `frontend/test/api/client.test.js`, los tres `*.api.test.js`, `useSessions.test.jsx`,
 `useStats.test.jsx` (archivo nuevo) y `useThemes.test.jsx`; 11 mutaciones comprobadas (una por
-regla, todas detectadas). Quedan pendientes B7-3 (fusión de cabeceras) y B7-4 (`Content-Type` en
-`GET`).
+regla, todas detectadas).
+
+**B7-3 y B7-4 resueltos (2026-11-18):** `request` desestructura las `headers` del llamador y las
+fusiona con el valor por defecto, de modo que un llamador puede añadir cabeceras propias o
+sobrescribir `Content-Type` sin que se pierda el valor JSON; la cabecera solo se añade cuando hay
+`body` (`!== undefined` y `!== null`), así que las lecturas (`GET`) y los `DELETE` sin cuerpo dejan
+de enviarla, mientras que el `DELETE` de temáticas con estrategia (que sí lleva cuerpo) la
+conserva. `method`, `body` y `signal` siguen llegando íntegros a `fetch`. Evidencia:
+`frontend/test/api/client.test.js` (cinco casos nuevos: fusión, sobrescritura, `GET` sin cuerpo,
+`DELETE` con cuerpo y conservación del resto de opciones), verificado por mutación (con el
+`client.js` anterior fallan 3 de los 13 casos del archivo). Refactor sin cambio observable: no
+requiere spec.
 
 ### B8-1, B8-3, B8-4, B8-5 · Validación de formateadores, límites inferiores, lógica duplicada y silenciamiento de inválidos
 
@@ -328,6 +338,6 @@ B11-4.
 
 ### Resumen
 
-**Sesenta y nueve** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 50 resueltas, 18 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B6-3, B6-4 y B6-5 resueltos, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10); B5-2 quedó resuelto en `specs/006-catalogo-tematicas/` (2026-11-13); B5-4 quedó resuelto con la extracción de constantes a `packages/domain-constants` (commit `46c0d4c`, 2026-10-27). El 2026-11-17 se cerraron sin cambio de comportamiento B9-1 (reglas compartidas), B10-2 (periodos en una sola fuente, con test) y B11-7 (pestañas sin overflow a 375/320 px); B6-3, B6-4 y B6-5 se cerraron en `specs/007-orquestacion-app/` (2026-11-17); B6-6 se cerró el 2026-11-18 con dos tests de reintento en `frontend/test/App.test.jsx` (guardado y borrado), verificados por mutación; B7-2 se cerró el 2026-11-18 con la cancelación de la petición en vuelo en los tres hooks de lectura (20 tests y 11 mutaciones detectadas); B9-3, B9-4 y B11-4 siguen parciales y su resto entra en las specs del formulario y de estilos. Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
+**Sesenta y nueve** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 52 resueltas, 16 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B6-3, B6-4 y B6-5 resueltos, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10); B5-2 quedó resuelto en `specs/006-catalogo-tematicas/` (2026-11-13); B5-4 quedó resuelto con la extracción de constantes a `packages/domain-constants` (commit `46c0d4c`, 2026-10-27). El 2026-11-17 se cerraron sin cambio de comportamiento B9-1 (reglas compartidas), B10-2 (periodos en una sola fuente, con test) y B11-7 (pestañas sin overflow a 375/320 px); B6-3, B6-4 y B6-5 se cerraron en `specs/007-orquestacion-app/` (2026-11-17); B6-6 se cerró el 2026-11-18 con dos tests de reintento en `frontend/test/App.test.jsx` (guardado y borrado), verificados por mutación; B7-2 se cerró el 2026-11-18 con la cancelación de la petición en vuelo en los tres hooks de lectura (20 tests y 11 mutaciones detectadas); B7-3 y B7-4 se cerraron el 2026-11-18 con la fusión de cabeceras y el `Content-Type` solo en peticiones con cuerpo (5 tests nuevos, mutación detectada); B9-3, B9-4 y B11-4 siguen parciales y su resto entra en las specs del formulario y de estilos. Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
 
 La estructura propuesta (resumen + 13 bloques) mantiene el alcance de cada archivo y la tabla de contenidos original.

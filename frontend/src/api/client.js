@@ -4,11 +4,19 @@ const API_URL = '/api';
 
 /** Petición JSON genérica contra la API. Lanza ApiError con mensaje y status HTTP. */
 export async function request(path, options = {}) {
+  const { headers, ...rest } = options;
+  // El Content-Type acompaña solo a las peticiones con cuerpo; las cabeceras del
+  // llamador se fusionan con el valor por defecto y pueden sobrescribirlo.
+  const hasBody = rest.body !== undefined && rest.body !== null;
+  const requestHeaders = hasBody
+    ? { 'Content-Type': 'application/json', ...headers }
+    : { ...headers };
+
   let response;
   try {
     response = await fetch(`${API_URL}${path}`, {
-      headers: { 'Content-Type': 'application/json' },
-      ...options,
+      ...rest,
+      headers: requestHeaders,
     });
   } catch (error) {
     // Una cancelación deliberada no es un fallo de red: se propaga tal cual
