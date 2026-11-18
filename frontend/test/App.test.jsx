@@ -78,6 +78,39 @@ describe('App · borrado de clases', () => {
     expect(sessionsApiMock.remove).toHaveBeenCalledWith('abc-123');
   });
 
+  it('permite reintentar el borrado tras un error y cierra el diálogo', async () => {
+    statsApiMock.get.mockRejectedValue(new Error('Backend caído'));
+    sessionsApiMock.list.mockResolvedValue([session]);
+    sessionsApiMock.remove
+      .mockRejectedValueOnce(new Error('No se pudo eliminar la clase.'))
+      .mockResolvedValueOnce(null);
+
+    render(
+      <DataRefreshProvider>
+        <App />
+      </DataRefreshProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Historial' }));
+
+    const rowTitle = await screen.findByText('Matemáticas');
+    fireEvent.click(within(rowTitle.closest('li')).getByRole('button', { name: 'Eliminar' }));
+
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Eliminar' }));
+
+    expect(await within(dialog).findByText('No se pudo eliminar la clase.')).toBeTruthy();
+    expect(sessionsApiMock.remove).toHaveBeenCalledTimes(1);
+
+    // El diálogo sigue abierto y el botón habilitado: el segundo intento funciona.
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Eliminar' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(sessionsApiMock.remove).toHaveBeenCalledTimes(2);
+    expect(sessionsApiMock.remove).toHaveBeenNthCalledWith(2, 'abc-123');
+    expect(screen.queryByText('No se pudo eliminar la clase.')).toBeNull();
+  });
+
   it('cierra el diálogo y refresca cuando el borrado funciona', async () => {
     statsApiMock.get.mockRejectedValue(new Error('Backend caído'));
     // Primera carga: SeedPrompt y, al abrir Historial, su propio hook. Tras
@@ -310,6 +343,33 @@ describe('App · guardado de clases', () => {
 
     expect(await screen.findByText('No se pudo guardar la clase.')).toBeTruthy();
     expect(screen.getByRole('dialog', { name: 'Nueva clase' })).toBeTruthy();
+  });
+
+  it('permite reintentar el guardado tras un error y cierra el formulario', async () => {
+    sessionsApiMock.create
+      .mockRejectedValueOnce(new Error('No se pudo guardar la clase.'))
+      .mockResolvedValueOnce({ ...session, id: 'session-new' });
+
+    renderApp();
+    await fillNewSession();
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Nueva clase' });
+    expect(await within(dialog).findByText('No se pudo guardar la clase.')).toBeTruthy();
+    expect(sessionsApiMock.create).toHaveBeenCalledTimes(1);
+
+    // Los controles siguen habilitados: se reintenta con el mismo formulario.
+    const retry = within(dialog).getByRole('button', { name: 'Guardar' });
+    expect(retry.disabled).toBe(false);
+    fireEvent.click(retry);
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(sessionsApiMock.create).toHaveBeenCalledTimes(2);
+    expect(sessionsApiMock.create).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ themeId: 'theme-1', hours: 1, minutes: 0 }),
+    );
+    expect(screen.queryByText('No se pudo guardar la clase.')).toBeNull();
   });
 
   it('actualiza una clase existente y cierra el formulario', async () => {
