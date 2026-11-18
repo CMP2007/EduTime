@@ -29,5 +29,6 @@ export function combineDuration(hours, minutes) {
 
 /** Porcentaje de la meta diaria (0-100). */
 export function goalProgress(minutes) {
-  return Math.min(100, Math.round(((minutes || 0) / GOAL_MINUTES) * 100));
+  const percentage = Math.round(((minutes || 0) / GOAL_MINUTES) * 100);
+  return Math.max(0, Math.min(100, percentage));
 }

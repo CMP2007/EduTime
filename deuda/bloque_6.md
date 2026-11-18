@@ -42,6 +42,12 @@ aplica `Math.max(0, …)`. Con minutos negativos (dato corrupto) el porcentaje s
 
 **Mitigación:** añadir `Math.max(0, …)`.
 
+**Resuelto (2026-11-18):** `goalProgress` acota el resultado a 0–100 con
+`Math.max(0, Math.min(100, …))`, así que unos minutos negativos (dato corrupto) no producen un
+porcentaje negativo en `aria-valuenow` ni en el ancho de la barra. Evidencia:
+`frontend/test/utils/time.test.js` (dos casos nuevos; el del límite inferior se comprobó por
+mutación). Defensa sin cambio observable con datos válidos: no requiere spec.
+
 ### B8-4 · Lógica "lunes = 0" duplicada (`formatDateLong` vs `weekdayIndex`)
 
 `formatDateLong` (`date.js:34`) calcula en línea `(date.getDay() + 6) % 7`, cuando ya existe
