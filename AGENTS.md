@@ -154,18 +154,19 @@ backend/test/                  # tests (espejo de backend/src/)
 frontend/
   vitest.config.js             # configuración de los tests (Vitest + jsdom)
   test/                        # tests (espejo de frontend/src/)
-    setup.js                   # registro global: cleanup de Testing Library
+    setup.js                   # registro global: cleanup y reset del hash tras cada test
     fixtures/contracts.js      # datos válidos de Theme/Session/Stats para los tests
 
 frontend/src/
   main.jsx                     # punto de entrada de React
-  App.jsx                      # layout + pestaña activa + modales globales
+  App.jsx                      # orquestador: pestaña, diálogos y avisos (sin acceso a datos)
   api/ApiError.js              # error de API que conserva el status HTTP
   api/client.js                # fetch genérico a la API (lanza ApiError)
   components/                  # componentes reutilizables (Modal, Tabs, Card, ErrorBoundary…)
   context/DataRefreshContext.jsx  # versiones de sesiones, estadísticas y temáticas
+  navigation/                  # pestañas, direcciones (#/inicio…) y hook de ruta
   seed/                        # aviso de datos de ejemplo: api + diálogo
-  sessions/                    # feature de clases: api, hook, formulario, historial
+  sessions/                    # clases: api, hooks de lectura y mutaciones, formulario, historial, mensaje de borrado
   stats/                       # feature de métricas: api, hook, tarjetas, heatmap
   themes/                      # catálogo: api, hook, selector, gestor y borrado
   utils/                       # helpers de tiempo y fecha

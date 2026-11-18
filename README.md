@@ -18,6 +18,10 @@ Aplicación para el **control de tus horas de estudio**.
 - **Inicio**: meta diaria (3h), racha actual y récord, horas de la semana, días con meta cumplida y calendario de actividad (heatmap).
 - **Historial**: listado completo con filtros por fecha, por temática y búsqueda en las observaciones; editar y eliminar (con confirmación).
 - **Estadísticas**: horas por periodo (día, semana, mes, 3/6/12 meses y año), horas por temática, clase más larga y totales históricos.
+- **Direcciones de pestaña**: cada pestaña tiene una URL propia (`#/inicio`, `#/historial` y `#/estadisticas`).
+  Se puede recargar o compartir el enlace de una pestaña y Atrás/Adelante recorren las pestañas
+  visitadas; una dirección vacía o desconocida abre Inicio sin dejar una entrada inútil. Los filtros y
+  el periodo no se guardan en la URL.
 - **Datos de ejemplo**: si la aplicación está vacía, se ofrece cargarlos; no se escriben hasta que el
   usuario los acepta y nunca se mezclan con clases existentes.
 

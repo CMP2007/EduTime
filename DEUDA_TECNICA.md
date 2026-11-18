@@ -98,9 +98,10 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 |----|-----------|-----------|--------|
 | B6-1 | Sin Error Boundary (un error deja la pantalla en blanco) | Media | resuelto |
 | B6-2 | Error de borrado no gestionado (se traga el fallo) | Media | resuelto |
-| B6-3 | Sin enrutado/URL (recargar siempre vuelve a Inicio) | Baja | pendiente |
-| B6-4 | `App` accede a la API directamente (mezcla capas) | Baja | pendiente |
-| B6-5 | Fecha cruda `YYYY-MM-DD` en el diálogo de borrado | Baja | pendiente |
+| B6-3 | Sin enrutado/URL (recargar siempre vuelve a Inicio) | Baja | resuelto |
+| B6-4 | `App` accede a la API directamente (mezcla capas) | Baja | resuelto |
+| B6-5 | Fecha cruda `YYYY-MM-DD` en el diálogo de borrado | Baja | resuelto |
+| B6-6 | Sin test del reintento tras un error de guardado o borrado (RF-11 y RF-13) | Baja | pendiente |
 
 ### Bloque 7 — Frontend: red y datos
 
@@ -233,6 +234,28 @@ de esta deuda.
 
 **Prioridad:** *Media* (experiencia de usuario).
 
+**Resuelto (2026-11-17)** en `specs/007-orquestacion-app/`:
+
+- **B6-3**: cada pestaña tiene dirección propia (`#/inicio`, `#/historial`, `#/estadisticas`), con
+  lectura inicial del hash, normalización sin entrada extra para direcciones vacías o desconocidas y
+  Atrás/Adelante sincronizados. Evidencia: `frontend/test/navigation/tabs.test.js`,
+  `frontend/test/navigation/useTabRoute.test.jsx` y `frontend/test/App.test.jsx`.
+- **B6-4**: las escrituras de clases viven en `useSessionMutations` (HTTP, estado y refresco); `App`
+  solo orquesta pestaña, diálogos y avisos. Evidencia estructural: `App` no importa `sessionsApi` ni
+  `useDataRefresh`, y `sessionsApi.create`/`update`/`remove` solo aparece en el hook. Cubierto por
+  `frontend/test/sessions/useSessionMutations.test.jsx` y los tests de guardado de `App`.
+- **B6-5**: el diálogo de borrado usa `buildDeleteMessage` con `formatDateLong` y omite la fecha si
+  no se puede interpretar. Evidencia: `frontend/test/sessions/deleteMessage.test.js` y
+  `frontend/test/App.test.jsx`.
+
+**B6-6 registrado (2026-11-18):** la cobertura de RF-11 y RF-13 comprueba que el formulario y el
+diálogo siguen abiertos con el mensaje de error, pero no ejercita un segundo envío tras el fallo
+(el «reintentar» de ambos requisitos). Evidencia: `frontend/test/App.test.jsx` y
+`frontend/test/sessions/useSessionMutations.test.jsx` tras la validación de
+`specs/007-orquestacion-app/`. **Prioridad:** *Baja* (el flujo funciona: los controles siguen
+habilitados tras el error); es deuda de test, no de comportamiento. Se cierra con `/task`: añadir
+un caso que reintente y verifique el éxito, sin spec nueva.
+
 ### B7-2, B7-3, B7-4 · Race de peticiones, fusión de cabeceras y Content-Type en GET
 
 **Prioridad:** *Media* (conexión robusta).
@@ -295,6 +318,6 @@ B11-4.
 
 ### Resumen
 
-**Sesenta y ocho** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 45 resueltas, 22 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B4-5 resuelto, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10); B5-2 quedó resuelto en `specs/006-catalogo-tematicas/` (2026-11-13); B5-4 quedó resuelto con la extracción de constantes a `packages/domain-constants` (commit `46c0d4c`, 2026-10-27). El 2026-11-17 se cerraron sin cambio de comportamiento B9-1 (reglas compartidas), B10-2 (periodos en una sola fuente, con test) y B11-7 (pestañas sin overflow a 375/320 px); B7-2, B9-3, B9-4 y B11-4 quedaron parcialmente resueltos y su resto entra en las specs de red, formulario y estilos. Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
+**Sesenta y nueve** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 48 resueltas, 20 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B6-3, B6-4 y B6-5 resueltos, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10); B5-2 quedó resuelto en `specs/006-catalogo-tematicas/` (2026-11-13); B5-4 quedó resuelto con la extracción de constantes a `packages/domain-constants` (commit `46c0d4c`, 2026-10-27). El 2026-11-17 se cerraron sin cambio de comportamiento B9-1 (reglas compartidas), B10-2 (periodos en una sola fuente, con test) y B11-7 (pestañas sin overflow a 375/320 px); B6-3, B6-4 y B6-5 se cerraron en `specs/007-orquestacion-app/` (2026-11-17); B6-6 queda registrado como deuda de cobertura (falta el test de reintento tras un error de guardado o borrado); B7-2, B9-3, B9-4 y B11-4 quedaron parcialmente resueltos y su resto entra en las specs de red, formulario y estilos. Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
 
 La estructura propuesta (resumen + 13 bloques) mantiene el alcance de cada archivo y la tabla de contenidos original.

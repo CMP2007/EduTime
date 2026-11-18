@@ -215,6 +215,24 @@ describe('SessionForm · catálogo de temáticas (T17)', () => {
   });
 });
 
+describe('SessionForm · estado de guardado', () => {
+  it('con la escritura en curso muestra «Guardando…» y bloquea los controles', async () => {
+    renderForm({ saving: true });
+    await screen.findByLabelText('Temática');
+
+    expect(screen.getByRole('button', { name: 'Guardando…' }).disabled).toBe(true);
+    expect(screen.getByRole('button', { name: 'Cancelar' }).disabled).toBe(true);
+  });
+
+  it('sin escritura en curso muestra «Guardar» y permite cancelar', async () => {
+    renderForm();
+    await screen.findByLabelText('Temática');
+
+    expect(screen.getByRole('button', { name: 'Guardar' }).disabled).toBe(false);
+    expect(screen.getByRole('button', { name: 'Cancelar' }).disabled).toBe(false);
+  });
+});
+
 describe('SessionForm · alta inline (T18)', () => {
   it('crea una temática, la selecciona y la deja disponible', async () => {
     renderForm();

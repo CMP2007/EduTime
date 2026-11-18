@@ -30,11 +30,10 @@ function autoGrow(element) {
 }
 
 /** Formulario emergente para crear y editar una clase. */
-function SessionForm({ open, session, onClose, onSubmit }) {
+function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
   const { themes, loading, loaded, error: themesError, reload, createTheme } = useThemes({ enabled: open });
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
   const [createdThemes, setCreatedThemes] = useState([]);
   const [showNotice, setShowNotice] = useState(false);
   const notesRef = useRef(null);
@@ -43,7 +42,6 @@ function SessionForm({ open, session, onClose, onSubmit }) {
     if (open) {
       setForm(toForm(session));
       setError('');
-      setSaving(false);
       setCreatedThemes([]);
       setShowNotice(false);
     }
@@ -108,7 +106,6 @@ function SessionForm({ open, session, onClose, onSubmit }) {
       return;
     }
 
-    setSaving(true);
     setError('');
     try {
       await onSubmit({
@@ -119,8 +116,9 @@ function SessionForm({ open, session, onClose, onSubmit }) {
         notes: form.notes.trim(),
       });
     } catch (submitError) {
+      // El padre limpia `saving` al terminar la escritura; aquí solo se
+      // conserva el mensaje para corregir y reintentar.
       setError(submitError.message);
-      setSaving(false);
     }
   }
 

@@ -1,75 +1,79 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ConfirmDialog from './components/ConfirmDialog.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import StatusNotice from './components/StatusNotice.jsx';
 import Tabs from './components/Tabs.jsx';
-import { useDataRefresh } from './context/DataRefreshContext.jsx';
+import { TABS } from './navigation/tabs.js';
+import { useTabRoute } from './navigation/useTabRoute.js';
 import SeedPrompt from './seed/SeedPrompt.jsx';
 import HistoryView from './sessions/HistoryView.jsx';
 import SessionForm from './sessions/SessionForm.jsx';
-import { sessionsApi } from './sessions/sessions.api.js';
+import { buildDeleteMessage } from './sessions/deleteMessage.js';
+import { useSessionMutations } from './sessions/useSessionMutations.js';
 import StatsDashboard from './stats/StatsDashboard.jsx';
 import StatsPanel from './stats/StatsPanel.jsx';
 import ThemesDialog from './themes/ThemesDialog.jsx';
 
-const TABS = [
-  { id: 'home', label: 'Inicio' },
-  { id: 'history', label: 'Historial' },
-  { id: 'stats', label: 'Estadísticas' },
-];
-
 function App() {
-  const [tab, setTab] = useState('home');
-  const { refreshAll } = useDataRefresh();
+  const { tab, selectTab } = useTabRoute();
+  const {
+    createSession,
+    updateSession,
+    removeSession,
+    saving,
+    deleting,
+    error: mutationError,
+    clearError,
+  } = useSessionMutations();
   const [formState, setFormState] = useState({ open: false, session: null });
   const [toDelete, setToDelete] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState('');
   const [themesOpen, setThemesOpen] = useState(false);
 
-  function refresh() {
-    refreshAll();
-  }
+  // Cambiar de pestaña (incluido Atrás/Adelante) cierra los diálogos abiertos.
+  useEffect(() => {
+    setFormState({ open: false, session: null });
+    setToDelete(null);
+    setThemesOpen(false);
+    clearError();
+  }, [tab, clearError]);
 
   function openCreate() {
+    clearError();
     setFormState({ open: true, session: null });
   }
 
   function openEdit(session) {
+    clearError();
     setFormState({ open: true, session });
   }
 
   function closeForm() {
     setFormState({ open: false, session: null });
+    clearError();
   }
 
   async function handleSubmit(payload) {
     if (formState.session) {
-      await sessionsApi.update(formState.session.id, payload);
+      await updateSession(formState.session.id, payload);
     } else {
-      await sessionsApi.create(payload);
+      await createSession(payload);
     }
     closeForm();
-    refresh();
+  }
+
+  function requestDelete(session) {
+    clearError();
+    setToDelete(session);
   }
 
   function closeDeleteDialog() {
     setToDelete(null);
-    setDeleteError('');
+    clearError();
   }
 
   async function handleConfirmDelete() {
     if (!toDelete) return;
-    setDeleting(true);
-    setDeleteError('');
-    try {
-      await sessionsApi.remove(toDelete.id);
-      closeDeleteDialog();
-      refresh();
-    } catch (requestError) {
-      setDeleteError(requestError.message);
-    } finally {
-      setDeleting(false);
-    }
+    if (await removeSession(toDelete.id)) closeDeleteDialog();
   }
 
   return (
@@ -89,14 +93,19 @@ function App() {
         </div>
       </header>
 
-      <Tabs tabs={TABS} active={tab} onChange={setTab} />
+      <Tabs tabs={TABS} active={tab} onChange={selectTab} />
 
       <main className="app__content" tabIndex={-1}>
+        {/* Si una escritura falla tras cerrarse su diálogo por navegación, el
+            error se anuncia aquí; con un diálogo abierto no se duplica. */}
+        {mutationError && !formState.open && !toDelete && !themesOpen && (
+          <StatusNotice>{mutationError}</StatusNotice>
+        )}
         {/* key={tab} reinicia el límite de error al cambiar de pestaña */}
         <ErrorBoundary key={tab}>
           {tab === 'home' && <StatsDashboard />}
-          {tab === 'history' && <HistoryView onEdit={openEdit} onDelete={setToDelete} />}
-          {tab === 'stats' && <StatsPanel onEdit={openEdit} onDelete={setToDelete} />}
+          {tab === 'history' && <HistoryView onEdit={openEdit} onDelete={requestDelete} />}
+          {tab === 'stats' && <StatsPanel onEdit={openEdit} onDelete={requestDelete} />}
         </ErrorBoundary>
       </main>
 
@@ -105,19 +114,16 @@ function App() {
         session={formState.session}
         onClose={closeForm}
         onSubmit={handleSubmit}
+        saving={saving}
       />
 
       <ConfirmDialog
         open={Boolean(toDelete)}
         title="Eliminar clase"
-        message={
-          toDelete
-            ? `¿Seguro que quieres eliminar la clase de "${toDelete.themeName}" del ${toDelete.date}? Esta acción no se puede deshacer.`
-            : ''
-        }
+        message={buildDeleteMessage(toDelete)}
         onConfirm={handleConfirmDelete}
         onCancel={closeDeleteDialog}
-        error={deleteError}
+        error={mutationError}
         busy={deleting}
       />
 
