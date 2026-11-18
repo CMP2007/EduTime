@@ -85,4 +85,32 @@ describe('request', () => {
     expect(error.message).toMatch(/No se pudo conectar con el servicio/);
     expect(error.message).not.toContain('Failed to fetch');
   });
+
+  it('reenvía el signal de cancelación a fetch', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const controller = new AbortController();
+
+    await request('/sessions', { signal: controller.signal });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/sessions',
+      expect.objectContaining({ signal: controller.signal }),
+    );
+  });
+
+  it('no disfraza una petición cancelada como error de red', async () => {
+    const abortError = new Error('The operation was aborted.');
+    abortError.name = 'AbortError';
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(abortError));
+
+    const error = await request('/sessions').catch((caught) => caught);
+
+    expect(error).toBe(abortError);
+    expect(error).not.toBeInstanceOf(ApiError);
+  });
 });

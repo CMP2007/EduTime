@@ -18,6 +18,15 @@ describe('sessionsApi · contrato en el borde', () => {
     expect(request).toHaveBeenCalledWith('/sessions');
   });
 
+  it('reenvía el signal de cancelación al cliente HTTP', async () => {
+    request.mockResolvedValue([buildSession()]);
+    const controller = new AbortController();
+
+    await sessionsApi.list({ signal: controller.signal });
+
+    expect(request).toHaveBeenCalledWith('/sessions', { signal: controller.signal });
+  });
+
   it('rechaza un listado con un elemento inválido', async () => {
     request.mockResolvedValue([buildSession(), buildSession({ durationMinutes: 'dos horas' })]);
 

@@ -22,20 +22,26 @@ export function useThemes({ enabled = true } = {}) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
   const requestIdRef = useRef(0);
+  const controllerRef = useRef(null);
 
   const reload = useCallback(async () => {
+    // Cualquier petición anterior deja de interesar: se cancela.
+    controllerRef.current?.abort();
     if (!enabled) return;
 
     const requestId = ++requestIdRef.current;
+    const controller = new AbortController();
+    controllerRef.current = controller;
+
     setLoading(true);
     try {
-      const data = await themesApi.list();
+      const data = await themesApi.list({ signal: controller.signal });
       if (requestId !== requestIdRef.current) return;
       setThemes(sortThemes(data));
       setLoaded(true);
       setError('');
     } catch (requestError) {
-      if (requestId !== requestIdRef.current) return;
+      if (requestError?.name === 'AbortError' || requestId !== requestIdRef.current) return;
       setError(requestError.message);
     } finally {
       if (requestId === requestIdRef.current) {
@@ -47,9 +53,10 @@ export function useThemes({ enabled = true } = {}) {
   useEffect(() => {
     if (!enabled) {
       setLoading(false);
-      return;
+      return undefined;
     }
     reload();
+    return () => controllerRef.current?.abort();
   }, [reload, enabled, versions.themes]);
 
   const createTheme = useCallback(

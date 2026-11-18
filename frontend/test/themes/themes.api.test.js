@@ -22,6 +22,15 @@ describe('themesApi · contrato en el borde', () => {
     expect(request).toHaveBeenCalledWith('/themes');
   });
 
+  it('reenvía el signal de cancelación al cliente HTTP', async () => {
+    request.mockResolvedValue([buildTheme()]);
+    const controller = new AbortController();
+
+    await themesApi.list({ signal: controller.signal });
+
+    expect(request).toHaveBeenCalledWith('/themes', { signal: controller.signal });
+  });
+
   it('crea una temática con POST y devuelve la respuesta validada', async () => {
     request.mockResolvedValue(buildTheme({ name: 'Álgebra' }));
 

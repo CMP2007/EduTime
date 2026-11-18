@@ -18,6 +18,15 @@ describe('statsApi · contrato en el borde', () => {
     expect(request).toHaveBeenCalledWith('/stats?period=week');
   });
 
+  it('reenvía el signal de cancelación al cliente HTTP', async () => {
+    request.mockResolvedValue(buildStats());
+    const controller = new AbortController();
+
+    await statsApi.get({ period: 'week', signal: controller.signal });
+
+    expect(request).toHaveBeenCalledWith('/stats?period=week', { signal: controller.signal });
+  });
+
   it('tolera campos adicionales', async () => {
     request.mockResolvedValue(buildStats({ extra: true }));
 

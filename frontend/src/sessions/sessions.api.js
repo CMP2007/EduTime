@@ -2,14 +2,15 @@ import { assertSession, assertSessionList } from 'domain-contracts';
 import { request } from '../api/client.js';
 
 export const sessionsApi = {
-  async list({ from, to, q, themeId } = {}) {
+  async list({ from, to, q, themeId, signal } = {}) {
     const params = new URLSearchParams();
     if (from) params.set('from', from);
     if (to) params.set('to', to);
     if (q) params.set('q', q);
     if (themeId) params.set('themeId', themeId);
     const query = params.toString();
-    const data = await request(`/sessions${query ? `?${query}` : ''}`);
+    const path = `/sessions${query ? `?${query}` : ''}`;
+    const data = signal ? await request(path, { signal }) : await request(path);
     return assertSessionList(data);
   },
 

@@ -153,3 +153,125 @@ describe('useThemes · alta de temáticas', () => {
     expect(themesApiMock.list).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('useThemes · cancelación', () => {
+  it('cancela la petición anterior al recargar el catálogo', async () => {
+    const signals = [];
+    themesApiMock.list.mockImplementation((options = {}) => {
+      signals.push(options.signal);
+      return new Promise(() => {});
+    });
+
+    const { result } = renderHook(
+      () => ({ ...useThemes(), ...useDataRefresh() }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(themesApiMock.list).toHaveBeenCalledTimes(1));
+
+    act(() => result.current.refreshThemes());
+
+    await waitFor(() => expect(themesApiMock.list).toHaveBeenCalledTimes(2));
+    expect(signals[0]?.aborted).toBe(true);
+    expect(signals[1]?.aborted).toBe(false);
+  });
+
+  it('cancela la petición en vuelo cuando se recarga a mano', async () => {
+    const signals = [];
+    themesApiMock.list.mockImplementation((options = {}) => {
+      signals.push(options.signal);
+      return new Promise(() => {});
+    });
+
+    const { result } = renderHook(() => useThemes(), { wrapper });
+
+    await waitFor(() => expect(themesApiMock.list).toHaveBeenCalledTimes(1));
+
+    await act(async () => {
+      result.current.reload();
+    });
+
+    await waitFor(() => expect(themesApiMock.list).toHaveBeenCalledTimes(2));
+    expect(signals[0]?.aborted).toBe(true);
+    expect(signals[1]?.aborted).toBe(false);
+  });
+
+  it('cancela la petición en vuelo al desmontar', async () => {
+    let signal;
+    themesApiMock.list.mockImplementation((options = {}) => {
+      signal = options.signal;
+      return new Promise(() => {});
+    });
+
+    const { unmount } = renderHook(() => useThemes(), { wrapper });
+
+    await waitFor(() => expect(themesApiMock.list).toHaveBeenCalledTimes(1));
+
+    unmount();
+
+    expect(signal?.aborted).toBe(true);
+  });
+
+  it('no publica error cuando la petición se cancela', async () => {
+    themesApiMock.list
+      .mockImplementationOnce(
+        ({ signal }) =>
+          new Promise((_resolve, reject) => {
+            signal.addEventListener('abort', () => {
+              const abortError = new Error('The operation was aborted.');
+              abortError.name = 'AbortError';
+              reject(abortError);
+            });
+          }),
+      )
+      .mockResolvedValueOnce([buildTheme()]);
+
+    const { result } = renderHook(
+      () => ({ ...useThemes(), ...useDataRefresh() }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(themesApiMock.list).toHaveBeenCalledTimes(1));
+
+    act(() => result.current.refreshThemes());
+
+    await waitFor(() => expect(result.current.themes).toEqual([buildTheme()]));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.error).toBe('');
+  });
+
+  it('no publica error al deshabilitar el hook con una petición en vuelo', async () => {
+    themesApiMock.list
+      .mockImplementationOnce(
+        ({ signal }) =>
+          new Promise((_resolve, reject) => {
+            signal.addEventListener('abort', () => {
+              const abortError = new Error('The operation was aborted.');
+              abortError.name = 'AbortError';
+              reject(abortError);
+            });
+          }),
+      )
+      .mockResolvedValueOnce([buildTheme()]);
+
+    const { result, rerender } = renderHook(
+      ({ enabled }) => useThemes({ enabled }),
+      { wrapper, initialProps: { enabled: true } },
+    );
+
+    await waitFor(() => expect(themesApiMock.list).toHaveBeenCalledTimes(1));
+
+    // Cerrar el consumidor (p. ej. el diálogo) aborta la petición en vuelo.
+    rerender({ enabled: false });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.error).toBe('');
+  });
+});

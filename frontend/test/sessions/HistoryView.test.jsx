@@ -161,6 +161,7 @@ describe('useSessions · guarda de rango invertido (RF-6)', () => {
         to: '2026-10-15',
         q: '',
         themeId: '',
+        signal: expect.any(AbortSignal),
       }),
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -187,6 +188,7 @@ describe('HistoryView · filtro por temática (RF-29)', () => {
         to: '',
         q: '',
         themeId: 'theme-2',
+        signal: expect.any(AbortSignal),
       }),
     );
   });
@@ -206,6 +208,7 @@ describe('HistoryView · filtro por temática (RF-29)', () => {
         to: '',
         q: 'integrales',
         themeId: 'theme-1',
+        signal: expect.any(AbortSignal),
       }),
     );
   });
@@ -227,6 +230,7 @@ describe('HistoryView · filtro por temática (RF-29)', () => {
         to: '2026-02-01',
         q: 'repaso',
         themeId: 'theme-2',
+        signal: expect.any(AbortSignal),
       }),
     );
 
@@ -239,6 +243,7 @@ describe('HistoryView · filtro por temática (RF-29)', () => {
         to: '',
         q: '',
         themeId: '',
+        signal: expect.any(AbortSignal),
       }),
     );
 

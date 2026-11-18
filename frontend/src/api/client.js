@@ -10,7 +10,10 @@ export async function request(path, options = {}) {
       headers: { 'Content-Type': 'application/json' },
       ...options,
     });
-  } catch {
+  } catch (error) {
+    // Una cancelación deliberada no es un fallo de red: se propaga tal cual
+    // para que quien abortó la petición pueda distinguirla.
+    if (error?.name === 'AbortError') throw error;
     throw new ApiError(
       'No se pudo conectar con el servicio. Comprueba tu conexión e inténtalo de nuevo.',
       0,

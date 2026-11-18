@@ -2,8 +2,8 @@ import { assertTheme, assertThemeList } from 'domain-contracts';
 import { request } from '../api/client.js';
 
 export const themesApi = {
-  async list() {
-    const data = await request('/themes');
+  async list({ signal } = {}) {
+    const data = signal ? await request('/themes', { signal }) : await request('/themes');
     return assertThemeList(data);
   },
 
