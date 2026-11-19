@@ -119,7 +119,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 | B8-1 | Formateadores de fecha sin validar (producen `Invalid Date`) | Baja-Media | resuelto |
 | B8-2 | `Modal` sin focus trap, sin restaurar foco ni bloquear scroll | Media | resuelto |
 | B8-3 | `goalProgress` sin límite inferior (acepta negativos) | Baja | resuelto |
-| B8-4 | Lógica "lunes = 0" duplicada (`formatDateLong` vs `weekdayIndex`) | Baja | pendiente |
+| B8-4 | Lógica "lunes = 0" duplicada (`formatDateLong` vs `weekdayIndex`) | Baja | resuelto |
 | B8-5 | `combineDuration` convierte valores inválidos en `0` en silencio | Muy baja | pendiente |
 
 ### Bloque 9 — Frontend: feature Historial
@@ -291,7 +291,14 @@ requiere spec.
 **B8-1 resuelto (2026-11-10)** en `specs/004-validacion-fechas/`: `fromDateString` del frontend
 devuelve `null`, los formateadores devuelven `''` y `weekdayIndex` devuelve `null` con fechas
 inválidas; `ActivityHeatmap` omite los días inválidos. Evidencia: `frontend/test/utils/date.test.js`
-y `frontend/test/stats/ActivityHeatmap.test.jsx`. Pendientes B8-4 y B8-5.
+y `frontend/test/stats/ActivityHeatmap.test.jsx`.
+
+**B8-4 resuelto (2026-11-18):** la regla «lunes = 0» tiene una sola definición en
+`frontend/src/utils/date.js`: el helper interno `weekdayIndexFromDate` calcula
+`(date.getDay() + 6) % 7` y lo usan tanto `formatDateLong` como `weekdayIndex`. Evidencia:
+`frontend/test/utils/date.test.js` (test de coherencia entre ambas funciones), verificado por
+mutación (con `date.getDay() % 7` fallan los tests de `formatDateLong` y de `weekdayIndex`).
+Refactor sin cambio observable: no requiere spec. Queda pendiente B8-5.
 
 **B8-3 resuelto (2026-11-18):** `goalProgress` aplica el límite inferior además del superior
 (`Math.max(0, Math.min(100, …))`), de modo que unos minutos negativos no generan un porcentaje
@@ -344,6 +351,6 @@ B11-4.
 
 ### Resumen
 
-**Sesenta y nueve** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 53 resueltas, 15 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B6-3, B6-4 y B6-5 resueltos, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10); B5-2 quedó resuelto en `specs/006-catalogo-tematicas/` (2026-11-13); B5-4 quedó resuelto con la extracción de constantes a `packages/domain-constants` (commit `46c0d4c`, 2026-10-27). El 2026-11-17 se cerraron sin cambio de comportamiento B9-1 (reglas compartidas), B10-2 (periodos en una sola fuente, con test) y B11-7 (pestañas sin overflow a 375/320 px); B6-3, B6-4 y B6-5 se cerraron en `specs/007-orquestacion-app/` (2026-11-17); B6-6 se cerró el 2026-11-18 con dos tests de reintento en `frontend/test/App.test.jsx` (guardado y borrado), verificados por mutación; B7-2 se cerró el 2026-11-18 con la cancelación de la petición en vuelo en los tres hooks de lectura (20 tests y 11 mutaciones detectadas); B7-3 y B7-4 se cerraron el 2026-11-18 con la fusión de cabeceras y el `Content-Type` solo en peticiones con cuerpo (5 tests nuevos, mutación detectada); B8-3 se cerró el 2026-11-18 con el límite inferior de `goalProgress` (dos tests en `frontend/test/utils/time.test.js`, mutación detectada); B9-3, B9-4 y B11-4 siguen parciales y su resto entra en las specs del formulario y de estilos. Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
+**Sesenta y nueve** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 54 resueltas, 14 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B6-3, B6-4 y B6-5 resueltos, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10); B5-2 quedó resuelto en `specs/006-catalogo-tematicas/` (2026-11-13); B5-4 quedó resuelto con la extracción de constantes a `packages/domain-constants` (commit `46c0d4c`, 2026-10-27). El 2026-11-17 se cerraron sin cambio de comportamiento B9-1 (reglas compartidas), B10-2 (periodos en una sola fuente, con test) y B11-7 (pestañas sin overflow a 375/320 px); B6-3, B6-4 y B6-5 se cerraron en `specs/007-orquestacion-app/` (2026-11-17); B6-6 se cerró el 2026-11-18 con dos tests de reintento en `frontend/test/App.test.jsx` (guardado y borrado), verificados por mutación; B7-2 se cerró el 2026-11-18 con la cancelación de la petición en vuelo en los tres hooks de lectura (20 tests y 11 mutaciones detectadas); B7-3 y B7-4 se cerraron el 2026-11-18 con la fusión de cabeceras y el `Content-Type` solo en peticiones con cuerpo (5 tests nuevos, mutación detectada); B8-3 se cerró el 2026-11-18 con el límite inferior de `goalProgress` (dos tests en `frontend/test/utils/time.test.js`, mutación detectada); B8-4 se cerró el 2026-11-18 al unificar la regla «lunes = 0» en `weekdayIndexFromDate`, compartida por `formatDateLong` y `weekdayIndex` (test de coherencia y mutación detectada); B9-3, B9-4 y B11-4 siguen parciales y su resto entra en las specs del formulario y de estilos. Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
 
 La estructura propuesta (resumen + 13 bloques) mantiene el alcance de cada archivo y la tabla de contenidos original.

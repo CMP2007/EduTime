@@ -83,3 +83,25 @@ describe('weekdayIndex', () => {
     expect(weekdayIndex(value)).toBeNull();
   });
 });
+
+describe('coherencia entre formatDateLong y weekdayIndex', () => {
+  it('asigna a cada índice de lunes = 0 el mismo día que pinta el formateador', () => {
+    const week = [
+      '2026-10-12',
+      '2026-10-13',
+      '2026-10-14',
+      '2026-10-15',
+      '2026-10-16',
+      '2026-10-17',
+      '2026-10-18',
+    ];
+    const labels = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
+
+    week.forEach((date) => {
+      const index = weekdayIndex(date);
+
+      expect(index).not.toBeNull();
+      expect(formatDateLong(date).split(' ')[0]).toBe(labels[index]);
+    });
+  });
+});

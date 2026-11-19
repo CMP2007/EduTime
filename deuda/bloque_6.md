@@ -56,6 +56,13 @@ desincronizarse.
 
 **Mitigación:** reutilizar `weekdayIndex` dentro de `formatDateLong`.
 
+**Resuelto (2026-11-18):** la fórmula vive en un único helper interno,
+`weekdayIndexFromDate` (`(date.getDay() + 6) % 7`), que usan `formatDateLong` y `weekdayIndex`.
+Se evita el doble parseo que supondría llamar a `weekdayIndex(value)` desde `formatDateLong`,
+porque este ya tiene el `Date` validado. Evidencia: `frontend/test/utils/date.test.js` (test de
+coherencia entre ambas funciones), verificado por mutación (con `date.getDay() % 7` fallan los
+tests de las dos funciones). Refactor sin cambio observable: no requiere spec.
+
 ### B8-5 · `combineDuration` convierte valores inválidos en `0` en silencio
 
 `time.js:22-24` usa `Number(hours) || 0` y `Number(minutes) || 0`, de modo que un valor no

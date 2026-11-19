@@ -33,10 +33,15 @@ export function todayString() {
   return `${year}-${month}-${day}`;
 }
 
+/** Índice del día de la semana con lunes = 0 a partir de un Date ya validado. */
+function weekdayIndexFromDate(date) {
+  return (date.getDay() + 6) % 7;
+}
+
 export function formatDateLong(value) {
   const date = fromDateString(value);
   if (!date) return '';
-  const weekday = WEEKDAYS[(date.getDay() + 6) % 7];
+  const weekday = WEEKDAYS[weekdayIndexFromDate(date)];
   return `${weekday} ${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 }
 
@@ -75,5 +80,5 @@ export function monthNameFromKey(key) {
 export function weekdayIndex(value) {
   const date = fromDateString(value);
   if (!date) return null;
-  return (date.getDay() + 6) % 7;
+  return weekdayIndexFromDate(date);
 }
