@@ -44,6 +44,12 @@ el máximo también en JavaScript.
 (`sessions.validation.js`). Queda validar el máximo en JS, además del atributo `max` del HTML; se
 hará en la spec del formulario.
 
+**Resuelto (2026-11-18, `specs/008-validacion-duracion-formulario/`):** el formulario valida el
+máximo (1439 min) además del mínimo con JavaScript y su propio mensaje, equivalente al del
+servidor; el formulario lleva `noValidate` para que la validación nativa del navegador no decida el
+resultado. Evidencia: `frontend/test/sessions/durationInput.test.js` (24 h, 23 h 60 min y `1e2` h)
+y los casos de máximo de `SessionForm.test.jsx`.
+
 ### B9-4 · Mensajes de error del formulario sin rol accesible
 
 `SessionForm.jsx:143` pinta `<p className="error">` sin `role="alert"` ni `aria-describedby`
@@ -54,6 +60,12 @@ asociado al campo. Los lectores de pantalla pueden no anunciar el error.
 **Parcialmente resuelto (2026-11-17):** el error general ya lleva `role="alert"` y los de temática
 usan `role="alert"`/`role="status"`. Falta `aria-describedby` para asociar el mensaje al campo
 correspondiente; se hará en la spec del formulario.
+
+**Resuelto (2026-11-18, `specs/008-validacion-duracion-formulario/`):** cada mensaje visible se
+pinta una sola vez con `role="alert"` e identificador propio; el grupo de duración o el selector de
+temática quedan descritos por ese identificador y los controles afectados llevan `aria-invalid`
+mientras el error está visible. Evidencia: casos de ARIA de `SessionForm.test.jsx`, verificados por
+mutación. El anuncio real con lector de pantalla queda pendiente de la capa E2E (B0-7).
 
 ### B9-5 · Filtros `from`/`to` sin comprobar rango invertido
 
@@ -72,6 +84,10 @@ rechaza con 400. Tests: `frontend/test/sessions/HistoryView.test.jsx`.
 `SessionForm.jsx:69-70` usa `Number(form.hours) || 0` (mismo patrón que **B8-5**).
 
 **Mitigación:** validar la entrada en vez de asumir `0`.
+
+**Resuelto (2026-11-18, `specs/008-validacion-duracion-formulario/`):** el envío usa los enteros
+que devuelve `parseDurationInput`; ya no queda `Number(...) || 0` en el formulario. Evidencia: caso
+de envío con minutos vacíos → `hours: 1, minutes: 0` en `SessionForm.test.jsx`.
 
 ---
 

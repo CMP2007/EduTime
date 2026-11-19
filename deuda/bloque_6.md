@@ -70,6 +70,13 @@ numérico se convierte en `0` sin avisar, enmascarando posibles errores de entra
 
 **Mitigación:** validar y señalar la entrada inválida en lugar de asumir `0`.
 
+**Resuelto (2026-11-18, `specs/008-validacion-duracion-formulario/`):** `combineDuration` se retira
+de `utils/time.js` (sin consumidores) y el formulario valida con `parseDurationInput`
+(`sessions/durationInput.js`), que interpreta vacíos como 0, rechaza entradas no enteras o
+negativas y aplica máximo y mínimo con la precedencia del servidor. Evidencia:
+`frontend/test/sessions/durationInput.test.js` y los casos de duración de
+`frontend/test/sessions/SessionForm.test.jsx`, verificados por mutación.
+
 > **Notas menores de accesibilidad/cohesión** (sin ID, no accionables por separado): `Tabs`
 > usa `role="tab"` sin `aria-controls`/`tabpanel`; `Card` no enlaza su título como encabezado.
 

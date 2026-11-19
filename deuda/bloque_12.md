@@ -10,7 +10,8 @@ registrados arriba). Temas recurrentes, ordenados por impacto:
    **B0-1 / B5-4 / B9-1 / B10-1 / B10-2**.
 4. **Concurrencia e invalidación**: carga/escritura en disco y recargas en cliente —
    **B0-3 / B0-5 / B7-2**.
-5. **Accesibilidad de modales y mensajes**: **B8-2 / B9-4 / B11-4**.
+5. **Accesibilidad pendiente**: **B11-4** (resto de `:focus-visible` en los controles de
+   formulario). B8-2 y B9-4 ya están resueltos.
 
 El proyecto está **bien estructurado por capas** (repository/service/routes; hook/api/component)
 y con buena separación de responsabilidades; la deuda se concentra en robustez (tests,
@@ -49,8 +50,8 @@ ataque en una sesión futura:
 9. **Resto de pendientes de baja severidad** — ajustes de configuración y limpieza suelta,
    atacables por orden de bloque y severidad según las tablas de resumen.
 10. ✅ **B4-2** — endurecer/documentar el update parcial de duración. *(hecho: feature 005)*
-11. **B8-2 / B9-4 / B11-4** — accesibilidad: `Modal` (focus trap, restaurar foco, bloquear
-    scroll), mensajes de error accesibles y `:focus-visible`/`prefers-reduced-motion`.
+11. **B11-4** — resto de accesibilidad: `:focus-visible` en los controles de formulario
+    (`prefers-reduced-motion` ya se respeta; B8-2 y B9-4 están resueltos).
 12. **B9-2** — `debounce` en la búsqueda por temática.
 13. ✅ **B1-8** — subir **Vite a una *major*** para eliminar las vulnerabilidades `esbuild`/`vite`
     (cambio *breaking*: afecta a `vite.config.js` y `@vitejs/plugin-react`). Hacerlo con

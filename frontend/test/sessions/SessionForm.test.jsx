@@ -38,6 +38,27 @@ function renderForm(props = {}) {
   return { onClose, onSubmit };
 }
 
+async function renderReadyForm(props = {}) {
+  const result = renderForm(props);
+  await screen.findByLabelText('Temática');
+  return result;
+}
+
+function chooseTheme(value = 'theme-1') {
+  fireEvent.change(screen.getByLabelText('Temática'), { target: { value } });
+}
+
+function setDuration(hours, minutes) {
+  const [hoursInput, minutesInput] = screen.getAllByRole('spinbutton');
+  fireEvent.change(hoursInput, { target: { value: hours } });
+  fireEvent.change(minutesInput, { target: { value: minutes } });
+  return [hoursInput, minutesInput];
+}
+
+function submit() {
+  fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+}
+
 function openCreateField() {
   fireEvent.click(screen.getByRole('button', { name: 'Crear temática' }));
   return screen.getByLabelText('Nombre de la nueva temática');
@@ -212,6 +233,304 @@ describe('SessionForm · catálogo de temáticas (T17)', () => {
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ themeId: 'theme-1' })),
     );
+  });
+});
+
+describe('SessionForm · validación de la duración (T2)', () => {
+  it('con duración inválida no envía y conserva los valores escritos', async () => {
+    const { onSubmit } = await renderReadyForm();
+
+    chooseTheme();
+    fireEvent.change(screen.getByLabelText('Fecha'), { target: { value: '2026-11-18' } });
+    setDuration('1.5', '30');
+    fireEvent.change(screen.getByLabelText(/Observaciones/), { target: { value: 'Repasar' } });
+    submit();
+
+    expect(
+      screen.getByText('Las horas deben ser un número entero mayor o igual que 0.'),
+    ).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Temática').value).toBe('theme-1');
+    expect(screen.getByLabelText('Fecha').value).toBe('2026-11-18');
+    const [hoursInput, minutesInput] = screen.getAllByRole('spinbutton');
+    expect(hoursInput.value).toBe('1.5');
+    expect(minutesInput.value).toBe('30');
+    expect(screen.getByLabelText(/Observaciones/).value).toBe('Repasar');
+    expect(screen.getByRole('button', { name: 'Guardar' }).disabled).toBe(false);
+  });
+
+  it('24 h muestra el máximo de 23:59', async () => {
+    const { onSubmit } = await renderReadyForm();
+
+    chooseTheme();
+    setDuration('24', '0');
+    submit();
+
+    expect(screen.getByText('La clase no puede superar las 23:59.')).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('1e2 h se interpreta como 100 y muestra el máximo', async () => {
+    const { onSubmit } = await renderReadyForm();
+
+    chooseTheme();
+    setDuration('1e2', '0');
+    submit();
+
+    expect(screen.getByText('La clase no puede superar las 23:59.')).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('0 h 10 min muestra el mínimo de 15 minutos', async () => {
+    const { onSubmit } = await renderReadyForm();
+
+    chooseTheme();
+    setDuration('0', '10');
+    submit();
+
+    expect(screen.getByText('La clase debe durar al menos 15 minutos.')).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('0 h 60 min muestra el mensaje de los minutos', async () => {
+    const { onSubmit } = await renderReadyForm();
+
+    chooseTheme();
+    setDuration('0', '60');
+    submit();
+
+    expect(screen.getByText('Los minutos deben ser un número entero entre 0 y 59.')).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('con duración válida envía los enteros interpretados', async () => {
+    const { onSubmit } = await renderReadyForm();
+
+    chooseTheme();
+    setDuration('1', '');
+    submit();
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ hours: 1, minutes: 0 }),
+      ),
+    );
+  });
+});
+
+describe('SessionForm · anuncio y asociación del error de duración (T3)', () => {
+  it('anuncia el error como alerta sin mover el foco', async () => {
+    await renderReadyForm();
+
+    chooseTheme();
+    setDuration('0', '10');
+    const submitButton = screen.getByRole('button', { name: 'Guardar' });
+    submitButton.focus();
+    submit();
+
+    const alert = screen.getByRole('alert');
+    expect(alert.textContent).toBe('La clase debe durar al menos 15 minutos.');
+    expect(document.activeElement).toBe(submitButton);
+  });
+
+  it('asocia el mensaje al grupo de horas y minutos', async () => {
+    await renderReadyForm();
+
+    chooseTheme();
+    setDuration('0', '10');
+    submit();
+
+    const alert = screen.getByRole('alert');
+    expect(alert.id).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Duración' }).getAttribute('aria-describedby'))
+      .toBe(alert.id);
+  });
+
+  it('marca solo horas cuando el error es de horas', async () => {
+    await renderReadyForm();
+
+    chooseTheme();
+    setDuration('1.5', '30');
+    submit();
+
+    expect(screen.getByLabelText('horas').getAttribute('aria-invalid')).toBe('true');
+    expect(screen.getByLabelText('minutos').getAttribute('aria-invalid')).toBeNull();
+  });
+
+  it('marca ambos controles en el error de mínimo', async () => {
+    await renderReadyForm();
+
+    chooseTheme();
+    setDuration('0', '10');
+    submit();
+
+    expect(screen.getByLabelText('horas').getAttribute('aria-invalid')).toBe('true');
+    expect(screen.getByLabelText('minutos').getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('marca ambos controles en el error de máximo', async () => {
+    await renderReadyForm();
+
+    chooseTheme();
+    setDuration('24', '0');
+    submit();
+
+    expect(screen.getByLabelText('horas').getAttribute('aria-invalid')).toBe('true');
+    expect(screen.getByLabelText('minutos').getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('deja de marcar los controles cuando el error desaparece', async () => {
+    await renderReadyForm();
+
+    chooseTheme();
+    setDuration('0', '10');
+    submit();
+    expect(screen.getByLabelText('horas').getAttribute('aria-invalid')).toBe('true');
+
+    fireEvent.change(screen.getByLabelText('minutos'), { target: { value: '30' } });
+
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByLabelText('horas').getAttribute('aria-invalid')).toBeNull();
+    expect(screen.getByLabelText('minutos').getAttribute('aria-invalid')).toBeNull();
+    expect(screen.getByRole('group', { name: 'Duración' }).getAttribute('aria-describedby'))
+      .toBeNull();
+  });
+});
+
+describe('SessionForm · error de temática y aviso preventivo (T4)', () => {
+  it('asocia el error de temática al selector y lo marca', async () => {
+    await renderReadyForm();
+
+    setDuration('1', '0');
+    submit();
+
+    const alert = screen.getByRole('alert');
+    expect(alert.textContent).toBe('La temática es obligatoria.');
+    expect(screen.getByLabelText('Temática').getAttribute('aria-describedby')).toBe(alert.id);
+    expect(screen.getByLabelText('Temática').getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('asocia y anuncia el aviso preventivo de una temática inexistente', async () => {
+    await renderReadyForm({
+      session: {
+        id: 'session-1',
+        themeId: 'theme-deleted',
+        date: '2026-10-15',
+        durationMinutes: 60,
+        notes: '',
+      },
+    });
+
+    const alert = screen.getByRole('alert');
+    expect(alert.textContent).toBe('La temática de esta clase ya no existe. Elige otra.');
+    expect(alert.id).toBeTruthy();
+    expect(screen.getByLabelText('Temática').getAttribute('aria-describedby')).toBe(alert.id);
+    expect(screen.getByLabelText('Temática').getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('al enviar con el aviso visible solo queda el mensaje del envío', async () => {
+    const { onSubmit } = await renderReadyForm({
+      session: {
+        id: 'session-1',
+        themeId: 'theme-deleted',
+        date: '2026-10-15',
+        durationMinutes: 60,
+        notes: '',
+      },
+    });
+
+    submit();
+
+    const alerts = screen.getAllByRole('alert');
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0].textContent).toBe('La temática seleccionada ya no existe. Elige otra.');
+    expect(screen.getByLabelText('Temática').getAttribute('aria-describedby'))
+      .toBe(alerts[0].id);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('al elegir una temática desaparece el aviso y deja de marcar el selector', async () => {
+    await renderReadyForm({
+      session: {
+        id: 'session-1',
+        themeId: 'theme-deleted',
+        date: '2026-10-15',
+        durationMinutes: 60,
+        notes: '',
+      },
+    });
+
+    chooseTheme();
+
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByLabelText('Temática').getAttribute('aria-describedby')).toBeNull();
+    expect(screen.getByLabelText('Temática').getAttribute('aria-invalid')).toBeNull();
+  });
+
+  it('al cambiar la temática se oculta el error de temática del envío', async () => {
+    await renderReadyForm();
+
+    submit();
+    expect(screen.getByRole('alert').textContent).toBe('La temática es obligatoria.');
+
+    chooseTheme();
+
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByLabelText('Temática').getAttribute('aria-invalid')).toBeNull();
+  });
+
+  it('el error de temática manda sobre un error de duración', async () => {
+    await renderReadyForm();
+
+    setDuration('0', '10');
+    submit();
+
+    expect(screen.getByRole('alert').textContent).toBe('La temática es obligatoria.');
+    expect(screen.getByRole('group', { name: 'Duración' }).getAttribute('aria-describedby'))
+      .toBeNull();
+    expect(screen.getByLabelText('horas').getAttribute('aria-invalid')).toBeNull();
+    expect(screen.getByLabelText('minutos').getAttribute('aria-invalid')).toBeNull();
+  });
+});
+
+describe('SessionForm · error del servidor (T5)', () => {
+  it('lo anuncia sin asociarlo a ningún campo ni marcarlo como no válido', async () => {
+    const onSubmit = vi.fn().mockRejectedValue(new Error('No se pudo guardar la clase.'));
+    await renderReadyForm({ onSubmit });
+
+    chooseTheme();
+    setDuration('1', '0');
+    submit();
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe('No se pudo guardar la clase.');
+    expect(screen.getByLabelText('Temática').getAttribute('aria-describedby')).toBeNull();
+    expect(screen.getByLabelText('Temática').getAttribute('aria-invalid')).toBeNull();
+    expect(screen.getByRole('group', { name: 'Duración' }).getAttribute('aria-describedby'))
+      .toBeNull();
+    expect(screen.getByLabelText('horas').getAttribute('aria-invalid')).toBeNull();
+    expect(screen.getByLabelText('minutos').getAttribute('aria-invalid')).toBeNull();
+  });
+
+  it('permanece al editar la duración y desaparece en el siguiente envío', async () => {
+    const onSubmit = vi.fn()
+      .mockRejectedValueOnce(new Error('No se pudo guardar la clase.'))
+      .mockResolvedValue(undefined);
+    await renderReadyForm({ onSubmit });
+
+    chooseTheme();
+    setDuration('1', '0');
+    submit();
+    expect((await screen.findByRole('alert')).textContent)
+      .toBe('No se pudo guardar la clase.');
+
+    fireEvent.change(screen.getByLabelText('minutos'), { target: { value: '30' } });
+    expect(screen.getByRole('alert').textContent).toBe('No se pudo guardar la clase.');
+
+    submit();
+
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
+    expect(onSubmit).toHaveBeenCalledTimes(2);
   });
 });
 

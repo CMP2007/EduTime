@@ -33,6 +33,10 @@ y las transiciones (`button`, `progress__bar`) ignoran `prefers-reduced-motion`.
 
 **Mitigación:** usar `:focus-visible` y respetar `prefers-reduced-motion`.
 
+**Parcialmente resuelto (2026-11-17):** `prefers-reduced-motion` ya se respeta (bloque
+`@media (prefers-reduced-motion: reduce)`); `:focus-visible` solo cubre `button` y `a`. Falta
+aplicarlo a los controles de formulario; se hará en la spec de estilos.
+
 ### B11-5 · Valores mágicos de layout sin tokens
 
 `z-index: 50`, `width: 240px`, `min-width: 260px`, alturas varias: números sueltos sin escala,
@@ -56,6 +60,24 @@ problema de layout preexistente y ajeno a la feature de red/proxy/CORS.
 **Mitigación:** limitar la barra al ancho del contenedor (`max-width: 100%`) y desplazar solo
 dentro de ella (`overflow-x: auto`), o permitir `flex-wrap: wrap`. Debe abordarse en una feature
 de estilos/UI.
+
+**Resuelto (2026-11-17):** la media query de `max-width: 560px` hace que `.tabs` ocupe el ancho
+del contenedor y envuelva los botones. Medido con Chrome DevTools a 375 px y 320 px:
+`scrollWidth === clientWidth` (sin scroll horizontal) y `flex-wrap: wrap`. El arreglo llegó con
+el selector de temáticas (`e7babd3`, 2026-11-14).
+
+### B11-8 · El campo de duración del formulario desborda su contenedor a 375 px
+
+Medido con Chrome DevTools durante la validación de `specs/008-validacion-duracion-formulario/`
+(2026-11-18): a 375 px, el `fieldset` de duración ocupa 311 px dentro de un formulario de 303 px
+(8 px de desbordamiento interno). La página no genera scroll horizontal
+(`scrollWidth === clientWidth`), pero el grupo de horas y minutos puede provocar scroll dentro
+del formulario. Es un problema de layout preexistente y ajeno al alcance funcional de 008, que
+excluye el control de desbordamiento a 375 px de sus criterios de cierre.
+
+**Mitigación:** permitir que la fila de horas y minutos se ajuste (`flex-wrap`), reducir el ancho
+mínimo de los controles o aplicar `max-width: 100%` al grupo; abordarlo en la feature de
+estilos/UI.
 
 ---
 

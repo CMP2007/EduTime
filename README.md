@@ -13,6 +13,9 @@ Aplicación para el **control de tus horas de estudio**.
   renombra y elimina desde la gestión de temáticas (botón «Temáticas» en la cabecera).
 - Registrar clases eligiendo la temática del catálogo, con fecha, duración (horas y minutos, o solo
   una parte) y observaciones. La temática se puede crear sin salir del formulario con el botón «+».
+  Antes de guardar, el formulario comprueba la duración con las mismas reglas del servidor (entre
+  15 minutos y 23:59) y anuncia el error asociado al campo que hay que corregir, sin perder el
+  resto de lo escrito.
 - Al eliminar una temática con clases se pregunta si reasignarlas a otra temática o eliminarlas junto
   con ella.
 - **Inicio**: meta diaria (3h), racha actual y récord, horas de la semana, días con meta cumplida y calendario de actividad (heatmap).

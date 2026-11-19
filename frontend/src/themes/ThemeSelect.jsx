@@ -15,6 +15,8 @@ function ThemeSelect({
   allowCreate = false,
   onCreate,
   disabled = false,
+  describedBy,
+  invalid = false,
 }) {
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
@@ -93,6 +95,8 @@ function ThemeSelect({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           disabled={disabled}
+          aria-describedby={describedBy}
+          aria-invalid={invalid ? 'true' : undefined}
         >
           <option value="">Selecciona una temática</option>
           {themes.map((theme) => (

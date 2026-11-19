@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  combineDuration,
-  formatMinutes,
-  goalProgress,
-  splitDuration,
-} from '../../src/utils/time.js';
+import { formatMinutes, goalProgress, splitDuration } from '../../src/utils/time.js';
 
 describe('formatMinutes', () => {
   it('formatea horas y minutos legibles', () => {
@@ -27,9 +22,8 @@ describe('goalProgress', () => {
   });
 });
 
-describe('splitDuration / combineDuration', () => {
-  it('la separación y recomposición son inversas', () => {
+describe('splitDuration', () => {
+  it('separa los minutos totales en horas y minutos', () => {
     expect(splitDuration(1439)).toEqual({ hours: 23, minutes: 59 });
-    expect(combineDuration(23, 59)).toBe(1439);
   });
 });

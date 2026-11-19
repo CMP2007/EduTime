@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import Modal from '../components/Modal.jsx';
-import { DURATION_MIN as MIN_DURATION, NOTES_MAX } from 'domain-constants';
-import { combineDuration, splitDuration } from '../utils/time.js';
+import { NOTES_MAX } from 'domain-constants';
+import { parseDurationInput } from './durationInput.js';
+import { splitDuration } from '../utils/time.js';
 import { todayString } from '../utils/date.js';
 import CreatedThemesNotice from '../themes/CreatedThemesNotice.jsx';
 import ThemeSelect from '../themes/ThemeSelect.jsx';
@@ -33,15 +34,17 @@ function autoGrow(element) {
 function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
   const { themes, loading, loaded, error: themesError, reload, createTheme } = useThemes({ enabled: open });
   const [form, setForm] = useState(emptyForm);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
   const [createdThemes, setCreatedThemes] = useState([]);
   const [showNotice, setShowNotice] = useState(false);
   const notesRef = useRef(null);
+  const errorId = useId();
+  const themeNoticeId = useId();
 
   useEffect(() => {
     if (open) {
       setForm(toForm(session));
-      setError('');
+      setError(null);
       setCreatedThemes([]);
       setShowNotice(false);
     }
@@ -64,9 +67,17 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
   // Una recarga en segundo plano (por ejemplo, tras crear una temática inline)
   // no debe bloquear el guardado si el catálogo ya está disponible.
   const saveDisabled = saving || Boolean(themesError) || themes.length === 0;
+  const durationFields = error?.kind === 'duration' ? error.fields : [];
+  const themeInvalid = error?.kind === 'theme' || (themeMissing && !error);
 
   function update(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
+    if (error?.kind === 'duration' && (field === 'hours' || field === 'minutes')) {
+      setError(null);
+    }
+    if (error?.kind === 'theme' && field === 'themeId') {
+      setError(null);
+    }
   }
 
   async function handleCreateTheme(name) {
@@ -91,34 +102,39 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    const durationMinutes = combineDuration(form.hours, form.minutes);
 
     if (!form.themeId) {
-      setError('La temática es obligatoria.');
+      setError({ kind: 'theme', message: 'La temática es obligatoria.', fields: ['themeId'] });
       return;
     }
     if (themeMissing) {
-      setError('La temática seleccionada ya no existe. Elige otra.');
-      return;
-    }
-    if (durationMinutes < MIN_DURATION) {
-      setError(`La clase debe durar al menos ${MIN_DURATION} minutos.`);
+      setError({
+        kind: 'theme',
+        message: 'La temática seleccionada ya no existe. Elige otra.',
+        fields: ['themeId'],
+      });
       return;
     }
 
-    setError('');
+    const duration = parseDurationInput(form.hours, form.minutes);
+    if (!duration.valid) {
+      setError({ kind: 'duration', ...duration.error });
+      return;
+    }
+
+    setError(null);
     try {
       await onSubmit({
         themeId: form.themeId,
         date: form.date,
-        hours: Number(form.hours) || 0,
-        minutes: Number(form.minutes) || 0,
+        hours: duration.hours,
+        minutes: duration.minutes,
         notes: form.notes.trim(),
       });
     } catch (submitError) {
       // El padre limpia `saving` al terminar la escritura; aquí solo se
       // conserva el mensaje para corregir y reintentar.
-      setError(submitError.message);
+      setError({ kind: 'server', message: submitError.message, fields: [] });
     }
   }
 
@@ -129,7 +145,7 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
         onClose={requestClose}
         labelledBy="session-form-title"
       >
-        <form className="form-grid" onSubmit={handleSubmit}>
+        <form className="form-grid" onSubmit={handleSubmit} noValidate>
           <div className="field">
             <label className="field__label" htmlFor="session-theme">Temática</label>
 
@@ -153,6 +169,14 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
                   onChange={(themeId) => update('themeId', themeId)}
                   allowCreate
                   onCreate={handleCreateTheme}
+                  describedBy={
+                    error?.kind === 'theme'
+                      ? errorId
+                      : themeMissing && !error
+                        ? themeNoticeId
+                        : undefined
+                  }
+                  invalid={themeInvalid}
                 />
                 {themes.length === 0 && (
                   <p className="muted">No hay temáticas. Crea una con el botón «+».</p>
@@ -160,8 +184,8 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
               </>
             )}
 
-            {themeMissing && (
-              <p className="error" role="status">
+            {themeMissing && !error && (
+              <p className="error" role="alert" id={themeNoticeId}>
                 La temática de esta clase ya no existe. Elige otra.
               </p>
             )}
@@ -172,7 +196,10 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
             <input type="date" value={form.date} onChange={(event) => update('date', event.target.value)} />
           </label>
 
-          <fieldset className="field duration">
+          <fieldset
+            className="field duration"
+            aria-describedby={error?.kind === 'duration' ? errorId : undefined}
+          >
             <legend className="field__label">Duración</legend>
             <div className="duration__inputs">
               <label className="duration__item">
@@ -182,6 +209,7 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
                   max="23"
                   value={form.hours}
                   onChange={(event) => update('hours', event.target.value)}
+                  aria-invalid={durationFields.includes('hours') ? 'true' : undefined}
                 />
                 <span>horas</span>
               </label>
@@ -192,6 +220,7 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
                   max="59"
                   value={form.minutes}
                   onChange={(event) => update('minutes', event.target.value)}
+                  aria-invalid={durationFields.includes('minutes') ? 'true' : undefined}
                 />
                 <span>minutos</span>
               </label>
@@ -212,7 +241,7 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
             />
           </label>
 
-          {error && <p className="error" role="alert">{error}</p>}
+          {error && <p className="error" role="alert" id={errorId}>{error.message}</p>}
 
           <div className="modal__actions">
             <button type="button" className="button button--ghost" onClick={requestClose} disabled={saving}>

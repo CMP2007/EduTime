@@ -120,7 +120,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 | B8-2 | `Modal` sin focus trap, sin restaurar foco ni bloquear scroll | Media | resuelto |
 | B8-3 | `goalProgress` sin límite inferior (acepta negativos) | Baja | resuelto |
 | B8-4 | Lógica "lunes = 0" duplicada (`formatDateLong` vs `weekdayIndex`) | Baja | resuelto |
-| B8-5 | `combineDuration` convierte valores inválidos en `0` en silencio | Muy baja | pendiente |
+| B8-5 | `combineDuration` convierte valores inválidos en `0` en silencio | Muy baja | **resuelto (008)** |
 
 ### Bloque 9 — Frontend: feature Historial
 
@@ -128,10 +128,10 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 |----|-----------|-----------|--------|
 | B9-1 | Validación de dominio duplicada en `SessionForm` (refuerza B0-1) | Baja-Media | resuelto |
 | B9-2 | Búsqueda sin `debounce` (una petición por pulsación) | Media | pendiente |
-| B9-3 | Límite de duración: el mensaje del backend dice "23 h" pero admite 23h59; el cliente solo valida el mínimo en JS | Baja | pendiente |
-| B9-4 | Mensajes de error del formulario sin rol accesible | Baja | pendiente |
+| B9-3 | Límite de duración: el mensaje del backend dice "23 h" pero admite 23h59; el cliente solo valida el mínimo en JS | Baja | **resuelto (008)** |
+| B9-4 | Mensajes de error del formulario sin rol accesible | Baja | **resuelto (008)** |
 | B9-5 | Filtros `from`/`to` sin comprobar rango invertido | Baja | resuelto |
-| B9-6 | `Number(...) || 0` enmascara entradas inválidas del formulario | Muy baja | pendiente |
+| B9-6 | `Number(...) || 0` enmascara entradas inválidas del formulario | Muy baja | **resuelto (008)** |
 
 ### Bloque 10 — Frontend: feature Inicio/Estadísticas
 
@@ -155,6 +155,7 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 | B11-5 | Valores mágicos de layout (`z-index`, anchos fijos) sin tokens | Baja | pendiente |
 | B11-6 | `textarea { resize: none }` quita el control de redimensionado | Muy baja | pendiente |
 | B11-7 | Barra de pestañas con overflow horizontal a 375 px | Baja | resuelto |
+| B11-8 | El campo de duración del formulario desborda su contenedor a 375 px | Baja | pendiente |
 
 ---
 
@@ -163,6 +164,11 @@ Registro global de debilidades detectadas durante la revisión de calidad del pr
 ### B0-7 · Sin tests de frontend ni E2E (requisito de culminación)
 
 **Prioridad:** *Crítica*
+
+Los tests de frontend ya existen; lo que falta es la capa de extremo a extremo. El **anuncio real
+con lector de pantalla** de los errores del formulario de clases (spec `008`, asociación
+`aria-describedby`, `aria-invalid` y rol de alerta) se comprobará en esa capa, todavía pendiente;
+los tests unitarios de la feature verifican el rol, la asociación y el estado.
 
 ### B1-1, B1-10, B1-11 · Fijación de host/puerto, proxy y entorno
 
@@ -298,13 +304,21 @@ y `frontend/test/stats/ActivityHeatmap.test.jsx`.
 `(date.getDay() + 6) % 7` y lo usan tanto `formatDateLong` como `weekdayIndex`. Evidencia:
 `frontend/test/utils/date.test.js` (test de coherencia entre ambas funciones), verificado por
 mutación (con `date.getDay() % 7` fallan los tests de `formatDateLong` y de `weekdayIndex`).
-Refactor sin cambio observable: no requiere spec. Queda pendiente B8-5.
+Refactor sin cambio observable: no requiere spec.
 
 **B8-3 resuelto (2026-11-18):** `goalProgress` aplica el límite inferior además del superior
 (`Math.max(0, Math.min(100, …))`), de modo que unos minutos negativos no generan un porcentaje
 negativo en `aria-valuenow` ni en el ancho de la barra de progreso. Evidencia:
 `frontend/test/utils/time.test.js` (dos casos nuevos, el del negativo verificado por mutación).
 Es una defensa sin cambio observable con datos válidos: no requiere spec.
+
+**B8-5 resuelto (2026-11-18)** en `specs/008-validacion-duracion-formulario/`: `combineDuration`
+desaparece de `utils/time.js` (no quedan consumidores) y el formulario valida con
+`parseDurationInput` (`sessions/durationInput.js`), una función pura que interpreta vacíos como 0,
+rechaza entradas no enteras o negativas y aplica el máximo y el mínimo con la precedencia del
+servidor. El envío usa los enteros que devuelve la validación, sin `Number(...) || 0`. Evidencia:
+`frontend/test/sessions/durationInput.test.js` (17 tests) y los casos de duración de
+`frontend/test/sessions/SessionForm.test.jsx`, verificados por mutación.
 
 **Prioridad:** *Media* (defensa de datos).
 
@@ -318,10 +332,22 @@ Evidencia: `frontend/test/sessions/HistoryView.test.jsx`.
 **B9-1 resuelto (2026-11-17):** `SessionForm` ya no redefine reglas de dominio: importa
 `DURATION_MIN` y `NOTES_MAX` de `packages/domain-constants`, la misma fuente que usa
 `sessions.validation.js`; no queda ninguna copia local ni `TITLE_MAX`. Refactor sin cambio
-observable, cubierto por la suite existente. Quedan pendientes B9-2, B9-6, B9-3 (solo validar el
-máximo en JS: el mensaje ya dice «23:59») y B9-4 (solo `aria-describedby`: el error general ya
-lleva `role="alert"`). B9-3, B9-4 y B9-6 se agrupan con B8-3, B8-4 y B8-5 en la spec del
-formulario.
+observable, cubierto por la suite existente. Queda pendiente B9-2 (búsqueda sin `debounce`);
+B9-3, B9-4 y B9-6 se cerraron en `specs/008-validacion-duracion-formulario/` (2026-11-18).
+
+**B9-3, B9-4 y B9-6 resueltos (2026-11-18)** en `specs/008-validacion-duracion-formulario/`:
+
+- **B9-3**: el formulario valida el máximo (1439 min) además del mínimo en JavaScript, con el
+  mensaje «La clase no puede superar las 23:59», equivalente al del servidor; el control nativo
+  deja de decidir el resultado (`noValidate` en el formulario). Evidencia:
+  `frontend/test/sessions/durationInput.test.js` (24 h, 23 h 60 min y `1e2` h) y los casos de
+  máximo de `SessionForm.test.jsx`.
+- **B9-4**: cada mensaje visible se pinta una sola vez con `role="alert"`, identificador propio y
+  `aria-describedby` en el grupo de duración o en el selector de temática; los controles
+  afectados llevan `aria-invalid` solo mientras el error está visible. Evidencia: casos de ARIA
+  de `SessionForm.test.jsx`, verificados por mutación.
+- **B9-6**: el envío usa los enteros que devuelve `parseDurationInput`; ya no hay
+  `Number(...) || 0` en el formulario.
 
 **Prioridad:** *Media* (datos sincronizados y UX accesible).
 
@@ -335,15 +361,25 @@ verificado por mutación. Quedan pendientes B10-1, B10-3 y B10-4.
 
 **Prioridad:** *Media* (estática del tablero de inicio).
 
-### B11-1, B11-2, B11-3, B11-4, B11-5, B11-6, B11-7 · Duplicación de estilos, monoliticidad, missing accesibilidad y layout tokens
+### B11-1, B11-2, B11-3, B11-4, B11-5, B11-6, B11-7, B11-8 · Duplicación de estilos, monoliticidad, accesibilidad y layout
 
 **B11-7 resuelto (2026-11-17):** la media query de `styles.css` (`max-width: 560px`) hace que
 `.tabs` ocupe el ancho del contenedor y envuelva los botones. Medido con Chrome DevTools a 375 px
 y 320 px: `scrollWidth === clientWidth` (sin scroll horizontal) y `flex-wrap: wrap`. El arreglo
 llegó con el selector de temáticas (`e7babd3`, 2026-11-14). **B11-4 parcialmente resuelto:**
 `prefers-reduced-motion` ya existe; `:focus-visible` solo cubre `button` y `a` y falta aplicarlo a
-los controles de formulario. Quedan pendientes B11-1, B11-2, B11-3, B11-5, B11-6 y el resto de
-B11-4.
+los controles de formulario. Quedan pendientes B11-1, B11-2, B11-3, B11-5, B11-6, B11-8 y el resto
+de B11-4.
+
+**B11-8 registrado (2026-11-18):** durante la validación de
+`specs/008-validacion-duracion-formulario/` se midió con Chrome DevTools que, a 375 px, el
+`fieldset` de duración ocupa 311 px dentro de un formulario de 303 px (8 px de desbordamiento
+interno). La página no genera scroll horizontal (`scrollWidth === clientWidth`), pero el grupo de
+horas y minutos puede provocar scroll dentro del formulario. Es un problema de layout preexistente
+y ajeno al alcance funcional de 008, que excluye el control de desbordamiento a 375 px de sus
+criterios de cierre. **Mitigación:** permitir que la fila de horas y minutos se ajuste
+(`flex-wrap`), reducir el ancho mínimo de los controles o aplicar `max-width: 100%` al grupo;
+abordarlo en la feature de estilos/UI.
 
 **Prioridad:** *Media* (consistencia visual).
 
@@ -351,6 +387,6 @@ B11-4.
 
 ### Resumen
 
-**Sesenta y nueve** debilidades técnicas registradas en la tabla (B0-1 … B11-7), con 54 resueltas, 14 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B6-3, B6-4 y B6-5 resueltos, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10); B5-2 quedó resuelto en `specs/006-catalogo-tematicas/` (2026-11-13); B5-4 quedó resuelto con la extracción de constantes a `packages/domain-constants` (commit `46c0d4c`, 2026-10-27). El 2026-11-17 se cerraron sin cambio de comportamiento B9-1 (reglas compartidas), B10-2 (periodos en una sola fuente, con test) y B11-7 (pestañas sin overflow a 375/320 px); B6-3, B6-4 y B6-5 se cerraron en `specs/007-orquestacion-app/` (2026-11-17); B6-6 se cerró el 2026-11-18 con dos tests de reintento en `frontend/test/App.test.jsx` (guardado y borrado), verificados por mutación; B7-2 se cerró el 2026-11-18 con la cancelación de la petición en vuelo en los tres hooks de lectura (20 tests y 11 mutaciones detectadas); B7-3 y B7-4 se cerraron el 2026-11-18 con la fusión de cabeceras y el `Content-Type` solo en peticiones con cuerpo (5 tests nuevos, mutación detectada); B8-3 se cerró el 2026-11-18 con el límite inferior de `goalProgress` (dos tests en `frontend/test/utils/time.test.js`, mutación detectada); B8-4 se cerró el 2026-11-18 al unificar la regla «lunes = 0» en `weekdayIndexFromDate`, compartida por `formatDateLong` y `weekdayIndex` (test de coherencia y mutación detectada); B9-3, B9-4 y B11-4 siguen parciales y su resto entra en las specs del formulario y de estilos. Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
+**Setenta** debilidades técnicas registradas en la tabla (B0-1 … B11-8), con 58 resueltas, 11 pendientes y 1 en curso (B0-7). El principal impedimento para la culminación es **B0-7** (sin tests E2E; los de frontend ya existen). Con B6-3, B6-4 y B6-5 resueltos, la deuda pendiente restante es de prioridad media o baja. Las debilidades de fechas B3-2, B3-3, B4-4, B8-1 y B9-5 quedaron resueltas en `specs/004-validacion-fechas/` (2026-11-10); B4-2 quedó resuelto en `specs/005-duracion-parcial-sesiones/` (2026-11-10); B4-3 y B4-5 quedaron resueltos como refactor defensivo (2026-11-10); B5-2 quedó resuelto en `specs/006-catalogo-tematicas/` (2026-11-13); B5-4 quedó resuelto con la extracción de constantes a `packages/domain-constants` (commit `46c0d4c`, 2026-10-27). El 2026-11-17 se cerraron sin cambio de comportamiento B9-1 (reglas compartidas), B10-2 (periodos en una sola fuente, con test) y B11-7 (pestañas sin overflow a 375/320 px); B6-3, B6-4 y B6-5 se cerraron en `specs/007-orquestacion-app/` (2026-11-17); B6-6 se cerró el 2026-11-18 con dos tests de reintento en `frontend/test/App.test.jsx` (guardado y borrado), verificados por mutación; B7-2 se cerró el 2026-11-18 con la cancelación de la petición en vuelo en los tres hooks de lectura (20 tests y 11 mutaciones detectadas); B7-3 y B7-4 se cerraron el 2026-11-18 con la fusión de cabeceras y el `Content-Type` solo en peticiones con cuerpo (5 tests nuevos, mutación detectada); B8-3 se cerró el 2026-11-18 con el límite inferior de `goalProgress` (dos tests en `frontend/test/utils/time.test.js`, mutación detectada); B8-4 se cerró el 2026-11-18 al unificar la regla «lunes = 0» en `weekdayIndexFromDate`, compartida por `formatDateLong` y `weekdayIndex` (test de coherencia y mutación detectada); B8-5, B9-3, B9-4 y B9-6 se cerraron el 2026-11-18 en `specs/008-validacion-duracion-formulario/` con la validación explícita de la duración (mínimo, máximo, rango de minutos y precedencia), el anuncio accesible asociado al campo y el envío de enteros (17 tests de la función pura y 20 casos de formulario, verificados por mutación); B11-4 sigue parcial y su resto entra en la spec de estilos; B11-8 quedó registrado el 2026-11-18 al validar 008 (desbordamiento interno del campo de duración a 375 px) y también corresponde a la feature de estilos. Todas las categorías de riesgo de negocio — acoplamiento, datos, UI, red, estilos — están cubiertas y el proyecto sigue siendo funcional en verde.
 
 La estructura propuesta (resumen + 13 bloques) mantiene el alcance de cada archivo y la tabla de contenidos original.

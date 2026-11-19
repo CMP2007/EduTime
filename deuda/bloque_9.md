@@ -66,5 +66,18 @@ del contenedor y envuelva los botones. Medido con Chrome DevTools a 375 px y 320
 `scrollWidth === clientWidth` (sin scroll horizontal) y `flex-wrap: wrap`. El arreglo llegó con
 el selector de temáticas (`e7babd3`, 2026-11-14).
 
+### B11-8 · El campo de duración del formulario desborda su contenedor a 375 px
+
+Medido con Chrome DevTools durante la validación de `specs/008-validacion-duracion-formulario/`
+(2026-11-18): a 375 px, el `fieldset` de duración ocupa 311 px dentro de un formulario de 303 px
+(8 px de desbordamiento interno). La página no genera scroll horizontal
+(`scrollWidth === clientWidth`), pero el grupo de horas y minutos puede provocar scroll dentro
+del formulario. Es un problema de layout preexistente y ajeno al alcance funcional de 008, que
+excluye el control de desbordamiento a 375 px de sus criterios de cierre.
+
+**Mitigación:** permitir que la fila de horas y minutos se ajuste (`flex-wrap`), reducir el ancho
+mínimo de los controles o aplicar `max-width: 100%` al grupo; abordarlo en la feature de
+estilos/UI.
+
 ---
 

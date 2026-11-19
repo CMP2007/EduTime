@@ -22,11 +22,6 @@ export function splitDuration(totalMinutes) {
   return { hours: Math.floor(minutes / 60), minutes: minutes % 60 };
 }
 
-/** Une horas y minutos en minutos totales. */
-export function combineDuration(hours, minutes) {
-  return (Number(hours) || 0) * 60 + (Number(minutes) || 0);
-}
-
 /** Porcentaje de la meta diaria (0-100). */
 export function goalProgress(minutes) {
   const percentage = Math.round(((minutes || 0) / GOAL_MINUTES) * 100);
