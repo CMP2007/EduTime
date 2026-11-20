@@ -164,6 +164,7 @@ frontend/src/
   api/client.js                # fetch genérico a la API (lanza ApiError)
   components/                  # componentes reutilizables (Modal, Tabs, Card, ErrorBoundary…)
   context/DataRefreshContext.jsx  # versiones de sesiones, estadísticas y temáticas
+  hooks/                       # hooks genéricos reutilizables (useDebouncedValue)
   navigation/                  # pestañas, direcciones (#/inicio…) y hook de ruta
   seed/                        # aviso de datos de ejemplo: api + diálogo
   sessions/                    # clases: api, hooks de lectura y mutaciones, formulario, historial, mensaje de borrado

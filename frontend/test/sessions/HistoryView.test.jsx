@@ -169,6 +169,29 @@ describe('useSessions · guarda de rango invertido (RF-6)', () => {
   });
 });
 
+describe('HistoryView · búsqueda con retardo (B9-2)', () => {
+  it('no consulta en cada pulsación y pide el texto final una sola vez', async () => {
+    renderHistory();
+
+    await waitFor(() => expect(sessionsApiMock.list).toHaveBeenCalledTimes(1));
+
+    const search = screen.getByLabelText('Buscar en observaciones');
+    ['i', 'in', 'int', 'inte', 'integrales'].forEach((value) => {
+      fireEvent.change(search, { target: { value } });
+    });
+
+    // El input responde al instante, pero aún no se ha pedido nada.
+    expect(search.value).toBe('integrales');
+    expect(sessionsApiMock.list).toHaveBeenCalledTimes(1);
+
+    await waitFor(() => expect(sessionsApiMock.list).toHaveBeenCalledTimes(2));
+    expect(sessionsApiMock.list.mock.calls.map(([options]) => options.q)).toEqual([
+      '',
+      'integrales',
+    ]);
+  });
+});
+
 describe('HistoryView · filtro por temática (RF-29)', () => {
   it('ofrece el catálogo y consulta la temática elegida', async () => {
     renderHistory();

@@ -22,6 +22,13 @@ constante local ni `TITLE_MAX`. Refactor sin cambio observable, cubierto por la 
 
 **Mitigación:** `debounce` (o búsqueda al enviar).
 
+**Resuelto (2026-11-20):** el historial estabiliza el texto con `useDebouncedValue`
+(`frontend/src/hooks/useDebouncedValue.js`, 300 ms) antes de pasarlo a `useSessions`; el campo
+responde al instante y fechas y temática siguen inmediatas. Evidencia:
+`frontend/test/hooks/useDebouncedValue.test.jsx` y el caso «no consulta en cada pulsación» de
+`frontend/test/sessions/HistoryView.test.jsx`, verificados por mutación (6 llamadas sin el
+debounce; el reinicio falla sin `clearTimeout`).
+
 ### B9-3 · Límite de duración: el mensaje no coincide con el máximo real (front y back sí coinciden)
 
 > **Corrección (auditoría del código):** una lectura previa afirmaba que el front permitía
