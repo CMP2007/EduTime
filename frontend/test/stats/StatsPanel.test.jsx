@@ -63,6 +63,24 @@ describe('StatsPanel', () => {
     expect((await screen.findAllByText('Matemáticas')).length).toBeGreaterThan(0);
   });
 
+  it('pide las clases del periodo y no las refiltra en el cliente', async () => {
+    statsApiMock.get.mockResolvedValue(buildStats());
+    // La API es la autoridad del rango: una clase fuera del periodo se pinta tal cual.
+    const outOfRange = buildSession({ id: 'fuera', themeName: 'Física', date: '2026-11-01' });
+    sessionsApiMock.list.mockResolvedValue([outOfRange]);
+
+    renderPanel();
+
+    expect(await screen.findByText('Física')).toBeTruthy();
+    expect(sessionsApiMock.list).toHaveBeenCalledWith({
+      from: '2026-10-12',
+      to: '2026-10-18',
+      q: '',
+      themeId: '',
+      signal: expect.any(AbortSignal),
+    });
+  });
+
   it('muestra el error de contrato y ninguna tarjeta si la primera carga es inválida', async () => {
     statsApiMock.get.mockRejectedValue(
       new ContractError(

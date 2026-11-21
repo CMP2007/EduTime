@@ -103,6 +103,34 @@ describe('useSessions · filtros', () => {
   });
 });
 
+describe('useSessions · carga habilitada', () => {
+  it('no pide el listado mientras está deshabilitado y lo pide al habilitarse', async () => {
+    const { result, rerender } = renderHook(
+      ({ enabled }) => useSessions({ from: '2026-10-12', to: '2026-10-18' }, { enabled }),
+      { wrapper, initialProps: { enabled: false } },
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(sessionsApiMock.list).not.toHaveBeenCalled();
+    expect(result.current.loading).toBe(false);
+    expect(result.current.sessions).toEqual([]);
+
+    rerender({ enabled: true });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(sessionsApiMock.list).toHaveBeenCalledTimes(1);
+    expect(sessionsApiMock.list).toHaveBeenCalledWith({
+      from: '2026-10-12',
+      to: '2026-10-18',
+      q: '',
+      themeId: '',
+      signal: expect.any(AbortSignal),
+    });
+  });
+});
+
 describe('useSessions · cancelación', () => {
   it('cancela la petición anterior cuando cambian los filtros', async () => {
     const signals = [];

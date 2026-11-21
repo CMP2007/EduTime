@@ -18,11 +18,16 @@ function StatsPanel({ onEdit, onDelete }) {
     date: filter.date,
     heatmap: 'week',
   });
-  const { sessions, loading: sessionsLoading, error: sessionsError } = useSessions({});
-
-  const periodSessions = stats
-    ? sessions.filter((session) => session.date >= stats.period.from && session.date <= stats.period.to)
-    : [];
+  // Las clases se piden con el rango que ya calculó el backend; él es la
+  // autoridad del periodo y no se vuelve a filtrar en el cliente (B10-1).
+  const {
+    sessions: periodSessions,
+    loading: sessionsLoading,
+    error: sessionsError,
+  } = useSessions(
+    { from: stats?.period.from ?? '', to: stats?.period.to ?? '' },
+    { enabled: Boolean(stats) },
+  );
 
   return (
     <div className="panel">
