@@ -32,6 +32,15 @@ es arbitraria y solo el último corte se relaciona con la meta; no está en `AGE
 
 **Mitigación:** definir la escala como constantes documentadas.
 
+**Resuelto (2026-11-22):** la escala vive en `frontend/src/stats/heatmapLevel.js`, con
+`HEATMAP_THRESHOLDS` documentado (60, 120 y la meta diaria), `HEATMAP_LEVEL_MAX`,
+`HEATMAP_LEVEL_COUNT` y `heatmapLevel(minutes)`. `ActivityHeatmap` aplica la función a cada celda
+y genera la leyenda desde el conteo de niveles, sin repetir el `4`. Evidencia:
+`frontend/test/stats/heatmapLevel.test.js` (límite de cada nivel y coherencia de la escala) y dos
+casos nuevos de `frontend/test/stats/ActivityHeatmap.test.jsx` (nivel por celda y una celda de
+leyenda por nivel), verificados por mutación. Refactor sin cambio observable: no requiere spec.
+También se eliminó el JSDoc huérfano de `frontend/src/utils/time.js` (resto de `46c0d4cb`).
+
 ### B10-4 · `buildColumns` asume serie contigua y no rellena la última semana
 
 `ActivityHeatmap.jsx:13-46` solo rellena los huecos de la **primera** semana del lado izquierdo;

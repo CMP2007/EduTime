@@ -3,8 +3,6 @@ import { GOAL_MINUTES } from 'domain-constants';
 
 export { GOAL_MINUTES };
 
-/** Meta diaria de estudio, en minutos (3 horas). */
-
 /** Convierte minutos a un texto legible: 90 -> "1h 30m". */
 export function formatMinutes(totalMinutes) {
   const minutes = Math.max(0, Math.round(totalMinutes || 0));

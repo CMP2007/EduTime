@@ -2,6 +2,7 @@ import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import ActivityHeatmap from '../../src/stats/ActivityHeatmap.jsx';
+import { HEATMAP_LEVEL_COUNT, HEATMAP_LEVEL_MAX } from '../../src/stats/heatmapLevel.js';
 
 function heatCell(container, index) {
   const cells = container.querySelectorAll('.heatmap__week')[0].children;
@@ -37,5 +38,44 @@ describe('ActivityHeatmap', () => {
     );
 
     expect(getByText('Sin datos para este rango.')).toBeTruthy();
+  });
+
+  it('aplica el nivel de la escala a cada celda según sus minutos', () => {
+    const { container } = render(
+      <ActivityHeatmap
+        days={[
+          { date: '2026-10-12', minutes: 30, goalMet: false },
+          { date: '2026-10-13', minutes: 90, goalMet: false },
+          { date: '2026-10-14', minutes: 150, goalMet: false },
+          { date: '2026-10-15', minutes: 200, goalMet: true },
+          { date: '2026-10-16', minutes: 0, goalMet: false },
+        ]}
+        rangeKey="week"
+        from="2026-10-12"
+        to="2026-10-16"
+      />,
+    );
+
+    expect(heatCell(container, 0).className).toContain('heatmap__cell--l1');
+    expect(heatCell(container, 1).className).toContain('heatmap__cell--l2');
+    expect(heatCell(container, 2).className).toContain('heatmap__cell--l3');
+    expect(heatCell(container, 3).className).toContain('heatmap__cell--l4');
+    expect(heatCell(container, 4).className).toContain('heatmap__cell--l0');
+  });
+
+  it('pinta una celda de leyenda por nivel de la escala', () => {
+    const { container } = render(
+      <ActivityHeatmap
+        days={[{ date: '2026-10-14', minutes: 90, goalMet: false }]}
+        rangeKey="week"
+        from="2026-10-14"
+        to="2026-10-14"
+      />,
+    );
+
+    const legend = container.querySelectorAll('.heatmap__legend .heatmap__cell');
+    expect(legend).toHaveLength(HEATMAP_LEVEL_COUNT);
+    expect(legend[0].className).toContain('heatmap__cell--l0');
+    expect(legend[legend.length - 1].className).toContain(`heatmap__cell--l${HEATMAP_LEVEL_MAX}`);
   });
 });

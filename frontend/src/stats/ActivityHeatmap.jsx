@@ -1,14 +1,7 @@
 import { isValidDateString } from 'domain-dates';
 import { formatDateLong, formatDateRange, monthNameFromKey, weekdayIndex } from '../utils/date.js';
-import { formatMinutes, GOAL_MINUTES } from '../utils/time.js';
-
-function level(minutes) {
-  if (!minutes) return 0;
-  if (minutes >= GOAL_MINUTES) return 4;
-  if (minutes >= 120) return 3;
-  if (minutes >= 60) return 2;
-  return 1;
-}
+import { formatMinutes } from '../utils/time.js';
+import { HEATMAP_LEVEL_COUNT, heatmapLevel } from './heatmapLevel.js';
 
 /** Convierte la lista de días en columnas semanales (7 celdas, empezando en lunes). */
 function buildColumns(days) {
@@ -80,7 +73,7 @@ function HeatCell({ day, selected, onSelect }) {
   return (
     <button
       type="button"
-      className={`heatmap__cell heatmap__cell--l${level(day.minutes)} ${
+      className={`heatmap__cell heatmap__cell--l${heatmapLevel(day.minutes)} ${
         day.goalMet ? 'heatmap__cell--goal' : ''
       } ${selected ? 'heatmap__cell--selected' : ''}`}
       title={`${formatDateLong(day.date)}: ${description}`}
@@ -144,7 +137,7 @@ function ActivityHeatmap({
 
       <div className="heatmap__legend">
         <span className="muted">Menos</span>
-        {[0, 1, 2, 3, 4].map((value) => (
+        {Array.from({ length: HEATMAP_LEVEL_COUNT }, (_, value) => (
           <span key={value} className={`heatmap__cell heatmap__cell--l${value}`} />
         ))}
         <span className="muted">Más</span>
