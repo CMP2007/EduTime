@@ -23,13 +23,57 @@ describe('ActivityHeatmap', () => {
       />,
     );
 
-    // El miércoles válido conserva sus dos huecos previos (lunes y martes):
-    // el día inválido no se ha colado como primer día de la semana.
+    // El miércoles válido conserva sus dos huecos previos (lunes y martes) y
+    // la semana se completa hasta el domingo: el día inválido no se cuela.
     expect(heatCell(container, 0).className).toContain('heatmap__cell--empty');
     expect(heatCell(container, 1).className).toContain('heatmap__cell--empty');
     expect(heatCell(container, 2).getAttribute('title')).toContain('14 oct 2026');
-    expect(container.querySelectorAll('.heatmap__week')[0].children).toHaveLength(3);
+    expect(heatCell(container, 3).className).toContain('heatmap__cell--empty');
+    expect(heatCell(container, 4).className).toContain('heatmap__cell--empty');
+    expect(heatCell(container, 5).className).toContain('heatmap__cell--empty');
+    expect(heatCell(container, 6).className).toContain('heatmap__cell--empty');
+    expect(container.querySelectorAll('.heatmap__week')[0].children).toHaveLength(7);
     expect(container.innerHTML).not.toContain('fecha-rota');
+  });
+
+  it('coloca cada día en su día de la semana aunque la serie tenga huecos y desorden', () => {
+    const { container } = render(
+      <ActivityHeatmap
+        days={[
+          { date: '2026-10-15', minutes: 60, goalMet: false },
+          { date: '2026-10-12', minutes: 30, goalMet: false },
+        ]}
+        rangeKey="week"
+        from="2026-10-12"
+        to="2026-10-18"
+      />,
+    );
+
+    expect(heatCell(container, 0).getAttribute('title')).toContain('12 oct 2026');
+    expect(heatCell(container, 1).className).toContain('heatmap__cell--empty');
+    expect(heatCell(container, 2).className).toContain('heatmap__cell--empty');
+    expect(heatCell(container, 3).getAttribute('title')).toContain('15 oct 2026');
+    expect(heatCell(container, 4).className).toContain('heatmap__cell--empty');
+    expect(heatCell(container, 5).className).toContain('heatmap__cell--empty');
+    expect(heatCell(container, 6).className).toContain('heatmap__cell--empty');
+  });
+
+  it('completa la última semana hasta el domingo con celdas vacías', () => {
+    const { container } = render(
+      <ActivityHeatmap
+        days={[{ date: '2026-10-12', minutes: 30, goalMet: false }]}
+        rangeKey="week"
+        from="2026-10-12"
+        to="2026-10-18"
+      />,
+    );
+
+    const week = container.querySelectorAll('.heatmap__week')[0];
+    expect(week.children).toHaveLength(7);
+    expect(heatCell(container, 0).getAttribute('title')).toContain('12 oct 2026');
+    for (let index = 1; index < 7; index += 1) {
+      expect(heatCell(container, index).className).toContain('heatmap__cell--empty');
+    }
   });
 
   it('muestra "Sin datos" si todos los días tienen fecha inválida', () => {

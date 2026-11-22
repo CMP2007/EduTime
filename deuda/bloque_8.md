@@ -50,6 +50,14 @@ se desalinearía (frágil, aunque hoy el backend siempre devuelve serie completa
 **Mitigación:** construir la rejilla por posición de fecha (día de la semana) en vez de asumir
 contigüidad.
 
+**Resuelto (2026-11-22):** `buildColumns` ordena la serie con `compareDateStrings`, calcula el
+offset de cada fecha con `Date.UTC` (sin DST), recorre todos los días entre el primero y el
+último colocando `null` donde falta el dato y completa la última columna hasta el domingo. Las
+etiquetas (`firstDate`, `lastDate`, `monthKey`) siguen calculándose sobre los días reales.
+Evidencia: `frontend/test/stats/ActivityHeatmap.test.jsx` (huecos/desorden, última semana y el
+caso de fecha inválida ajustado a 7 celdas), verificado por mutación (con el `buildColumns`
+anterior fallan los tres casos). Refactor defensivo sin cambio de contrato: no requiere spec.
+
 ### B10-5 · Tarjetas con `?? 0` silencian cambios de forma del contrato
 
 `StreakCard` y `GoalTodayCard` usan valores por defecto (`?? 0`) y `ActivityDaysCard`

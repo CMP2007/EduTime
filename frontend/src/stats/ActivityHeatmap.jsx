@@ -1,25 +1,50 @@
-import { isValidDateString } from 'domain-dates';
+import { compareDateStrings, isValidDateString } from 'domain-dates';
 import { formatDateLong, formatDateRange, monthNameFromKey, weekdayIndex } from '../utils/date.js';
 import { formatMinutes } from '../utils/time.js';
 import { HEATMAP_LEVEL_COUNT, heatmapLevel } from './heatmapLevel.js';
 
-/** Convierte la lista de días en columnas semanales (7 celdas, empezando en lunes). */
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+/** Diferencia en días entre dos fechas válidas, sin depender de la zona horaria. */
+function daysBetween(fromDate, toDate) {
+  const [fromYear, fromMonth, fromDay] = fromDate.split('-').map(Number);
+  const [toYear, toMonth, toDay] = toDate.split('-').map(Number);
+  const fromUtc = Date.UTC(fromYear, fromMonth - 1, fromDay);
+  const toUtc = Date.UTC(toYear, toMonth - 1, toDay);
+  return Math.round((toUtc - fromUtc) / MS_PER_DAY);
+}
+
+/**
+ * Convierte la lista de días en columnas semanales (7 celdas, empezando en lunes).
+ * Coloca cada día por su fecha, no por su posición: los huecos de la serie y el
+ * final de la última semana se rellenan con celdas vacías.
+ */
 function buildColumns(days) {
+  const sortedDays = [...days].sort((a, b) => compareDateStrings(a.date, b.date));
+  const firstDate = sortedDays[0].date;
+  const lastDate = sortedDays[sortedDays.length - 1].date;
+  const byOffset = new Map(
+    sortedDays.map((day) => [daysBetween(firstDate, day.date), day]),
+  );
+
   const columns = [];
   let current = [];
 
-  days.forEach((day, index) => {
-    if (index === 0) {
-      for (let blank = 0; blank < weekdayIndex(day.date); blank += 1) current.push(null);
-    }
-    current.push(day);
+  for (let blank = 0; blank < weekdayIndex(firstDate); blank += 1) current.push(null);
+
+  const totalDays = daysBetween(firstDate, lastDate) + 1;
+  for (let offset = 0; offset < totalDays; offset += 1) {
+    current.push(byOffset.get(offset) ?? null);
     if (current.length === 7) {
       columns.push(current);
       current = [];
     }
-  });
+  }
 
-  if (current.length) columns.push(current);
+  if (current.length) {
+    while (current.length < 7) current.push(null);
+    columns.push(current);
+  }
 
   return columns.map((cells) => {
     const realDays = cells.filter(Boolean);
