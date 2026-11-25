@@ -6,59 +6,46 @@
 
 ## Propósito
 
-Revisar un artefacto SDD como un QA senior de artefactos para detectar defectos antes de que
-se conviertan en decisiones técnicas, tareas o código. No sustituye a los tests ni al lint:
-revisa el contrato y su coherencia.
+Revisar un artefacto SDD como un QA senior: detectar defectos antes de que se conviertan en
+decisiones técnicas, tareas o código. No sustituye a tests ni lint; revisa el contrato y su
+coherencia.
 
 ## Entradas
 
-- **Tipo**: `spec`, `plan` o `tasks`.
-- **Ruta** del artefacto.
-- **Referencias**:
-  - `docs/constitution.md` (principios).
-  - `AGENTS.md` (estructura, modelo y reglas operativas).
-  - `specs/_templates/` (qué se espera de cada artefacto).
-  - Para `plan`: la `spec.md` de la misma feature.
-  - Para `tasks`: la `spec.md` y el `plan.md` de la misma feature.
+- **Tipo** (`spec`, `plan` o `tasks`) y **ruta** del artefacto.
+- **Referencias**: `docs/constitution.md`, `AGENTS.md` (ya en contexto), `specs/_templates/`; para
+  `plan`, la `spec.md`; para `tasks`, la `spec.md` y el `plan.md`.
 - Si hay varias features y no está claro cuál revisar, pregunta antes de empezar.
 
 ## Reglas
 
-1. **Solo detecta**. No propongas soluciones, no reescribas el artefacto y no escribas otros
-   artefactos durante la revisión.
-2. **Lista numerada** de 1 a N, agrupada por categorías. Si una categoría no tiene hallazgos,
-   escribe «Ninguno».
-3. **Cada hallazgo** incluye:
-   - categoría;
-   - ubicación exacta (sección y `RF-x`, o «no cubierto»);
-   - cita breve del texto relevante;
-   - qué impide decidir, implementar o verificar;
-   - una pregunta abierta para el mantenedor, sin anticipar la respuesta;
-   - etiqueta `[BLOQUEANTE]` o `[NO BLOQUEANTE]`.
-4. **No inventes** problemas para rellenar la lista. No confundas preferencias de estilo con
-   ambigüedades.
-5. **Bloqueante** solo si impide implementar o verificar sin adivinar. Si queda un bloqueante
-   sin decidir, el artefacto no se aprueba.
-6. **La revisión no cambia el estado** del artefacto. La spec pasa a `aprobada` con la
-   aprobación y a `implementada` al cerrar; el plan y las tareas siguen su propio ciclo.
-7. **Después de las respuestas**: actualiza solo lo decidido, vuelve a revisar lo cambiado y
-   pide aprobación. Si cambian requisitos, repite la revisión completa. Si una respuesta sigue
-   siendo ambigua, vuelve a preguntar.
-8. **La resolución requiere permiso de escritura**. `/clarify` es solo detección; `/feature`
-   aplica las respuestas porque trabaja en modo `build`.
+1. **Solo detecta**: no propongas soluciones, no reescribas el artefacto ni escribas otros
+   artefactos.
+2. **Lista numerada** agrupada por categorías; si una no tiene hallazgos, escribe «Ninguno».
+3. **Cada hallazgo** lleva: categoría; ubicación exacta (sección y `RF-x`, o «no cubierto»); cita
+   breve; qué impide decidir, implementar o verificar; pregunta abierta sin anticipar la
+   respuesta; etiqueta `[BLOQUEANTE]` o `[NO BLOQUEANTE]`.
+4. **No inventes** problemas ni confundas estilo con ambigüedad.
+5. **Bloqueante** solo si impide implementar o verificar sin adivinar. Con un bloqueante sin
+   decidir, el artefacto no se aprueba.
+6. **La revisión no cambia estados**: la spec pasa a `aprobada` con la aprobación y a
+   `implementada` al cerrar; plan y tareas siguen su ciclo.
+7. **Tras las respuestas**: actualiza solo lo decidido, revisa lo cambiado y pide aprobación. Si
+   cambian requisitos, repite la revisión completa; si una respuesta sigue ambigua, vuelve a
+   preguntar.
+8. **Resolver exige escritura**: `/clarify` solo detecta; `/feature` aplica las respuestas porque
+   trabaja en modo `build`.
 
 ## Categorías comunes
 
 1. **Ambigüedades y huecos**: términos sin definir, cuantificadores vagos («rápido», «varios»,
-   «si procede»), valores por defecto sin decidir, criterios no verificables, requisitos no
-   funcionales relevantes que falten, actores o permisos sin definir.
-2. **Contradicciones e inconsistencias**: requisito contra requisito, requisito contra
-   historia, requisito contra no funcional, requisito contra «Fuera de alcance», criterios que
-   no cubren lo prometido, artefacto contra la spec o contra `AGENTS.md`.
-3. **Casos y escenarios no cubiertos**: estados vacíos, errores, datos ausentes o corruptos,
-   concurrencia, desmontaje, permisos, fechas y zonas horarias, textos largos, límites, etc.
-   Incluye los que estén en «Casos límite» pero no tengan un requisito o test que los cubra.
-   Limítate a los que cambien el comportamiento o la aceptación.
+   «si procede»), valores por defecto sin decidir, criterios no verificables, NFR relevantes que
+   falten, actores o permisos sin definir.
+2. **Contradicciones**: requisito contra requisito, historia, NFR o «Fuera de alcance»; criterios
+   que no cubren lo prometido; artefacto contra spec o `AGENTS.md`.
+3. **Casos no cubiertos**: estados vacíos, errores, datos ausentes o corruptos, concurrencia,
+   desmontaje, permisos, fechas y zonas horarias, textos largos, límites. Incluye los de «Casos
+   límite» sin requisito o test; limítate a los que cambien comportamiento o aceptación.
 4. **Conflictos con la constitución o `AGENTS.md`**: cita el principio o la regla y el requisito
    que lo incumple (dependencias, spec verificable, capas, tests, datos/secretos, idioma,
    implementación filtrada en la spec).
@@ -77,38 +64,36 @@ revisa el contrato y su coherencia.
 
 ### Spec
 
-- Describe comportamiento, no implementación: sin archivos, funciones, endpoints ni librerías.
-- Actores y permisos definidos.
-- Términos ambiguos definidos en «Definiciones» (si aplica).
-- Requisitos en EARS, observables y verificables.
-- Requisitos no funcionales relevantes (accesibilidad, rendimiento, seguridad, idioma).
+- Comportamiento, no implementación: sin archivos, funciones, endpoints ni librerías.
+- Actores y permisos definidos; términos ambiguos en «Definiciones» (si aplica).
+- RF en EARS, observables y verificables; NFR relevantes (accesibilidad, rendimiento, seguridad,
+  idioma).
 - Casos límite y errores cubiertos por un requisito o declarados fuera de alcance.
-- Criterios de finalización que se puedan comprobar con tests o manualmente.
+- Criterios de finalización comprobables con tests o manualmente.
 - Coherencia con el modelo de datos, la API y las reglas de `AGENTS.md`.
 - Dudas bloqueantes resueltas; las no bloqueantes, marcadas.
 
 ### Plan
 
-- Cada `RF-x` aparece en al menos un paso y en el mapa `RF → test`.
+- Cada `RF-x` aparece al menos en un paso y en el mapa `RF → test`.
 - Cada paso responde a un `RF-x` o a una necesidad técnica justificada; sin alcance colado.
-- Archivos afectados completos y coherentes con las capas.
-- Dependencias en un solo sentido; dependencia nueva justificada y aprobada.
+- Archivos completos y coherentes con las capas.
+- Dependencias en un solo sentido; las nuevas, justificadas y aprobadas.
 - Decisiones con alternativa descartada cuando sea relevante.
-- Riesgos con mitigación; orden de implementación seguro; rollback si aplica.
+- Riesgos con mitigación; orden seguro; rollback si aplica.
 - Datos, concurrencia, seguridad y migración cubiertos.
 - Actualización de `AGENTS.md`, `MEMORY.md` y `DEUDA_TECNICA.md` prevista.
-- Tests de cada RF y de los casos límite; mutación prevista.
+- Tests de cada RF y de los casos límite; mutación prevista para la verificación detallada o de
+  cierre.
 
 ### Tareas
 
 - Cada `RF-x` tiene al menos una tarea y un test.
-- Cada tarea responde a un paso del plan; sin tareas de alcance nuevo.
+- Cada tarea responde a un paso del plan; sin alcance nuevo.
 - Tareas pequeñas, con una responsabilidad y un resultado observable.
-- Si una tarea no cabe en una sesión corta o el conjunto supera ~10, el alcance está mal
-  dividido.
+- Si una tarea no cabe en una sesión corta o el conjunto supera ~10, el alcance está mal dividido.
 - Test primero y «hecho cuando» verificable.
-- Dependencias y orden correctos.
-- No hay tareas de código sin test.
+- Dependencias y orden correctos; ninguna tarea de código sin test.
 - Actualización de documentación, deuda y memoria incluida.
 - Las tareas no mezclan funcionalidades ni roles.
 
@@ -141,27 +126,23 @@ Ninguno.
 
 ## Resolución
 
-- `/feature` aplica las respuestas y actualiza el artefacto.
-- `/clarify` se detiene tras la lista; para aplicar, usa el agente `build` o `/feature`.
+- `/feature` aplica las respuestas y actualiza el artefacto; `/clarify` se detiene tras la lista
+  (para aplicar, usa `build` o `/feature`).
 - No cambies el estado a aprobado hasta que el mantenedor lo diga.
-- Si una respuesta cambia el alcance, vuelve a pasar la revisión completa.
+- Si una respuesta cambia el alcance, repite la revisión completa.
 
 ## Reanálisis
 
-- Si cambia la spec, vuelve a pasar `plan` y `tasks`.
-- Si cambia el plan, vuelve a pasar `tasks`.
+- Si cambia la spec, vuelve a pasar `plan` y `tasks`; si cambia el plan, vuelve a pasar `tasks`.
 - Si una tarea revela un requisito nuevo, clarifica la spec primero; no parchees el plan en
   silencio.
-- Compara siempre con el estado actual de los artefactos, no con lo que recuerdes.
+- Compara con el estado actual de los artefactos, no con lo que recuerdes.
 
 ## Relación con los comandos
 
-- `/feature` lee este documento y aplica el protocolo en cada etapa: spec, plan y tareas. Tiene
-  permiso de escritura para incorporar las respuestas.
-- `/clarify` lee este documento y aplica solo la detección a un artefacto concreto. Es de solo
-  lectura.
+- `/feature` aplica este protocolo en cada etapa (spec, plan y tareas) y puede escribir las
+  respuestas. `/clarify` solo detecta y es de lectura.
 - `/change` aplica una clarificación enfocada al delta de spec, plan y tareas.
-- `/validate` aplica `validation.md` sobre la implementación; no sustituye a este
-  protocolo ni revisa los artefactos por ti.
+- `/validate` aplica `validation.md` sobre la implementación; no sustituye a este protocolo.
 - No hay llamadas entre comandos: comparten documentos. Si cambias un protocolo, cambia para
   todos los que lo lean.

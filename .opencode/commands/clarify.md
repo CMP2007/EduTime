@@ -7,7 +7,7 @@ Revisa este artefacto: $ARGUMENTS
 
 Lee `.opencode/commands/protocols/clarification.md` y aplícalo. Detecta el tipo (`spec`, `plan` o `tasks`) y la ruta;
 si falta alguno, infiérelo del contexto o pregúntame. Lee también los artefactos de referencia
-que indique el protocolo. Si la ruta no existe, dilo y no inventes.
+que indique el protocolo; `AGENTS.md` ya está en tu contexto. Si la ruta no existe, dilo y no inventes.
 
 No revises código ni tests de implementación: este comando es para artefactos SDD. Para
 código ya implementado, usa `/validate`.

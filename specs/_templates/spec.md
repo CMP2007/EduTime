@@ -1,6 +1,6 @@
 # Spec NNN — {{título de la funcionalidad}}
 
-> Origen: {{DEUDA_TECNICA.md · Bn-m | petición | idea}}
+> Origen: {{petición | idea | incidencia | deuda pendiente}}
 > Estado: {{propuesta | aprobada | implementada}} ({{AAAA-MM-DD}})
 
 ## Contexto y objetivo
@@ -49,7 +49,8 @@
 
 - RF-1 a RF-N cubiertos por tests en {{ruta o módulo}}.
 - `npm test` y `npm run lint` en verde desde la raíz.
-- Cada test nuevo falla si se revierte la regla que cubre (mutación).
+- Cada test nuevo falla sin el cambio (rojo → verde); la reversión se comprueba en la verificación
+  detallada o de cierre.
 - {{Comprobación manual, si aplica.}}
 
 ## Dudas abiertas

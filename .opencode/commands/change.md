@@ -11,8 +11,9 @@ Cambio solicitado: $2
 Si `$1` está vacío o no coincide con `specs/<NNN>-<slug>/`, pregúntame. Si `$2` está vacío,
 pregúntame qué cambia. No adivines.
 
-Lee `docs/constitution.md`, `AGENTS.md`, `.opencode/commands/protocols/clarification.md` y `.opencode/commands/protocols/validation.md`, y los
-tres artefactos de la feature. No hagas commit salvo que te lo pida.
+Lee `docs/constitution.md`, `.opencode/commands/protocols/clarification.md` y los tres artefactos
+de la feature; `AGENTS.md` ya está en tu contexto. No leas `validation.md` hasta el cierre. No
+hagas commit salvo que te lo pida.
 
 ## 1. Decide si este comando es el adecuado
 
@@ -44,12 +45,13 @@ tres artefactos de la feature. No hagas commit salvo que te lo pida.
    tareas como `en curso`.
 2. Implementa **solo el delta**: primero el test en rojo, luego el cambio mínimo, luego el
    verde. No aproveches para refactorizar ni para cambiar otros RF.
-3. Ejecuta el test concreto, `npm test` y `npm run lint` desde la raíz. Haz mutación de la
-   regla nueva y, si toca UI, comprueba 375 px con Chrome DevTools.
-4. Marca la tarea. Si con esto quedan todas las tareas completadas, aplica el cierre de
-   `.opencode/commands/protocols/validation.md`: spec `implementada (AAAA-MM-DD)`, `tasks.md` `completada`, y actualiza
-   `MEMORY.md` y `DEUDA_TECNICA.md` si corresponde. Si no, deja el estado `en curso` y di qué
-   falta.
+3. Ejecuta el test concreto, `npm test` y `npm run lint` desde la raíz. El test debe fallar sin
+   el cambio (rojo → verde); la mutación por reversión se comprueba en la verificación detallada
+   (`/validate` o el cierre de este flujo). Si toca UI, comprueba 375 px con Chrome DevTools.
+4. Marca la tarea. Si con esto quedan todas las tareas completadas, lee y aplica el cierre de
+   `.opencode/commands/protocols/validation.md`: spec `implementada (AAAA-MM-DD)`, `tasks.md`
+   `completada`, y actualiza `MEMORY.md` y `DEUDA_TECNICA.md` si corresponde. Si no, deja el estado
+   `en curso` y di qué falta.
 5. Reporta el cambio, los archivos, los tests y la deuda. No hagas commit.
 
 ## 4. Límites

@@ -2,6 +2,8 @@
 
 Registro global de debilidades detectadas durante la revisión de calidad del proyecto. Se organiza **por secciones (bloques) de la explicación**: cada bloque aporta sus hallazgos. La mayoría sigue **pendiente**; los marcados como `resuelto` ya se corrigieron (ver `MEMORY.md`).
 
+> **Registro histórico.** No se añaden ítems nuevos: el trabajo futuro se planifica con specs. Se actualiza solo para cambiar el estado de ítems existentes.
+
 - **Estados:** `pendiente` · `en curso` · `resuelto`.
 - **Severidad:** `baja` · `media` · `alta`.
 - **IDs:** `B<n>-<m>` = bloque `n`, hallazgo `m` (estables aunque se reordene el resumen).

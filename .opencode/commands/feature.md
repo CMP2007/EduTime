@@ -5,9 +5,9 @@ agent: build
 
 Quiero añadir esta funcionalidad: $ARGUMENTS
 
-Trabaja con Spec-Driven Development. Antes de nada, lee `docs/constitution.md`, `AGENTS.md`,
-`MEMORY.md`, `.opencode/commands/protocols/clarification.md`, `.opencode/commands/protocols/validation.md` y las plantillas de
-`specs/_templates/`.
+Trabaja con Spec-Driven Development. Antes de nada, lee `docs/constitution.md`, `MEMORY.md`,
+`.opencode/commands/protocols/clarification.md` y las plantillas de `specs/_templates/`; `AGENTS.md`
+ya está en tu contexto. No leas `validation.md` hasta la fase de cierre.
 
 Si `$ARGUMENTS` describe una feature que ya existe, no empieces de cero: pídeme que use
 `/statusSDD` para retomar el punto exacto.
@@ -58,10 +58,11 @@ escribas el siguiente artefacto ni código hasta que el anterior esté aprobado.
     Implementa tarea a tarea: primero el test en rojo, luego el cambio mínimo, luego el verde.
     Marca la tarea en `tasks.md` y pide mi visto bueno antes de seguir, salvo que te autorice ir
     seguido.
-12. Al cerrar, aplica `.opencode/commands/protocols/validation.md`: matriz RF → test, `npm test` y `npm run lint` en
-    verde, mutación de cada regla nueva y, si toca UI, Chrome DevTools con 375 px. Si hay
-    bloqueantes, no cierres. Si todo pasa, actualiza `DEUDA_TECNICA.md` y `MEMORY.md` según
-    `AGENTS.md`, marca `tasks.md` como `completada` y la spec como `implementada (AAAA-MM-DD)`.
+12. Al cerrar, lee y aplica `.opencode/commands/protocols/validation.md`: matriz RF → test,
+    `npm test` y `npm run lint` en verde, mutación de cada regla nueva y, si toca UI, Chrome
+    DevTools con 375 px. Si hay bloqueantes, no cierres. Si todo pasa, actualiza
+    `DEUDA_TECNICA.md` y `MEMORY.md` según `AGENTS.md`, marca `tasks.md` como `completada` y la
+    spec como `implementada (AAAA-MM-DD)`.
 
 Si una duda mía puede cambiar la spec, el plan o las tareas, pregúntala antes de continuar. No
 avances de etapa sin aprobación explícita.

@@ -11,9 +11,9 @@ Si no indico feature, detéctala: la que tenga trabajo pendiente en `tasks.md`, 
 modificada en `specs/` o la que mencione `MEMORY.md`. Si hay varias, lista las candidatas y
 pregúntame.
 
-Lee `AGENTS.md`, `MEMORY.md`, `DEUDA_TECNICA.md`, `git status`, los últimos commits y, de la
-feature, `spec.md`, `plan.md` y `tasks.md`. `MEMORY.md` y `DEUDA_TECNICA.md` son contexto; la
-verdad son los artefactos y el estado de git.
+Lee `MEMORY.md`, `DEUDA_TECNICA.md`, `git status`, los últimos commits y, de la feature,
+`spec.md`, `plan.md` y `tasks.md`; `AGENTS.md` ya está en tu contexto. `MEMORY.md` y
+`DEUDA_TECNICA.md` son contexto; la verdad son los artefactos y el estado de git.
 
 No modifiques nada. Devuelve:
 

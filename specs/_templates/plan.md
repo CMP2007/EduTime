@@ -36,7 +36,7 @@
 - Principio 1: {{dependencias}}.
 - Principio 2: {{spec aprobada y criterios cubiertos}}.
 - Principio 3: {{separación de capas}}.
-- Principio 4: {{tests y mutación}}.
+- Principio 4: {{tests, rojo → verde y mutación en la verificación detallada o de cierre}}.
 - Principio 5: {{datos y secretos}}.
 - Principio 6: {{idioma}}.
 
@@ -52,4 +52,4 @@
 
 ## Fuera de alcance
 
-{{Resumen del de la spec; no introducir alcance nuevo.}}
+{{Resumen de la spec; no introducir alcance nuevo.}}

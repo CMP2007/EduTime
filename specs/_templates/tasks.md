@@ -4,8 +4,8 @@
 > Estado: {{pendiente | en curso | completada}}
 
 Cada tarea es un cambio pequeño y verificable. El campo «Test» indica qué prueba debe existir
-antes de dar la tarea por hecha; si el test no falla al revertir el cambio, la tarea no está
-terminada.
+antes de dar la tarea por hecha; si el test no falla sin el cambio (rojo), la tarea no está
+terminada. La mutación por reversión se comprueba en la verificación detallada o de cierre.
 
 Como guía, una tarea debería cerrarse en una sesión corta (aprox. 20-30 min). Si una tarea no
 cabe o el conjunto supera ~10 tareas, replantea el alcance de la spec en vez de crear tareas
