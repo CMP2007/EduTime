@@ -67,6 +67,7 @@ function DeleteThemeDialog({ theme, themes = [], onClose, onDeleted }) {
 
               <label className="delete-theme__option">
                 <input
+                  className="control"
                   type="radio"
                   name="strategy"
                   value="reassign"
@@ -79,6 +80,7 @@ function DeleteThemeDialog({ theme, themes = [], onClose, onDeleted }) {
 
               {strategy === 'reassign' && targets.length > 0 && (
                 <select
+                  className="control"
                   aria-label="Temática de destino"
                   value={targetThemeId}
                   onChange={(event) => setTargetThemeId(event.target.value)}
@@ -93,6 +95,7 @@ function DeleteThemeDialog({ theme, themes = [], onClose, onDeleted }) {
 
               <label className="delete-theme__option">
                 <input
+                  className="control"
                   type="radio"
                   name="strategy"
                   value="delete"

@@ -64,7 +64,7 @@ function StatsDashboard() {
             </header>
             <label className="field">
               <span className="field__label">Rango</span>
-              <select value={heatmapRange} onChange={(event) => setHeatmapRange(event.target.value)}>
+              <select className="control" value={heatmapRange} onChange={(event) => setHeatmapRange(event.target.value)}>
                 {HEATMAP_OPTIONS.map((option) => (
                   <option key={option.key} value={option.key}>
                     {option.label}

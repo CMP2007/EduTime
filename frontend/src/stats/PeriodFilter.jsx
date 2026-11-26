@@ -21,6 +21,7 @@ function PeriodFilter({ period, date, onChange }) {
       <label className="field">
         <span className="field__label">Fecha de referencia</span>
         <input
+          className="control"
           type="date"
           value={date}
           onChange={(event) => onChange({ period, date: event.target.value })}

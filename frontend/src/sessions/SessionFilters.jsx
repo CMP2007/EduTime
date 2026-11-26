@@ -8,15 +8,15 @@ function SessionFilters({ value, onChange, themes = [] }) {
     <div className="filters">
       <label className="field">
         <span className="field__label">Desde</span>
-        <input type="date" value={value.from} onChange={(event) => update('from', event.target.value)} />
+        <input className="control" type="date" value={value.from} onChange={(event) => update('from', event.target.value)} />
       </label>
       <label className="field">
         <span className="field__label">Hasta</span>
-        <input type="date" value={value.to} onChange={(event) => update('to', event.target.value)} />
+        <input className="control" type="date" value={value.to} onChange={(event) => update('to', event.target.value)} />
       </label>
       <label className="field">
         <span className="field__label">Temática</span>
-        <select value={value.themeId} onChange={(event) => update('themeId', event.target.value)}>
+        <select className="control" value={value.themeId} onChange={(event) => update('themeId', event.target.value)}>
           <option value="">Todas</option>
           {themes.map((theme) => (
             <option key={theme.id} value={theme.id}>{theme.name}</option>
@@ -26,6 +26,7 @@ function SessionFilters({ value, onChange, themes = [] }) {
       <label className="field field--grow">
         <span className="field__label">Buscar en observaciones</span>
         <input
+          className="control"
           type="search"
           placeholder="Ej. repaso de integrales"
           value={value.q}

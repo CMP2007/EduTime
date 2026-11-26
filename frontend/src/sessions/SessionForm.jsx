@@ -193,7 +193,7 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
 
           <label className="field">
             <span className="field__label">Fecha</span>
-            <input type="date" value={form.date} onChange={(event) => update('date', event.target.value)} />
+            <input className="control" type="date" value={form.date} onChange={(event) => update('date', event.target.value)} />
           </label>
 
           <fieldset
@@ -204,6 +204,7 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
             <div className="duration__inputs">
               <label className="duration__item">
                 <input
+                  className="control"
                   type="number"
                   min="0"
                   max="23"
@@ -215,6 +216,7 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
               </label>
               <label className="duration__item">
                 <input
+                  className="control"
                   type="number"
                   min="0"
                   max="59"
@@ -232,6 +234,7 @@ function SessionForm({ open, session, onClose, onSubmit, saving = false }) {
               Observaciones <span className="muted">(opcional, {NOTES_MAX} máx.)</span>
             </span>
             <textarea
+              className="control control--textarea"
               ref={notesRef}
               rows={2}
               maxLength={NOTES_MAX}

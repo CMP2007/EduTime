@@ -339,9 +339,8 @@ a:focus-visible {
   font-weight: 600;
 }
 
-input,
-select,
-textarea {
+/* ---------- Controles de formulario ---------- */
+.control {
   font: inherit;
   color: var(--text);
   border: 1px solid var(--border);
@@ -351,15 +350,13 @@ textarea {
   width: 100%;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+.control:focus {
   outline: 2px solid var(--primary);
   outline-offset: 1px;
   border-color: var(--primary);
 }
 
-textarea {
+.control--textarea {
   resize: none;
   min-height: 56px;
   overflow: hidden;

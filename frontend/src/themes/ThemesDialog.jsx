@@ -93,6 +93,7 @@ function ThemesDialog({ onClose }) {
           <label className="field field--grow">
             <span className="field__label">Nueva temática</span>
             <input
+              className="control"
               type="text"
               value={newName}
               placeholder="Ej. Matemáticas"
@@ -130,6 +131,7 @@ function ThemesDialog({ onClose }) {
                 {editingId === theme.id ? (
                   <form className="themes__edit" onSubmit={handleRename}>
                     <input
+                      className="control"
                       ref={editInputRef}
                       type="text"
                       value={editName}

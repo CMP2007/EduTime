@@ -90,6 +90,7 @@ function ThemeSelect({
     <div className="theme-select">
       <div className="theme-select__row">
         <select
+          className="control"
           ref={selectRef}
           id={id}
           value={value}
@@ -121,6 +122,7 @@ function ThemeSelect({
       {creating && (
         <div className="theme-select__create">
           <input
+            className="control"
             ref={inputRef}
             type="text"
             value={name}
