@@ -1,16 +1,35 @@
 :root {
   --bg: #f1f5f9;
   --surface: #ffffff;
+  --surface-muted: #f8fafc;
   --text: #0f172a;
+  --text-soft: #334155;
   --muted: #64748b;
   --border: #e2e8f0;
   --primary: #4f46e5;
   --primary-dark: #4338ca;
+  --primary-light: #818cf8;
   --primary-soft: #eef2ff;
+  --on-accent: #ffffff;
   --danger: #dc2626;
+  --danger-dark: #b91c1c;
   --danger-soft: #fef2f2;
+  --danger-soft-hover: #fee2e2;
+  --danger-border: #fecaca;
   --success: #16a34a;
+  --warning: #fcd34d;
+  --warning-soft: #fffbeb;
+  --warning-text: #7c2d12;
+  --track: #eef2f7;
+  --heatmap-1: #c7d2fe;
+  --heatmap-2: #a5b4fc;
+  --heatmap-3: var(--primary-light);
+  --heatmap-4: var(--primary);
+  --heatmap-hover: #94a3b8;
+  --heatmap-goal: #22c55e;
+  --overlay: rgb(15 23 42 / 45%);
   --shadow: 0 10px 30px rgb(15 23 42 / 8%);
+  --modal-shadow: 0 20px 50px rgb(15 23 42 / 25%);
   --radius: 14px;
 }
 
@@ -88,7 +107,7 @@ a:focus-visible {
 
 .button--primary {
   background: var(--primary);
-  color: white;
+  color: var(--on-accent);
 }
 
 .button--primary:hover:not(:disabled) {
@@ -102,26 +121,26 @@ a:focus-visible {
 }
 
 .button--ghost:hover:not(:disabled) {
-  background: #f8fafc;
+  background: var(--surface-muted);
 }
 
 .button--danger {
   background: var(--danger);
-  color: white;
+  color: var(--on-accent);
 }
 
 .button--danger:hover:not(:disabled) {
-  background: #b91c1c;
+  background: var(--danger-dark);
 }
 
 .button--danger-ghost {
   background: var(--danger-soft);
   color: var(--danger);
-  border: 1px solid #fecaca;
+  border: 1px solid var(--danger-border);
 }
 
 .button--danger-ghost:hover:not(:disabled) {
-  background: #fee2e2;
+  background: var(--danger-soft-hover);
 }
 
 /* ---------- Pestañas ---------- */
@@ -236,7 +255,7 @@ a:focus-visible {
   height: 1.15em;
   border-radius: 50%;
   background: var(--success);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 0.8em;
   line-height: 1;
 }
@@ -245,7 +264,7 @@ a:focus-visible {
   margin-top: 12px;
   height: 10px;
   border-radius: 999px;
-  background: #e2e8f0;
+  background: var(--border);
   overflow: hidden;
 }
 
@@ -399,7 +418,7 @@ textarea {
 
 .session__notes {
   margin: 6px 0 0;
-  color: #334155;
+  color: var(--text-soft);
   font-size: 0.9rem;
   white-space: pre-wrap;
 }
@@ -477,14 +496,14 @@ textarea {
 
 .subject__track {
   height: 8px;
-  background: #eef2f7;
+  background: var(--track);
   border-radius: 999px;
   overflow: hidden;
 }
 
 .subject__bar {
   height: 100%;
-  background: linear-gradient(90deg, #818cf8, #4f46e5);
+  background: linear-gradient(90deg, var(--primary-light), var(--primary));
   border-radius: 999px;
 }
 
@@ -513,7 +532,7 @@ textarea {
   padding: 16px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: #f8fafc;
+  background: var(--surface-muted);
 }
 
 .heatmap-panel--controls {
@@ -589,7 +608,7 @@ textarea {
   border: 0;
   padding: 0;
   border-radius: 3px;
-  background: #eef2f7;
+  background: var(--track);
   appearance: none;
   font: inherit;
 }
@@ -599,7 +618,7 @@ button.heatmap__cell {
 }
 
 button.heatmap__cell:hover {
-  outline: 2px solid #94a3b8;
+  outline: 2px solid var(--heatmap-hover);
   outline-offset: 1px;
 }
 
@@ -614,27 +633,27 @@ button.heatmap__cell:hover {
 }
 
 .heatmap__cell--l0 {
-  background: #eef2f7;
+  background: var(--track);
 }
 
 .heatmap__cell--l1 {
-  background: #c7d2fe;
+  background: var(--heatmap-1);
 }
 
 .heatmap__cell--l2 {
-  background: #a5b4fc;
+  background: var(--heatmap-2);
 }
 
 .heatmap__cell--l3 {
-  background: #818cf8;
+  background: var(--heatmap-3);
 }
 
 .heatmap__cell--l4 {
-  background: #4f46e5;
+  background: var(--heatmap-4);
 }
 
 .heatmap__cell--goal {
-  outline: 2px solid #22c55e;
+  outline: 2px solid var(--heatmap-goal);
   outline-offset: 1px;
 }
 
@@ -654,7 +673,7 @@ button.heatmap__cell:hover {
   padding: 10px 14px;
   border: 1px solid var(--primary);
   border-radius: 12px;
-  background: #eef2ff;
+  background: var(--primary-soft);
   font-size: 0.92rem;
   margin-bottom: 16px;
 }
@@ -663,7 +682,7 @@ button.heatmap__cell:hover {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgb(15 23 42 / 45%);
+  background: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -676,7 +695,7 @@ button.heatmap__cell:hover {
   border-radius: var(--radius);
   width: 100%;
   max-width: 520px;
-  box-shadow: 0 20px 50px rgb(15 23 42 / 25%);
+  box-shadow: var(--modal-shadow);
   max-height: calc(100vh - 32px);
   overflow-y: auto;
 }
@@ -904,10 +923,10 @@ button.heatmap__cell:hover {
 .notice {
   margin: 0 0 16px;
   padding: 12px 14px;
-  border: 1px solid #fcd34d;
+  border: 1px solid var(--warning);
   border-radius: 10px;
-  background: #fffbeb;
-  color: #7c2d12;
+  background: var(--warning-soft);
+  color: var(--warning-text);
 }
 
 @media (max-width: 560px) {

@@ -10,6 +10,13 @@ paleta obliga a buscar y reemplazar.
 
 **Mitigación:** un token para cada color usado.
 
+**Resuelto (2026-11-26):** todos los colores de `styles.css` están en `:root` como tokens
+semánticos (`--surface-muted`, `--text-soft`, `--on-accent`, `--danger-*`, `--warning-*`,
+`--track`, `--heatmap-*`, `--overlay`, `--modal-shadow`); no quedan hex/rgb/keywords sueltos ni
+valores duplicados con un token existente. `frontend/test/styles.test.js` lo comprueba (rojo →
+verde) y falla si se añade un literal de color fuera de `:root`. La paleta no cambió: los valores
+son idénticos.
+
 ### B11-2 · Estilos de elemento globales (`input/select/textarea`) con posible fuga
 
 `styles.css:312-335` estiliza por **elemento** (`input, select, textarea { width: 100% }`,
