@@ -6,7 +6,7 @@ Memoria del proyecto entre sesiones. Máximo ~50 líneas: resume o elimina lo qu
 
 - v1 de StudyTrack funcionando: monorepo con frontend (React 19 + **Vite 8**) y backend (Node + Express 5). Pestañas: Inicio (tarjetas + heatmap), Historial (filtros, editar, eliminar) y Estadísticas (periodos, temáticas, clase más larga).
 - Persistencia en `backend/data/sessions.json` y `backend/data/themes.json` (ignorados por git): lectura única (single-flight), cola de escrituras, tmp único y fallo explícito si un fichero está corrupto o incoherente.
-- **Calidad**: 617 tests — 229 backend (`node --test`) + 336 frontend (Vitest + jsdom + Testing Library) + 29 del contrato + 12 de `domain-dates` + 9 de `domain-themes` + 2 de `domain-constants` — y ESLint en verde. La suite del backend pasa también con `TZ=Europe/Madrid`.
+- **Calidad**: 634 tests — 229 backend (`node --test`) + 353 frontend (Vitest + jsdom + Testing Library) + 29 del contrato + 12 de `domain-dates` + 9 de `domain-themes` + 2 de `domain-constants` — y ESLint en verde. La suite del backend pasa también con `TZ=Europe/Madrid`.
 - **Feature 001 (modal accesible)** resuelta; patrones aplicados (accesibilidad, foco, scroll, ErrorBoundary, ApiError).
 - **Feature 002 (contrato de datos)** implementada; B0-6 resuelto sin TypeScript.
 - **Feature 003 (red/proxy/CORS)** implementada y validada (corrección 2026-11-06): sin CORS en el backend, proxy con `/api` relativa y `.env` de la raíz, host local del frontend y del backend, errores de red en español. El layout a 375 px queda fuera de alcance. `DEUDA_TECNICA.md`: B1-6, B1-7, B1-10 y B1-11 resueltos; B11-7 registrado.
@@ -27,6 +27,8 @@ Memoria del proyecto entre sesiones. Máximo ~50 líneas: resume o elimina lo qu
 
 - **B9-2 resuelto (2026-11-20)**: el buscador del historial espera 300 ms desde la última tecla (`frontend/src/hooks/useDebouncedValue.js`) antes de consultar, sin retrasar el campo ni los demás filtros; escribir «integrales» pasa de 10 peticiones a 1. Tests del hook y del caso de `HistoryView`, verificados por mutación. Sin cambio de API ni de resultados: no requirió spec. `DEUDA_TECNICA.md`: 59/10/1.
 - **B10-1 resuelto (2026-11-21)**: `StatsPanel` pide las clases con el rango `from`/`to` que calcula `/api/stats` y deja de refiltrarlas en el cliente; `useSessions` gana `enabled` (por defecto `true`) para no pedir nada hasta conocer el rango. Dos tests nuevos (rango solicitado y ausencia de refiltrado; espera del hook), verificados por mutación. Sin cambio de contrato ni de UI observable: no requirió spec. `DEUDA_TECNICA.md`: 60/9/1.
+
+- **B11-1, B11-2 y B11-3 resueltos (2026-11-26)**: tokens de color en `:root`, controles por clase `.control` y `styles.css` dividido en `frontend/src/styles/` (manifiesto `index.css` + 12 hojas por responsabilidad, ninguna de más de 200 líneas); guardas en `frontend/test/styles.test.js` y estilos calculados idénticos a 375 px. `DEUDA_TECNICA.md`: 65/4/1.
 
 ## Decisiones (y por qué)
 

@@ -1,0 +1,35 @@
+/* Tokens de diseño: colores, sombras y radios. */
+:root {
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --text: #0f172a;
+  --text-soft: #334155;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --primary-light: #818cf8;
+  --primary-soft: #eef2ff;
+  --on-accent: #ffffff;
+  --danger: #dc2626;
+  --danger-dark: #b91c1c;
+  --danger-soft: #fef2f2;
+  --danger-soft-hover: #fee2e2;
+  --danger-border: #fecaca;
+  --success: #16a34a;
+  --warning: #fcd34d;
+  --warning-soft: #fffbeb;
+  --warning-text: #7c2d12;
+  --track: #eef2f7;
+  --heatmap-1: #c7d2fe;
+  --heatmap-2: #a5b4fc;
+  --heatmap-3: var(--primary-light);
+  --heatmap-4: var(--primary);
+  --heatmap-hover: #94a3b8;
+  --heatmap-goal: #22c55e;
+  --overlay: rgb(15 23 42 / 45%);
+  --shadow: 0 10px 30px rgb(15 23 42 / 8%);
+  --modal-shadow: 0 20px 50px rgb(15 23 42 / 25%);
+  --radius: 14px;
+}

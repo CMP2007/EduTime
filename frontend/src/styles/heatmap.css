@@ -1,0 +1,159 @@
+/* Calendario de actividad y banner de selección. */
+.heatmap-layout {
+  --heatmap-gap: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--heatmap-gap);
+}
+
+.heatmap-panel {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.heatmap-panel--controls {
+  flex: 0 0 auto;
+  width: 240px;
+  margin-left: calc(var(--heatmap-gap) * 2);
+}
+
+.heatmap-panel--grid {
+  flex: 1 1 0;
+  min-width: 260px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.heatmap__top {
+  margin-bottom: 8px;
+}
+
+.heatmap__year {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.heatmap {
+  flex: 0 0 auto;
+  max-width: 100%;
+}
+
+.heatmap__body {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.heatmap__groups {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px 18px;
+}
+
+.heatmap__group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.heatmap__group-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.heatmap__weeks {
+  display: flex;
+  gap: 3px;
+}
+
+.heatmap__week {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.heatmap__cell {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  padding: 0;
+  border-radius: 3px;
+  background: var(--track);
+  appearance: none;
+  font: inherit;
+}
+
+button.heatmap__cell {
+  cursor: pointer;
+}
+
+button.heatmap__cell:hover {
+  outline: 2px solid var(--heatmap-hover);
+  outline-offset: 1px;
+}
+
+.heatmap__cell--selected,
+.heatmap__cell--selected:hover {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.heatmap__cell--empty {
+  background: transparent;
+}
+
+.heatmap__cell--l0 {
+  background: var(--track);
+}
+
+.heatmap__cell--l1 {
+  background: var(--heatmap-1);
+}
+
+.heatmap__cell--l2 {
+  background: var(--heatmap-2);
+}
+
+.heatmap__cell--l3 {
+  background: var(--heatmap-3);
+}
+
+.heatmap__cell--l4 {
+  background: var(--heatmap-4);
+}
+
+.heatmap__cell--goal {
+  outline: 2px solid var(--heatmap-goal);
+  outline-offset: 1px;
+}
+
+.heatmap__legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 0.8rem;
+}
+
+.selection-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--primary);
+  border-radius: 12px;
+  background: var(--primary-soft);
+  font-size: 0.92rem;
+  margin-bottom: 16px;
+}

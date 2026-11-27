@@ -1,15 +1,33 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const srcDir = join(dirname(testDir), 'src');
-const styles = readFileSync(join(srcDir, 'styles.css'), 'utf8');
+const stylesDir = join(srcDir, 'styles');
+const indexPath = join(stylesDir, 'index.css');
+const mainPath = join(srcDir, 'main.jsx');
+const MAX_LINES_PER_FILE = 200;
+
+// Se leen todas las hojas para que las guardas de tokens y controles cubran el
+// conjunto y no un único archivo. La división por responsabilidad se comprueba
+// con las aserciones estructurales de más abajo.
+const cssFiles = readdirSync(srcDir, { recursive: true })
+  .filter((file) => file.endsWith('.css'))
+  .map((file) => join(srcDir, file));
+
+const styles = cssFiles.map((file) => readFileSync(file, 'utf8')).join('\n');
 
 const ROOT_BLOCK = /:root\s*\{([\s\S]*?)\}/;
 const rootMatch = styles.match(ROOT_BLOCK);
 const outsideRoot = styles.replace(ROOT_BLOCK, '');
+
+const IMPORT = /@import\s+['"]([^'"]+)['"]\s*;/g;
+
+function importedFiles(source) {
+  return [...source.matchAll(IMPORT)].map((match) => match[1].replace(/^\.\//, ''));
+}
 
 // Literales de color que deben vivir solo en los tokens de :root. Se excluyen
 // las palabras que solo contienen "white"/"black" (white-space) y los valores
@@ -68,9 +86,10 @@ function controlTags(source) {
   return tags;
 }
 
-describe('styles.css', () => {
-  it('declara los tokens en un bloque :root', () => {
+describe('hojas de estilo', () => {
+  it('declara los tokens en un único bloque :root', () => {
     expect(rootMatch).not.toBeNull();
+    expect([...styles.matchAll(/:root\s*\{/g)]).toHaveLength(1);
   });
 
   it('no usa literales de color fuera de :root', () => {
@@ -103,5 +122,42 @@ describe('styles.css', () => {
       });
 
     expect(missing).toEqual([]);
+  });
+
+  it('carga las hojas desde un manifiesto que solo contiene @import', () => {
+    expect(existsSync(indexPath)).toBe(true);
+
+    const indexSource = readFileSync(indexPath, 'utf8');
+    const withoutComments = indexSource.replace(/\/\*[\s\S]*?\*\//g, '');
+
+    expect(withoutComments.replace(IMPORT, '').trim()).toBe('');
+  });
+
+  it('importa cada hoja una sola vez y no deja hojas huérfanas', () => {
+    const imports = importedFiles(readFileSync(indexPath, 'utf8'));
+    const partials = cssFiles
+      .filter((file) => file !== indexPath)
+      .map((file) => relative(stylesDir, file))
+      .sort();
+
+    expect(new Set(imports).size).toBe(imports.length);
+    expect([...imports].sort()).toEqual(partials);
+  });
+
+  it('reparte los estilos en hojas por responsabilidad', () => {
+    expect(cssFiles.length).toBeGreaterThan(1);
+
+    const oversized = cssFiles
+      .map((file) => ({
+        file: relative(srcDir, file),
+        lines: readFileSync(file, 'utf8').split('\n').length,
+      }))
+      .filter(({ lines }) => lines > MAX_LINES_PER_FILE);
+
+    expect(oversized).toEqual([]);
+  });
+
+  it('importa el manifiesto desde main.jsx', () => {
+    expect(readFileSync(mainPath, 'utf8')).toContain("import './styles/index.css';");
   });
 });

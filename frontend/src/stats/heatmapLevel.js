@@ -12,7 +12,7 @@ import { GOAL_MINUTES } from 'domain-constants';
  * - nivel 4: desde la meta diaria (`GOAL_MINUTES`, 180 minutos).
  *
  * Es una escala solo visual: se traduce en las clases `heatmap__cell--l<n>` de
- * `styles.css` y no altera los datos ni las estadísticas.
+ * `styles/heatmap.css` y no altera los datos ni las estadísticas.
  */
 export const HEATMAP_THRESHOLDS = [60, 120, GOAL_MINUTES];
 

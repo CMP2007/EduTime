@@ -1,0 +1,63 @@
+/* Base: reset, documento, estructura de la app y preferencias del sistema. */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+.app {
+  width: min(1040px, calc(100% - 32px));
+  margin: 32px auto 64px;
+}
+
+.app__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.app__title {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.app__subtitle {
+  margin: 2px 0 0;
+  color: var(--muted);
+}
+
+.app__content {
+  margin-top: 20px;
+}
+
+.app__content:focus {
+  outline: none;
+}
+
+.app__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Respeta la preferencia de sistema "reducir movimiento" */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

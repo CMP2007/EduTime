@@ -1,0 +1,65 @@
+/* Botones y foco visible de teclado. */
+.button {
+  border: 0;
+  border-radius: 10px;
+  padding: 0 16px;
+  min-height: 42px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Foco de teclado visible y consistente (ratón no lo muestra) */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.button--primary {
+  background: var(--primary);
+  color: var(--on-accent);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.button--ghost {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.button--ghost:hover:not(:disabled) {
+  background: var(--surface-muted);
+}
+
+.button--danger {
+  background: var(--danger);
+  color: var(--on-accent);
+}
+
+.button--danger:hover:not(:disabled) {
+  background: var(--danger-dark);
+}
+
+.button--danger-ghost {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+}
+
+.button--danger-ghost:hover:not(:disabled) {
+  background: var(--danger-soft-hover);
+}

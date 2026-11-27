@@ -1,0 +1,13 @@
+/* Manifiesto de estilos: el orden de carga fija la cascada. */
+@import './tokens.css';
+@import './base.css';
+@import './buttons.css';
+@import './tabs.css';
+@import './cards.css';
+@import './forms.css';
+@import './sessions.css';
+@import './stats.css';
+@import './heatmap.css';
+@import './modal.css';
+@import './themes.css';
+@import './utilities.css';

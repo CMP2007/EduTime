@@ -1,0 +1,42 @@
+/* Pestañas de navegación. */
+.tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--surface);
+  padding: 6px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  width: fit-content;
+}
+
+.tabs__tab {
+  border: 0;
+  background: transparent;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.tabs__tab:hover {
+  color: var(--text);
+}
+
+.tabs__tab--active {
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+}
+
+@media (max-width: 560px) {
+  .tabs {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .tabs__tab {
+    flex: 1;
+    padding: 10px 12px;
+  }
+}

@@ -91,7 +91,7 @@ frontend/src/
   stats/                       # api, hook, tarjetas, heatmap
   themes/                      # api, hook, selector, gestor y borrado
   utils/                       # helpers de tiempo y fecha
-  styles.css                   # estilos globales
+  styles/                      # hojas por responsabilidad; index.css fija el orden
 ```
 
 ### Modelo, reglas y API (fuente oficial: [`README.md`](README.md))
@@ -105,6 +105,7 @@ Reglas de negocio, modelo (`Theme` y `Session` con `themeId`/`themeName`) y endp
 - **Backend**: `server.js` solo arranca; rutas en `*.routes.js`, lógica en `*.service.js`, datos en `*.repository.js` (principio 3).
 - **Repositorios**: patrón fábrica (`createXRepository(store)`) con almacenamiento inyectable para poder simularlo en tests. Devuelven copias (`{ ...item }`).
 - **Frontend**: un componente por archivo; datos en hooks (`use*.js`) y HTTP en `*.api.js`.
+- **Estilos**: `frontend/src/styles/index.css` es el único punto de entrada (lo importa `main.jsx`) y solo contiene `@import` en orden de cascada. Cada hoja cubre una responsabilidad (tokens, base, botones, pestañas, tarjetas, formularios, sesiones, estadísticas, heatmap, modales, temáticas y utilidades) y no supera 200 líneas; `frontend/test/styles.test.js` lo comprueba. Los colores viven solo en `tokens.css` y los controles se estilan con la clase `.control`.
 - **Contrato de datos**: `packages/domain-contracts` es la fuente única de `/api/themes`, `/api/stats` y `/api/sessions`. El frontend valida con `assertTheme`, `assertThemeList`, `assertStats`, `assertSession` o `assertSessionList`; el backend usa las mismas funciones en sus tests. Se valida presencia, tipo y obligatoriedad (no formatos ni reglas de negocio) y se toleran campos extra. Un fallo lanza `ContractError` con la ruta del primer campo inválido (`summary.totalMinutes`, `[1].durationMinutes`).
 - **Temáticas**: `packages/domain-themes` es la fuente única para normalizar (`normalizeThemeName`), comparar duplicados (`isSameThemeName`) y ordenar (`compareThemeNames`). Se conserva el nombre visible; la comparación ignora extremos, mayúsculas y tildes.
 - **Fechas**: `packages/domain-dates` es la fuente única para validar (`isValidDateString`), comparar por tupla (`compareDateStrings`) y recortar rangos derivados (`clampDateRange`). Las entradas de usuario se validan, nunca se recortan; solo los rangos del sistema se recortan a 1990-01-01–9999-12-31 y, si cambian, la API lo comunica en `notice`.

@@ -1,0 +1,39 @@
+/* Campos y controles de formulario compartidos. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.field--grow {
+  flex: 1;
+  min-width: 180px;
+}
+
+.field__label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.control {
+  font: inherit;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  width: 100%;
+}
+
+.control:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+  border-color: var(--primary);
+}
+
+.control--textarea {
+  resize: none;
+  min-height: 56px;
+  overflow: hidden;
+}

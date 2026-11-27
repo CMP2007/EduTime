@@ -33,6 +33,16 @@ mal.
 
 **Mitigación:** dividir por feature (`sessions.css`, `stats.css`…) o adoptar una convención.
 
+**Resuelto (2026-11-26):** `frontend/src/styles.css` se divide en `frontend/src/styles/`:
+`index.css` es el único punto de entrada (solo `@import`, en orden de cascada) y hay 12 hojas por
+responsabilidad (`tokens`, `base`, `buttons`, `tabs`, `cards`, `forms`, `sessions`, `stats`,
+`heatmap`, `modal`, `themes`, `utilities`); la mayor tiene 159 líneas. Las declaraciones se
+copiaron literales y el orden de carga reproduce la cascada anterior, así que la apariencia no
+cambia. `frontend/test/styles.test.js` conserva las guardas de B11-1/B11-2 sobre todas las hojas y
+añade cuatro estructurales (manifiesto solo con `@import`, cada hoja importada una vez sin
+huérfanas, límite de 200 líneas y entrada desde `main.jsx`), verificadas en rojo → verde; estilos
+calculados idénticos a 375 px. Refactor sin cambio observable: no requiere spec.
+
 ### B11-4 · Sin `:focus-visible` ni `prefers-reduced-motion`
 
 El foco se marca con `:focus` (`styles.css:324-329`), de modo que aparece también al hacer clic;

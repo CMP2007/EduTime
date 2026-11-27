@@ -1,0 +1,133 @@
+/* Tarjetas, métricas y progreso del tablero. */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+
+.card + .card {
+  margin-top: 16px;
+}
+
+.card--center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.card__header {
+  margin-bottom: 12px;
+}
+
+.card__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.card__description {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.metric {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.metric__value {
+  font-size: 1.9rem;
+  font-weight: 700;
+}
+
+.metric__unit {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.metric__hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.goal-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  color: var(--success);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.check-round {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15em;
+  height: 1.15em;
+  border-radius: 50%;
+  background: var(--success);
+  color: var(--on-accent);
+  font-size: 0.8em;
+  line-height: 1;
+}
+
+.progress {
+  margin-top: 12px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.progress__bar {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.progress__bar--done {
+  background: var(--success);
+}
+
+.goal-breakdown {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  gap: 20px;
+}
+
+.goal-breakdown li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.goal-breakdown__label {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.goal-breakdown__value {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.goal-breakdown__unit {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
